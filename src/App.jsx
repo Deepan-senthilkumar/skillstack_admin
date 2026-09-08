@@ -34,8 +34,19 @@ export default function App() {
       setLoading(false);
     }
 
-    // Check backend health
-    api.checkHealth().then(h => setBackendOnline(h.status === 'ok'));
+    // Check backend health — retry until online (Render free tier sleeps)
+    const checkBackend = () => {
+      api.checkHealth().then(h => {
+        if (h.status === 'ok') {
+          setBackendOnline(true);
+        } else {
+          setBackendOnline(false);
+          // Retry after 15s if offline (Render cold start can take ~30s)
+          setTimeout(checkBackend, 15000);
+        }
+      });
+    };
+    checkBackend();
 
     // Listen for forced logout
     window.addEventListener('admin:logout', handleLogout);
@@ -103,7 +114,7 @@ export default function App() {
         <div className="topbar-brand">
           <div className="topbar-logo"><Shield size={20} /></div>
           <div>
-            <span className="topbar-title">Django Kalari</span>
+            <span className="topbar-title">SkillStack</span>
             <span className="topbar-badge">Admin Studio</span>
           </div>
         </div>
