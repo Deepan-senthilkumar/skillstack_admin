@@ -3,11 +3,12 @@ import {
   Users, CheckCircle2, Clock, AlertCircle, Shield, Unlock, Lock,
   Calendar, Check, FileCode, MessageSquare, Award, RefreshCw, Send,
   Plus, Edit, Trash2, X, Sparkles, FolderPlus, BookPlus, UserPlus,
-  Trophy, Download, Eye, CheckSquare
+  Trophy, Download, Eye, CheckSquare, BookOpen
 } from 'lucide-react';
 import { api } from '../api';
 
-export default function StaffDashboard({ curriculum, onRefreshCurriculum, subjects: initialSubjects, onSubjectsUpdated }) {
+export default function StaffDashboard({ curriculum: rawCurriculum, onRefreshCurriculum, subjects: initialSubjects, onSubjectsUpdated }) {
+  const curriculum = Array.isArray(rawCurriculum) ? rawCurriculum : (rawCurriculum?.results || []);
   const [activeTab, setActiveTab] = useState('subjects'); // 'subjects' | 'faculty' | 'access' | 'submissions' | 'leaderboard' | 'students'
   const [analytics, setAnalytics] = useState(null);
   const [submissions, setSubmissions] = useState([]);

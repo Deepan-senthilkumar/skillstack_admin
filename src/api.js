@@ -24,8 +24,13 @@ class AdminApiClient {
   }
 
   getUser() {
-    const u = localStorage.getItem('kalari_admin_user');
-    return u ? JSON.parse(u) : null;
+    try {
+      const u = localStorage.getItem('kalari_admin_user');
+      return u ? JSON.parse(u) : null;
+    } catch (e) {
+      console.warn('Failed to parse cached admin user', e);
+      return null;
+    }
   }
 
   setUser(user) {

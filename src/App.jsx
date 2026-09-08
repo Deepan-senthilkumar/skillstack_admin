@@ -8,7 +8,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [subjects, setSubjects] = useState([]);
-  const [curriculum, setCurriculum] = useState(null);
+  const [curriculum, setCurriculum] = useState([]);
   const [backendOnline, setBackendOnline] = useState(null);
   const [selectedSubjectSlug, setSelectedSubjectSlug] = useState('django');
 
@@ -46,10 +46,12 @@ export default function App() {
     try {
       const [subs, curr] = await Promise.all([
         api.getSubjects().catch(() => []),
-        api.getCurriculum(selectedSubjectSlug).catch(() => null),
+        api.getCurriculum(selectedSubjectSlug).catch(() => []),
       ]);
-      setSubjects(subs.results || subs || []);
-      setCurriculum(curr);
+      const safeSubs = Array.isArray(subs) ? subs : (subs?.results || []);
+      const safeCurr = Array.isArray(curr) ? curr : (curr?.results || []);
+      setSubjects(safeSubs);
+      setCurriculum(safeCurr);
     } catch (e) {
       console.error('Bootstrap error', e);
     }
@@ -64,17 +66,19 @@ export default function App() {
     api.clearTokens();
     setUser(null);
     setSubjects([]);
-    setCurriculum(null);
+    setCurriculum([]);
   };
 
   const handleRefreshCurriculum = async () => {
-    const curr = await api.getCurriculum(selectedSubjectSlug).catch(() => null);
-    setCurriculum(curr);
+    const curr = await api.getCurriculum(selectedSubjectSlug).catch(() => []);
+    const safeCurr = Array.isArray(curr) ? curr : (curr?.results || []);
+    setCurriculum(safeCurr);
   };
 
   const handleSubjectsUpdated = async () => {
     const subs = await api.getSubjects().catch(() => []);
-    setSubjects(subs.results || subs || []);
+    const safeSubs = Array.isArray(subs) ? subs : (subs?.results || []);
+    setSubjects(safeSubs);
   };
 
   if (loading) {
