@@ -1,6 +1,6 @@
 /* ============================================================
-   DJANGO KALARI — ADMIN PANEL CSS
-   Navy Blue + White clean professional admin interface
+   SKILLSTACK — ADMIN COMMAND CENTER CSS
+   Vibrant Electric Violet + Neon Cyan Interface
    ============================================================ */
 
 /* Fonts */
@@ -8,14 +8,14 @@
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 :root {
-  --blue-900: #0F1E4A;
-  --blue-800: #1A2E6B;
-  --blue-700: #1E3A8A;
-  --blue-600: #2563EB;
-  --blue-500: #3B82F6;
-  --blue-400: #60A5FA;
-  --blue-100: #DBEAFE;
-  --blue-50:  #EFF6FF;
+  --blue-900: #1E1B4B;
+  --blue-800: #312E81;
+  --blue-700: #4338CA;
+  --blue-600: #4F46E5;
+  --blue-500: #6366F1;
+  --blue-400: #818CF8;
+  --blue-100: #E0E7FF;
+  --blue-50:  #EEF2FF;
 
   --white:    #FFFFFF;
   --gray-50:  #F8FAFC;
@@ -29,21 +29,21 @@
 
   --success: #10B981;
   --warning: #F59E0B;
-  --error:   #EF4444;
+  --error:   #E11D48;
   --info:    #06B6D4;
 
-  --gradient: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
-  --gradient-soft: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  --gradient: linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #06B6D4 100%);
+  --gradient-soft: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
 
   --radius-sm: 6px;
   --radius:    10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
 
-  --shadow-sm:  0 1px 3px rgba(30,58,138,0.08);
-  --shadow:     0 4px 12px rgba(30,58,138,0.12);
-  --shadow-md:  0 8px 24px rgba(30,58,138,0.14);
-  --shadow-lg:  0 16px 40px rgba(30,58,138,0.16);
+  --shadow-sm:  0 1px 3px rgba(79,70,229,0.08);
+  --shadow:     0 4px 12px rgba(79,70,229,0.12);
+  --shadow-md:  0 8px 24px rgba(79,70,229,0.14);
+  --shadow-lg:  0 16px 40px rgba(79,70,229,0.16);
 
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;

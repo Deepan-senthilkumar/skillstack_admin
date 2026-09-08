@@ -37,12 +37,19 @@ export default function AdminLoginPage({ onLoginSuccess }) {
       <div className="login-container">
         {/* Branding */}
         <div className="login-brand">
-          <div className="login-logo">
-            <Shield size={28} />
-          </div>
+          <img
+            src="/skillstack.png"
+            alt="SkillStack Logo"
+            style={{
+              height: '42px',
+              width: 'auto',
+              borderRadius: '8px',
+              filter: 'drop-shadow(0 2px 8px rgba(99, 102, 241, 0.4))'
+            }}
+          />
           <div>
-            <h1 className="login-title">Django Kalari</h1>
-            <p className="login-subtitle">Admin Control Panel</p>
+            <h1 className="login-title">SkillStack</h1>
+            <p className="login-subtitle">Admin Command Center</p>
           </div>
         </div>
 

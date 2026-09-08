@@ -566,11 +566,23 @@ export default function StaffDashboard({ curriculum, onRefreshCurriculum, subjec
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '36px 24px 80px' }}>
       {/* Top Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--amber)', fontSize: '12.5px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
-            <Shield size={16} /> Staff & Instructor Command Center
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <img
+            src="/skillstack.png"
+            alt="SkillStack Logo"
+            style={{
+              height: '46px',
+              width: 'auto',
+              borderRadius: '8px',
+              filter: 'drop-shadow(0 2px 8px rgba(99, 102, 241, 0.35))'
+            }}
+          />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--amber)', fontSize: '12.5px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
+              <Shield size={16} /> SkillStack Admin Command Center
+            </div>
+            <h1 style={{ fontSize: '28px' }}>Course Management & CRUD Studio</h1>
           </div>
-          <h1 style={{ fontSize: '30px' }}>Course Management & Full CRUD Studio</h1>
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
