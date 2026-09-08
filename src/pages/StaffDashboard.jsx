@@ -563,1022 +563,507 @@ export default function StaffDashboard({ curriculum: rawCurriculum, onRefreshCur
     }
   };
 
+  // ── Pagination helper ──────────────────────────────────────────
+  const usePagination = (data, pageSize) => {
+    const [page, setPage] = React.useState(1);
+    const total = data.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const safePages = Math.min(page, totalPages);
+    const start = (safePages - 1) * pageSize;
+    const slice = data.slice(start, start + pageSize);
+    return { slice, page: safePages, totalPages, total, start, setPage };
+  };
+
+  const Pagination = ({ page, totalPages, total, start, pageSize, setPage, label = 'rows' }) => {
+    if (total === 0) return null;
+    const end = Math.min(start + pageSize, total);
+    const pages = [];
+    const range = 2;
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= page - range && i <= page + range)) pages.push(i);
+      else if (pages[pages.length - 1] !== '...') pages.push('...');
+    }
+    return (
+      <div className="pagination-bar">
+        <span className="pagination-info">Showing {start + 1}–{end} of {total} {label}</span>
+        <div className="pagination-controls">
+          <button className="pg-btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>‹ Prev</button>
+          {pages.map((p, i) =>
+            p === '...'
+              ? <span key={`e${i}`} className="pg-ellipsis">…</span>
+              : <button key={p} className={`pg-btn ${p === page ? 'active' : ''}`} onClick={() => setPage(p)}>{p}</button>
+          )}
+          <button className="pg-btn" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next ›</button>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Per-table page sizes ────────────────────────────────────────
+  const [submissionsPageSize, setSubmissionsPageSize] = React.useState(10);
+  const [studentsPageSize, setStudentsPageSize]       = React.useState(10);
+  const [leaderboardPageSize, setLeaderboardPageSize] = React.useState(10);
+
+  const submissionsPag  = usePagination(submissions, submissionsPageSize);
+  const studentsPag     = usePagination(students, studentsPageSize);
+  const leaderboardPag  = usePagination(studentPerformance, leaderboardPageSize);
+
+  // Nav items config
+  const navItems = [
+    { id: 'subjects',     icon: '📚', label: 'Subject Tracks',     badge: subjectsList.length },
+    { id: 'faculty',      icon: '👨‍🏫', label: 'Faculty Team',       badge: faculty.length },
+    { id: 'access',       icon: '🔐', label: 'Syllabus & Access',   badge: null },
+    { id: 'submissions',  icon: '⚡', label: 'Submissions',         badge: analytics?.pending_review || null },
+    { id: 'leaderboard',  icon: '🏆', label: 'Leaderboard',         badge: null },
+    { id: 'students',     icon: '👥', label: 'Student Roster',      badge: students.length },
+  ];
+
+  const pageHeadings = {
+    subjects:    { title: 'Curriculum Subjects & Specialized Tracks', sub: 'Manage all academic tracks, syllabuses, and subject details.' },
+    faculty:     { title: 'Academy Faculty Team', sub: 'Domain instructors who mentor batches and review student submissions.' },
+    access:      { title: 'Syllabus & Challenge Controls', sub: 'Manage module access, deadlines, and challenge CRUD.' },
+    submissions: { title: 'Auto-Graded Submissions', sub: 'Inspect, grade, and override student code submissions.' },
+    leaderboard: { title: 'Marks Observer & Leaderboard', sub: 'Automated student performance rankings and grade exports.' },
+    students:    { title: 'Student Roster', sub: 'View and manage all enrolled students.' },
+  };
+
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '36px 24px 80px' }}>
-      {/* Top Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <img
-            src="/skillstack.png"
-            alt="SkillStack Logo"
-            style={{
-              height: '46px',
-              width: 'auto',
-              borderRadius: '8px',
-              filter: 'drop-shadow(0 2px 8px rgba(99, 102, 241, 0.35))'
-            }}
-          />
+    <div className="dash-layout">
+
+      {/* ── SIDEBAR ──────────────────────────────────────────── */}
+      <aside className="dash-sidebar">
+        <div className="sidebar-brand">
+          <img src="/skillstack.png" alt="Logo" className="sidebar-logo" />
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--amber)', fontSize: '12.5px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
-              <Shield size={16} /> SkillStack Admin Command Center
-            </div>
-            <h1 style={{ fontSize: '28px' }}>Course Management & CRUD Studio</h1>
+            <div className="sidebar-brand-name">SkillStack</div>
+            <div className="sidebar-brand-sub">Admin Command Center</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            className="btn-primary"
-            onClick={openCreateModule}
-            style={{ fontSize: '13px', padding: '8px 16px' }}
-          >
-            <FolderPlus size={15} /> Add Module
-          </button>
-          <button
-            className="btn-primary"
-            onClick={() => openCreateTopic()}
-            style={{ fontSize: '13px', padding: '8px 16px', background: 'var(--amber)', color: '#000' }}
-          >
-            <BookPlus size={15} /> Add Topic
-          </button>
-          <button
-            className="btn-secondary"
-            onClick={loadData}
-            disabled={loading}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <RefreshCw size={14} className={loading ? 'spin-slow' : ''} /> Refresh
-          </button>
-        </div>
-      </div>
-
-      {/* Analytics Summary Cards */}
-      <div className="staff-stats-grid">
-        <div className="stat-card">
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Enrolled Students</div>
-          <div className="stat-val" style={{ color: 'var(--blue)' }}>{analytics?.total_students || students.length || 0}</div>
-        </div>
-        <div className="stat-card">
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Syllabus Challenges</div>
-          <div className="stat-val">{analytics?.total_problems || 48}</div>
-        </div>
-        <div className="stat-card">
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Unlocked Challenges</div>
-          <div className="stat-val" style={{ color: 'var(--accent)' }}>{analytics?.unlocked_problems || 0}</div>
-        </div>
-        <div className="stat-card">
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Pending Review</div>
-          <div className="stat-val" style={{ color: 'var(--amber)' }}>{analytics?.pending_review || 0}</div>
-        </div>
-        <div className="stat-card">
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Passed Submissions</div>
-          <div className="stat-val" style={{ color: '#5CC194' }}>{analytics?.passed_count || 0}</div>
-        </div>
-      </div>
-
-      {/* Dashboard Tabs */}
-      <div style={{
-        display: 'flex',
-        borderBottom: '1px solid var(--border-subtle)',
-        marginBottom: '26px',
-        gap: '20px',
-        flexWrap: 'wrap'
-      }}>
-        <button
-          onClick={() => setActiveTab('subjects')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'subjects' ? '2.5px solid var(--blue-primary)' : '2.5px solid transparent',
-            color: activeTab === 'subjects' ? 'var(--blue-primary)' : 'var(--text-secondary)',
-            fontWeight: 800,
-            padding: '12px 6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <BookOpen size={16} /> 📚 Subject Tracks ({subjectsList.length})
-        </button>
-
-        <button
-          onClick={() => setActiveTab('faculty')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'faculty' ? '2.5px solid var(--blue-primary)' : '2.5px solid transparent',
-            color: activeTab === 'faculty' ? 'var(--blue-primary)' : 'var(--text-secondary)',
-            fontWeight: 800,
-            padding: '12px 6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <Shield size={16} /> 👨‍🏫 Faculty Team ({faculty.length}/10 Staff)
-        </button>
-
-        <button
-          onClick={() => setActiveTab('access')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'access' ? '2.5px solid var(--blue-primary)' : '2.5px solid transparent',
-            color: activeTab === 'access' ? 'var(--blue-primary)' : 'var(--text-secondary)',
-            fontWeight: 800,
-            padding: '12px 6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <Unlock size={16} /> Syllabus & Challenge Controls
-        </button>
-
-        <button
-          onClick={() => setActiveTab('submissions')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'submissions' ? '2.5px solid var(--blue-primary)' : '2.5px solid transparent',
-            color: activeTab === 'submissions' ? 'var(--blue-primary)' : 'var(--text-secondary)',
-            fontWeight: 800,
-            padding: '12px 6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <CheckCircle2 size={16} color="var(--blue-vibrant)" /> ⚡ Auto-Graded Submissions
-          {analytics?.pending_review > 0 && (
-            <span style={{
-              background: 'var(--blue-soft)',
-              color: 'var(--blue-primary)',
-              border: '1px solid var(--blue-border)',
-              padding: '1px 7px',
-              borderRadius: '999px',
-              fontSize: '11px',
-              fontWeight: 800
-            }}>
-              {analytics.pending_review} New
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('leaderboard')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'leaderboard' ? '2.5px solid var(--blue-primary)' : '2.5px solid transparent',
-            color: activeTab === 'leaderboard' ? 'var(--blue-primary)' : 'var(--text-secondary)',
-            fontWeight: 800,
-            padding: '12px 6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <Trophy size={16} color="var(--blue-vibrant)" /> Marks Observer & Leaderboard
-        </button>
-
-        <button
-          onClick={() => setActiveTab('students')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'students' ? '2.5px solid var(--blue-primary)' : '2.5px solid transparent',
-            color: activeTab === 'students' ? 'var(--blue-primary)' : 'var(--text-secondary)',
-            fontWeight: 800,
-            padding: '12px 6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <Users size={16} /> Student Roster ({students.length})
-        </button>
-      </div>
-
-      {/* TAB: SUBJECT MANAGEMENT */}
-      {activeTab === 'subjects' && (
-        <div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '24px',
-            background: '#FFFFFF',
-            padding: '20px 24px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-subtle)',
-            boxShadow: 'var(--shadow-sm)',
-            flexWrap: 'wrap',
-            gap: '14px'
-          }}>
-            <div>
-              <h2 style={{ fontSize: '20px', marginBottom: '4px', color: 'var(--text-primary)' }}>
-                Curriculum Subjects & Specialized Tracks
-              </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '13.5px' }}>
-                Manage all academic tracks. Django is pre-loaded with complete syllabus, architecture models, and practice labs.
-              </p>
-            </div>
-
+        <nav className="sidebar-nav">
+          {navItems.map(item => (
             <button
-              className="btn-primary"
-              onClick={openCreateSubject}
-              style={{ padding: '10px 18px', fontSize: '13px' }}
+              key={item.id}
+              className={`sidebar-nav-item ${activeTab === item.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(item.id)}
             >
-              <Plus size={15} /> Add New Subject
+              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-label">{item.label}</span>
+              {item.badge > 0 && (
+                <span className={`nav-badge ${item.id === 'submissions' ? 'badge-warn' : ''}`}>
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Sidebar stats */}
+        <div className="sidebar-stats">
+          <div className="sb-stat"><span className="sb-val" style={{color:'var(--blue-primary)'}}>{analytics?.total_students || students.length || 0}</span><span className="sb-key">Students</span></div>
+          <div className="sb-stat"><span className="sb-val">{analytics?.total_problems || 48}</span><span className="sb-key">Challenges</span></div>
+          <div className="sb-stat"><span className="sb-val" style={{color:'var(--amber)'}}>{analytics?.pending_review || 0}</span><span className="sb-key">Pending</span></div>
+          <div className="sb-stat"><span className="sb-val" style={{color:'var(--emerald)'}}>{analytics?.passed_count || 0}</span><span className="sb-key">Passed</span></div>
+        </div>
+      </aside>
+
+      {/* ── MAIN CONTENT ─────────────────────────────────────── */}
+      <main className="dash-content">
+
+        {/* Page Header */}
+        <div className="page-header">
+          <div className="page-header-left">
+            <div className="page-breadcrumb">Admin Studio · {navItems.find(n => n.id === activeTab)?.label}</div>
+            <h1 className="page-title">{pageHeadings[activeTab]?.title}</h1>
+            <p className="page-sub">{pageHeadings[activeTab]?.sub}</p>
+          </div>
+          <div className="page-header-actions">
+            {activeTab === 'access' && (
+              <>
+                <button className="btn-primary" onClick={openCreateModule} style={{fontSize:'13px',padding:'8px 16px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg> Add Module</button>
+                <button className="btn-primary" onClick={() => openCreateTopic()} style={{fontSize:'13px',padding:'8px 16px',background:'var(--amber)',color:'#000'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Add Topic</button>
+              </>
+            )}
+            {activeTab === 'subjects' && (
+              <button className="btn-primary" onClick={openCreateSubject} style={{fontSize:'13px',padding:'8px 16px'}}>+ Add Subject</button>
+            )}
+            {activeTab === 'faculty' && (
+              <button className="btn-primary" onClick={openCreateFaculty} style={{fontSize:'13px',padding:'8px 16px'}}>+ Add Staff Account</button>
+            )}
+            {activeTab === 'students' && (
+              <button className="btn-primary" onClick={() => setStudentModalOpen(true)} style={{fontSize:'13px',padding:'8px 16px'}}>+ Enroll Student</button>
+            )}
+            {activeTab === 'leaderboard' && (
+              <button className="btn-primary" onClick={handleExportMarksCSV} style={{fontSize:'13px',padding:'8px 16px'}}>⬇ Export CSV</button>
+            )}
+            <button className="btn-secondary" onClick={loadData} disabled={loading} style={{fontSize:'13px',padding:'8px 14px'}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={loading ? 'spin' : ''}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              {loading ? 'Refreshing…' : 'Refresh'}
             </button>
           </div>
+        </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-            gap: '20px'
-          }}>
-            {subjectsList.map(sub => (
-              <div
-                key={sub.id}
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: 'var(--radius-xl)',
-                  border: '1px solid var(--border-subtle)',
-                  padding: '24px',
-                  boxShadow: 'var(--shadow-sm)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: '16px'
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span className="subject-level-badge">{sub.level || 'All Levels'}</span>
-                    <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 600 }}>{sub.duration || '8 Weeks'}</span>
-                  </div>
-
-                  <h3 style={{ fontSize: '18px', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                    {sub.name}
-                  </h3>
-
-                  <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '14px' }}>
-                    {sub.short_description || sub.description?.slice(0, 120) + '...'}
-                  </p>
-
-                  <div style={{
-                    fontSize: '12px',
-                    color: 'var(--blue-primary)',
-                    background: 'var(--blue-soft)',
-                    padding: '6px 10px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontWeight: 600
-                  }}>
-                    Instructor: {sub.instructor_name || 'Prof. Deepan & Staff Team'}
-                  </div>
+        {/* ── TAB: SUBJECT TRACKS ──────────────────────────── */}
+        {activeTab === 'subjects' && (
+          <div className="subjects-grid">
+            {subjectsList.length === 0 ? (
+              <div className="empty-state">No subjects yet. Click "Add Subject" to create one.</div>
+            ) : subjectsList.map(sub => (
+              <div key={sub.id} className="subject-card">
+                <div className="subject-card-top">
+                  <span className="subject-level-badge">{sub.level || 'All Levels'}</span>
+                  <span className="subject-duration">{sub.duration || '8 Weeks'}</span>
                 </div>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  gap: '8px',
-                  borderTop: '1px solid var(--border-subtle)',
-                  paddingTop: '14px'
-                }}>
-                  <button
-                    className="btn-secondary"
-                    onClick={() => openEditSubject(sub)}
-                    style={{ padding: '6px 12px', fontSize: '12px' }}
-                  >
-                    <Edit size={13} /> Edit Subject
-                  </button>
-
-                  <button
-                    className="btn-secondary"
-                    onClick={() => handleDeleteSubject(sub)}
-                    style={{ padding: '6px 10px', fontSize: '12px', color: 'var(--coral)' }}
-                    title="Delete Subject"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                <h3 className="subject-card-title">{sub.name}</h3>
+                <p className="subject-card-desc">{sub.short_description || sub.description?.slice(0, 120) + '…'}</p>
+                <div className="subject-instructor">👤 {sub.instructor_name || 'Prof. Deepan & Staff Team'}</div>
+                <div className="subject-card-footer">
+                  <button className="btn-secondary" onClick={() => openEditSubject(sub)} style={{fontSize:'12px',padding:'5px 10px'}}>✏ Edit</button>
+                  <button className="btn-danger" onClick={() => handleDeleteSubject(sub)} style={{fontSize:'12px',padding:'5px 9px'}} title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* TAB: FACULTY TEAM (10 STAFF MEMBERS) */}
-      {activeTab === 'faculty' && (
-        <div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '24px',
-            background: '#FFFFFF',
-            padding: '20px 24px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-subtle)',
-            boxShadow: 'var(--shadow-sm)',
-            flexWrap: 'wrap',
-            gap: '14px'
-          }}>
-            <div>
-              <h2 style={{ fontSize: '20px', marginBottom: '4px', color: 'var(--text-primary)' }}>
-                Academy Faculty Team (10 Staff Instructors)
-              </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '13.5px' }}>
-                Domain instructors manage syllabus tracks, observe student code submissions, and mentor batches.
-              </p>
-            </div>
-
-            <button
-              className="btn-primary"
-              onClick={openCreateFaculty}
-              style={{ padding: '10px 18px', fontSize: '13px' }}
-            >
-              <UserPlus size={15} /> Add Staff Account
-            </button>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '18px'
-          }}>
-            {faculty.map(fac => (
-              <div
-                key={fac.id}
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--border-subtle)',
-                  padding: '20px',
-                  boxShadow: 'var(--shadow-sm)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: '14px'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                  <div style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '50%',
-                    background: 'var(--blue-gradient)',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 700,
-                    fontSize: '15px',
-                    flexShrink: 0,
-                    boxShadow: '0 4px 10px var(--blue-glow)'
-                  }}>
-                    {(fac.full_name || fac.username).slice(0, 2).toUpperCase()}
+        {/* ── TAB: FACULTY TEAM ────────────────────────────── */}
+        {activeTab === 'faculty' && (
+          <div className="faculty-grid">
+            {faculty.length === 0 ? (
+              <div className="empty-state">No faculty added yet.</div>
+            ) : faculty.map(fac => (
+              <div key={fac.id} className="faculty-card">
+                <div className="faculty-avatar">{(fac.full_name || fac.username).slice(0,2).toUpperCase()}</div>
+                <div className="faculty-info">
+                  <div className="faculty-name-row">
+                    <span className="faculty-name">{fac.full_name || fac.username}</span>
+                    <span className={`badge-role ${fac.is_admin_role || fac.is_superuser ? 'role-staff' : 'role-student'}`} style={{fontSize:'10px'}}>
+                      {fac.is_admin_role || fac.is_superuser ? 'Super Admin' : 'Staff'}
+                    </span>
                   </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <h4 style={{ fontSize: '15px', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
-                        {fac.full_name || fac.username}
-                      </h4>
-                      <span className={`badge-role ${fac.is_admin_role || fac.is_superuser ? 'role-staff' : 'role-student'}`} style={{ fontSize: '10px' }}>
-                        {fac.is_admin_role || fac.is_superuser ? 'Super Admin' : 'Staff Faculty'}
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                      @{fac.username} &bull; {fac.email}
-                    </div>
-
-                    <div style={{
-                      marginTop: '10px',
-                      fontSize: '12px',
-                      color: 'var(--blue-primary)',
-                      background: 'var(--blue-soft)',
-                      padding: '4px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      fontWeight: 600
-                    }}>
-                      Track: {fac.assigned_subject_name || 'All Tracks / Lead Mentor'}
-                    </div>
-                  </div>
+                  <div className="faculty-meta">@{fac.username} · {fac.email}</div>
+                  <div className="faculty-track">📚 {fac.assigned_subject_name || 'All Tracks'}</div>
                 </div>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderTop: '1px solid var(--border-subtle)',
-                  paddingTop: '10px',
-                  fontSize: '11.5px',
-                  color: 'var(--text-tertiary)'
-                }}>
-                  <span>Joined: {new Date(fac.date_joined).toLocaleDateString()}</span>
+                <div className="faculty-footer">
+                  <span style={{fontSize:'11px',color:'var(--text-tertiary)'}}>Joined {new Date(fac.date_joined).toLocaleDateString()}</span>
                   {!fac.is_superuser && (
-                    <button
-                      onClick={() => handleDeleteFaculty(fac)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--coral)',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '12px'
-                      }}
-                    >
-                      Remove
-                    </button>
+                    <button onClick={() => handleDeleteFaculty(fac)} className="btn-danger" style={{fontSize:'11px',padding:'4px 9px'}}>Remove</button>
                   )}
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* TAB: Access & Syllabus CRUD */}
-      {activeTab === 'access' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          {curriculum.map(module => (
-            <div
-              key={module.id}
-              style={{
-                background: 'var(--bg-surface)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid var(--border-medium)',
-                borderRadius: 'var(--radius-xl)',
-                overflow: 'hidden',
-                boxShadow: 'var(--shadow-glass)'
-              }}
-            >
-              {/* Module Header Bar */}
-              <div style={{
-                padding: '18px 24px',
-                background: 'var(--bg-surface-elevated)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid var(--border-medium)'
-              }}>
-                <div>
-                  <span style={{
-                    fontSize: '11px',
-                    textTransform: 'uppercase',
-                    fontWeight: 800,
-                    color: module.level === 'beginner' ? '#5CC194' : module.level === 'intermediate' ? 'var(--amber)' : 'var(--coral)',
-                    marginRight: '10px'
-                  }}>
-                    [{module.level}]
-                  </span>
-                  <strong style={{ fontSize: '17px' }}>{module.name}</strong>
-                  <span style={{ marginLeft: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                    ({module.topics?.length || 0} topics)
-                  </span>
+        {/* ── TAB: SYLLABUS & ACCESS CONTROLS ─────────────── */}
+        {activeTab === 'access' && (
+          <div className="access-modules">
+            {curriculum.length === 0 ? (
+              <div className="empty-state">No modules yet. Click "Add Module" to create one.</div>
+            ) : curriculum.map(module => (
+              <div key={module.id} className="module-block">
+                <div className="module-header">
+                  <div className="module-header-left">
+                    <span className={`module-level-tag level-${module.level}`}>[{module.level}]</span>
+                    <strong className="module-name">{module.name}</strong>
+                    <span className="module-topic-count">{module.topics?.length || 0} topics</span>
+                  </div>
+                  <div className="module-header-actions">
+                    <button className="btn-secondary" style={{fontSize:'12px',padding:'5px 11px'}} onClick={() => handleBulkUnlock(module.id)}>⚡ Unlock All</button>
+                    <button className="btn-secondary" style={{fontSize:'12px',padding:'5px 10px'}} onClick={() => openCreateTopic(module.id)} title="Add Topic">+ Topic</button>
+                    <button className="btn-secondary" style={{fontSize:'12px',padding:'5px 8px'}} onClick={() => openEditModule(module)} title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button className="btn-danger" style={{padding:'5px 8px'}} onClick={() => handleDeleteModule(module)} title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button
-                    className="btn-secondary"
-                    style={{ fontSize: '12px', padding: '5px 12px' }}
-                    onClick={() => handleBulkUnlock(module.id)}
-                  >
-                    ⚡ Unlock All
-                  </button>
-                  <button
-                    className="btn-secondary"
-                    style={{ fontSize: '12px', padding: '5px 10px' }}
-                    onClick={() => openCreateTopic(module.id)}
-                    title="Add Topic to Module"
-                  >
-                    <Plus size={13} /> Add Topic
-                  </button>
-                  <button
-                    className="btn-secondary"
-                    style={{ fontSize: '12px', padding: '5px 10px' }}
-                    onClick={() => openEditModule(module)}
-                    title="Edit Module"
-                  >
-                    <Edit size={13} />
-                  </button>
-                  <button
-                    className="btn-danger"
-                    style={{ padding: '5px 9px' }}
-                    onClick={() => handleDeleteModule(module)}
-                    title="Delete Module"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Topics and Problems within Module */}
-              <div style={{ padding: '16px 20px' }}>
-                {(module.topics || []).map(topic => (
-                  <div
-                    key={topic.id}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-lg)',
-                      marginBottom: '16px',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {/* Topic Sub-header */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px 18px',
-                      background: 'rgba(0, 0, 0, 0.2)',
-                      borderBottom: '1px solid var(--border-subtle)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--amber)', fontFamily: 'IBM Plex Mono' }}>
-                          Topic #{topic.order}:
-                        </span>
-                        <strong style={{ fontSize: '14.5px' }}>{topic.title}</strong>
-                        <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontFamily: 'IBM Plex Mono' }}>
-                          ({topic.topic_id})
-                        </span>
+                <div className="module-topics">
+                  {(module.topics || []).map(topic => (
+                    <div key={topic.id} className="topic-block">
+                      <div className="topic-header">
+                        <div className="topic-header-left">
+                          <span className="topic-order">#{topic.order}</span>
+                          <strong className="topic-title">{topic.title}</strong>
+                          <code className="topic-slug">{topic.topic_id}</code>
+                        </div>
+                        <div className="topic-actions">
+                          <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 8px'}} onClick={() => openCreateProblem(topic.id)}>+ Challenge</button>
+                          <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 7px'}} onClick={() => openEditTopic(topic)}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                          <button className="btn-danger" style={{fontSize:'11px',padding:'4px 7px'}} onClick={() => handleDeleteTopic(topic)}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>
+                        </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button
-                          className="btn-secondary"
-                          style={{ fontSize: '11px', padding: '4px 9px' }}
-                          onClick={() => openCreateProblem(topic.id)}
-                        >
-                          <Plus size={12} /> Add Challenge
-                        </button>
-                        <button
-                          className="btn-secondary"
-                          style={{ fontSize: '11px', padding: '4px 8px' }}
-                          onClick={() => openEditTopic(topic)}
-                        >
-                          <Edit size={12} />
-                        </button>
-                        <button
-                          className="btn-danger"
-                          style={{ fontSize: '11px', padding: '4px 8px' }}
-                          onClick={() => handleDeleteTopic(topic)}
-                        >
-                          <Trash2 size={12} />
-                        </button>
+                      <div className="table-scroll-wrapper">
+                        <table className="staff-table">
+                          <thead>
+                            <tr>
+                              <th style={{minWidth:'220px'}}>Challenge / Task</th>
+                              <th style={{minWidth:'90px'}}>Access</th>
+                              <th style={{minWidth:'160px'}}>Deadline</th>
+                              <th style={{minWidth:'160px',textAlign:'right'}}>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(!topic.problems || topic.problems.length === 0) ? (
+                              <tr><td colSpan="4" style={{textAlign:'center',color:'var(--text-tertiary)',padding:'14px'}}>No challenges yet — click "+ Challenge"</td></tr>
+                            ) : topic.problems.map(problem => {
+                              const access = problem.access_control || {};
+                              return (
+                                <tr key={problem.id}>
+                                  <td>
+                                    <strong style={{fontSize:'13px',display:'block'}}>{problem.title}</strong>
+                                    <span style={{fontSize:'11.5px',color:'var(--text-secondary)'}}>{problem.description?.slice(0,65)}…</span>
+                                  </td>
+                                  <td>
+                                    {access.is_unlocked
+                                      ? <span className="lab-status-badge status-active">Open</span>
+                                      : <span className="lab-status-badge status-locked">Locked</span>}
+                                  </td>
+                                  <td>
+                                    {access.deadline
+                                      ? <span style={{fontFamily:'IBM Plex Mono',fontSize:'12px',color:access.is_expired?'var(--coral)':'var(--amber)'}}>{new Date(access.deadline).toLocaleString([],{dateStyle:'short',timeStyle:'short'})}{access.is_expired&&<span style={{display:'block',fontSize:'10px',color:'var(--coral)'}}>Expired</span>}</span>
+                                      : <span style={{color:'var(--text-tertiary)',fontSize:'12px'}}>No deadline</span>}
+                                  </td>
+                                  <td style={{textAlign:'right'}}>
+                                    <div style={{display:'inline-flex',gap:'5px'}}>
+                                      <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 8px'}} onClick={() => handleOpenAccessModal(problem)}>⏱ Timeline</button>
+                                      <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 7px'}} onClick={() => openEditProblem(problem)} title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                      <button className="btn-danger" style={{fontSize:'11px',padding:'4px 7px'}} onClick={() => handleDeleteProblem(problem)} title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-                    {/* Challenges Table */}
-                    <table className="staff-table">
-                      <thead>
-                        <tr>
-                          <th style={{ width: '40%' }}>Challenge / Task</th>
-                          <th style={{ width: '15%' }}>Access</th>
-                          <th style={{ width: '25%' }}>Deadline</th>
-                          <th style={{ width: '20%', textAlign: 'right' }}>Actions</th>
+        {/* ── TAB: SUBMISSIONS ─────────────────────────────── */}
+        {activeTab === 'submissions' && (
+          <div className="table-card">
+            <div className="table-card-header">
+              <div>
+                <h2 className="table-card-title">Auto-Graded Submissions Queue</h2>
+                <p className="table-card-sub">Review code submissions, inspect outputs, and override grades.</p>
+              </div>
+              <div className="table-size-picker">
+                <label>Rows:</label>
+                <select value={submissionsPageSize} onChange={e => { setSubmissionsPageSize(+e.target.value); submissionsPag.setPage(1); }}>
+                  <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+            {submissions.length === 0 ? (
+              <div className="empty-state">No student submissions yet.</div>
+            ) : (
+              <>
+                <div className="table-scroll-wrapper">
+                  <table className="staff-table">
+                    <thead>
+                      <tr>
+                        <th style={{minWidth:'130px'}}>Student</th>
+                        <th style={{minWidth:'180px'}}>Challenge</th>
+                        <th style={{minWidth:'140px'}}>Topic / Module</th>
+                        <th style={{minWidth:'140px'}}>Submitted At</th>
+                        <th style={{minWidth:'120px'}}>Status</th>
+                        <th style={{minWidth:'80px'}}>Score</th>
+                        <th style={{minWidth:'120px',textAlign:'right'}}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {submissionsPag.slice.map(sub => (
+                        <tr key={sub.id}>
+                          <td>
+                            <strong>{sub.student_username}</strong>
+                            <span style={{display:'block',fontSize:'11px',color:'var(--text-tertiary)'}}>{sub.student_batch || 'Default Batch'}</span>
+                          </td>
+                          <td>{sub.problem_title}</td>
+                          <td style={{color:'var(--text-secondary)',fontSize:'12.5px'}}>{sub.topic_title}</td>
+                          <td style={{fontFamily:'IBM Plex Mono',fontSize:'12px'}}>
+                            {new Date(sub.submitted_at).toLocaleString([],{dateStyle:'short',timeStyle:'short'})}
+                            {sub.is_late && <span style={{color:'var(--coral)',display:'block',fontSize:'10.5px'}}>Late</span>}
+                          </td>
+                          <td>
+                            {sub.status === 'PASSED' && <span className="lab-status-badge status-passed">Passed</span>}
+                            {sub.status === 'SUBMITTED' && <span className="lab-status-badge status-submitted">Pending</span>}
+                            {sub.status === 'REVISION_REQUESTED' && <span className="lab-status-badge status-revision">Revision</span>}
+                            {sub.status === 'REJECTED' && <span className="lab-status-badge status-expired">Rejected</span>}
+                          </td>
+                          <td style={{fontFamily:'IBM Plex Mono',fontWeight:700}}>{sub.score !== null ? `${sub.score}/${sub.max_points}` : '—'}</td>
+                          <td style={{textAlign:'right'}}>
+                            <button className="btn-primary" style={{padding:'5px 11px',fontSize:'12px'}} onClick={() => handleSelectSubmission(sub)}>Grade</button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {(!topic.problems || topic.problems.length === 0) ? (
-                          <tr>
-                            <td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '16px' }}>
-                              No challenges for this topic yet. Click "Add Challenge" to create one.
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination {...submissionsPag} pageSize={submissionsPageSize} label="submissions" />
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB: LEADERBOARD ─────────────────────────────── */}
+        {activeTab === 'leaderboard' && (
+          <div className="table-card">
+            <div className="table-card-header">
+              <div>
+                <h2 className="table-card-title">🏆 Student Marks & Rankings</h2>
+                <p className="table-card-sub">All marks computed automatically from code structure & output verification.</p>
+              </div>
+              <div className="table-size-picker">
+                <label>Rows:</label>
+                <select value={leaderboardPageSize} onChange={e => { setLeaderboardPageSize(+e.target.value); leaderboardPag.setPage(1); }}>
+                  <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+            {studentPerformance.length === 0 ? (
+              <div className="empty-state">No students enrolled yet.</div>
+            ) : (
+              <>
+                <div className="table-scroll-wrapper">
+                  <table className="staff-table">
+                    <thead>
+                      <tr>
+                        <th style={{minWidth:'60px'}}>Rank</th>
+                        <th style={{minWidth:'150px'}}>Student</th>
+                        <th style={{minWidth:'150px'}}>Batch / Classroom</th>
+                        <th style={{minWidth:'140px'}}>Challenges Passed</th>
+                        <th style={{minWidth:'140px'}}>Total Submissions</th>
+                        <th style={{minWidth:'140px'}}>Auto-Graded Marks</th>
+                        <th style={{minWidth:'110px',textAlign:'right'}}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboardPag.slice.map((sp, localIdx) => {
+                        const idx = leaderboardPag.start + localIdx;
+                        return (
+                          <tr key={sp.id}>
+                            <td>
+                              <span className={`rank-badge ${idx === 0 ? 'rank-gold' : idx === 1 ? 'rank-silver' : idx === 2 ? 'rank-bronze' : 'rank-normal'}`}>#{idx + 1}</span>
+                            </td>
+                            <td>
+                              <strong>{sp.username}</strong>
+                              <span style={{display:'block',fontSize:'11px',color:'var(--text-tertiary)'}}>{sp.email}</span>
+                            </td>
+                            <td>{sp.batch_name || 'Default Batch'}</td>
+                            <td><span style={{color:sp.passedCount>0?'#16A34A':'var(--text-tertiary)',fontWeight:700}}>{sp.passedCount} Labs</span></td>
+                            <td style={{fontFamily:'IBM Plex Mono'}}>{sp.totalSubmissions}</td>
+                            <td>
+                              <span className="marks-chip">{sp.totalPoints} Marks</span>
+                            </td>
+                            <td style={{textAlign:'right'}}>
+                              <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 9px'}} onClick={() => setActiveTab('submissions')}>👁 History</button>
                             </td>
                           </tr>
-                        ) : (
-                          topic.problems.map(problem => {
-                            const access = problem.access_control || {};
-                            const isUnlocked = access.is_unlocked;
-                            const isExpired = access.is_expired;
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination {...leaderboardPag} pageSize={leaderboardPageSize} label="students" />
+              </>
+            )}
+          </div>
+        )}
 
-                            return (
-                              <tr key={problem.id}>
-                                <td>
-                                  <strong style={{ fontSize: '13.5px', display: 'block' }}>{problem.title}</strong>
-                                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                    {problem.description?.slice(0, 65)}...
-                                  </span>
-                                </td>
-                                <td>
-                                  {isUnlocked ? (
-                                    <span className="lab-status-badge status-active">
-                                      <Unlock size={11} /> Open
-                                    </span>
-                                  ) : (
-                                    <span className="lab-status-badge status-locked">
-                                      <Lock size={11} /> Locked
-                                    </span>
-                                  )}
-                                </td>
-                                <td>
-                                  {access.deadline ? (
-                                    <div>
-                                      <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '12px', color: isExpired ? 'var(--coral)' : 'var(--amber)' }}>
-                                        {new Date(access.deadline).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
-                                      </span>
-                                      {isExpired && <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--coral)' }}>Expired</span>}
-                                    </div>
-                                  ) : (
-                                    <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>No deadline</span>
-                                  )}
-                                </td>
-                                <td style={{ textAlign: 'right' }}>
-                                  <div style={{ display: 'inline-flex', gap: '6px' }}>
-                                    <button
-                                      className="btn-secondary"
-                                      style={{ fontSize: '11px', padding: '4px 8px' }}
-                                      onClick={() => handleOpenAccessModal(problem)}
-                                      title="Set Access & Deadline"
-                                    >
-                                      Timeline
-                                    </button>
-                                    <button
-                                      className="btn-secondary"
-                                      style={{ fontSize: '11px', padding: '4px 7px' }}
-                                      onClick={() => openEditProblem(problem)}
-                                      title="Edit Challenge"
-                                    >
-                                      <Edit size={12} />
-                                    </button>
-                                    <button
-                                      className="btn-danger"
-                                      style={{ fontSize: '11px', padding: '4px 7px' }}
-                                      onClick={() => handleDeleteProblem(problem)}
-                                      title="Delete Challenge"
-                                    >
-                                      <Trash2 size={12} />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                ))}
+        {/* ── TAB: STUDENTS ────────────────────────────────── */}
+        {activeTab === 'students' && (
+          <div className="table-card">
+            <div className="table-card-header">
+              <div>
+                <h2 className="table-card-title">Enrolled Student Roster</h2>
+                <p className="table-card-sub">Manage student accounts, batches, and enrollment.</p>
+              </div>
+              <div className="table-size-picker">
+                <label>Rows:</label>
+                <select value={studentsPageSize} onChange={e => { setStudentsPageSize(+e.target.value); studentsPag.setPage(1); }}>
+                  <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option>
+                </select>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* TAB 2: Submissions Queue */}
-      {activeTab === 'submissions' && (
-        <div style={{
-          background: 'var(--bg-surface)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid var(--border-medium)',
-          borderRadius: 'var(--radius-xl)',
-          overflow: 'hidden',
-          boxShadow: 'var(--shadow-glass)'
-        }}>
-          {submissions.length === 0 ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              No student submissions yet.
-            </div>
-          ) : (
-            <table className="staff-table">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Challenge</th>
-                  <th>Topic / Module</th>
-                  <th>Submitted At</th>
-                  <th>Status</th>
-                  <th>Score</th>
-                  <th style={{ textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.map(sub => (
-                  <tr key={sub.id}>
-                    <td>
-                      <strong>{sub.student_username}</strong>
-                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-tertiary)' }}>{sub.student_batch || 'Default Batch'}</span>
-                    </td>
-                    <td>{sub.problem_title}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{sub.topic_title}</td>
-                    <td style={{ fontFamily: 'IBM Plex Mono', fontSize: '12px' }}>
-                      {new Date(sub.submitted_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
-                      {sub.is_late && <span style={{ color: 'var(--coral)', display: 'block', fontSize: '10.5px' }}>Late Submission</span>}
-                    </td>
-                    <td>
-                      {sub.status === 'PASSED' && <span className="lab-status-badge status-passed">Passed</span>}
-                      {sub.status === 'SUBMITTED' && <span className="lab-status-badge status-submitted">Pending Review</span>}
-                      {sub.status === 'REVISION_REQUESTED' && <span className="lab-status-badge status-revision">Revision Needed</span>}
-                      {sub.status === 'REJECTED' && <span className="lab-status-badge status-expired">Rejected</span>}
-                    </td>
-                    <td style={{ fontFamily: 'IBM Plex Mono', fontWeight: 700 }}>
-                      {sub.score !== null ? `${sub.score}/${sub.max_points}` : '-'}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        className="btn-primary"
-                        style={{ padding: '5px 12px', fontSize: '12px' }}
-                        onClick={() => handleSelectSubmission(sub)}
-                      >
-                        Grade / Inspect
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {/* TAB 3: Student Roster */}
-      {activeTab === 'students' && (
-        <div style={{
-          background: 'var(--bg-surface)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid var(--border-medium)',
-          borderRadius: 'var(--radius-xl)',
-          overflow: 'hidden',
-          boxShadow: 'var(--shadow-glass)'
-        }}>
-          <div style={{
-            padding: '16px 20px',
-            background: 'var(--bg-surface-elevated)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid var(--border-medium)'
-          }}>
-            <h3 style={{ fontSize: '16px' }}>Enrolled Student Roster</h3>
-            <button
-              className="btn-primary"
-              style={{ fontSize: '12.5px', padding: '6px 14px' }}
-              onClick={() => setStudentModalOpen(true)}
-            >
-              <UserPlus size={14} /> Enroll New Student
-            </button>
+            {students.length === 0 ? (
+              <div className="empty-state">No students enrolled yet.</div>
+            ) : (
+              <>
+                <div className="table-scroll-wrapper">
+                  <table className="staff-table">
+                    <thead>
+                      <tr>
+                        <th style={{minWidth:'130px'}}>Username</th>
+                        <th style={{minWidth:'180px'}}>Email</th>
+                        <th style={{minWidth:'150px'}}>Batch</th>
+                        <th style={{minWidth:'100px'}}>Role</th>
+                        <th style={{minWidth:'120px'}}>Joined Date</th>
+                        <th style={{minWidth:'90px',textAlign:'right'}}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentsPag.slice.map(std => (
+                        <tr key={std.id}>
+                          <td><strong>{std.username}</strong></td>
+                          <td style={{fontSize:'13px'}}>{std.email || '—'}</td>
+                          <td>{std.batch_name}</td>
+                          <td><span className="badge-role role-student">{std.role}</span></td>
+                          <td style={{fontFamily:'IBM Plex Mono',fontSize:'12px'}}>{new Date(std.date_joined).toLocaleDateString()}</td>
+                          <td style={{textAlign:'right'}}>
+                            <button className="btn-danger" style={{padding:'4px 8px',fontSize:'11px'}} onClick={() => handleDeleteStudent(std)} title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination {...studentsPag} pageSize={studentsPageSize} label="students" />
+              </>
+            )}
           </div>
+        )}
 
-          <table className="staff-table">
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Batch</th>
-                <th>Role</th>
-                <th>Joined Date</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map(std => (
-                <tr key={std.id}>
-                  <td>
-                    <strong>{std.username}</strong>
-                  </td>
-                  <td>{std.email || '—'}</td>
-                  <td>{std.batch_name}</td>
-                  <td>
-                    <span className="badge-role role-student">{std.role}</span>
-                  </td>
-                  <td style={{ fontFamily: 'IBM Plex Mono', fontSize: '12px' }}>
-                    {new Date(std.date_joined).toLocaleDateString()}
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button
-                      className="btn-danger"
-                      style={{ padding: '4px 8px', fontSize: '11px' }}
-                      onClick={() => handleDeleteStudent(std)}
-                      title="Remove Student"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      </main>
 
-      {/* TAB 4: Student Marks Observer & Leaderboard */}
-      {activeTab === 'leaderboard' && (
-        <div style={{
-          background: 'var(--bg-surface)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid var(--border-medium)',
-          borderRadius: 'var(--radius-xl)',
-          overflow: 'hidden',
-          boxShadow: 'var(--shadow-glass)'
-        }}>
-          <div style={{
-            padding: '20px 24px',
-            background: 'var(--bg-surface-elevated)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid var(--border-medium)'
-          }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--blue-vibrant)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px' }}>
-                <Trophy size={15} /> Automated Grade Intelligence & Student Rankings
-              </div>
-              <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>Student Marks Observer & Leaderboard</h3>
-              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                All marks are computed automatically from code structure & terminal output verification.
-              </p>
-            </div>
-
-            <button
-              className="btn-primary"
-              style={{ fontSize: '12.5px', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
-              onClick={handleExportMarksCSV}
-            >
-              <Download size={14} /> Export Marks (CSV)
-            </button>
-          </div>
-
-          {studentPerformance.length === 0 ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              No students enrolled yet.
-            </div>
-          ) : (
-            <table className="staff-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '60px' }}>Rank</th>
-                  <th>Student</th>
-                  <th>Batch / Classroom</th>
-                  <th>Challenges Passed</th>
-                  <th>Total Submissions</th>
-                  <th>Auto-Graded Marks</th>
-                  <th style={{ textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {studentPerformance.map((sp, idx) => (
-                  <tr key={sp.id}>
-                    <td>
-                      <span style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '50%',
-                        fontWeight: 800,
-                        fontSize: '12px',
-                        background: idx === 0 ? 'var(--amber-soft)' : idx === 1 ? 'var(--blue-soft)' : 'var(--bg-surface-elevated)',
-                        color: idx === 0 ? 'var(--amber)' : idx === 1 ? 'var(--blue-primary)' : 'var(--text-secondary)',
-                        border: idx === 0 ? '1px solid var(--amber)' : '1px solid var(--border-subtle)'
-                      }}>
-                        #{idx + 1}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>{sp.username}</strong>
-                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-tertiary)' }}>{sp.email || 'No email provided'}</span>
-                    </td>
-                    <td>{sp.batch_name || 'Default Batch'}</td>
-                    <td>
-                      <span style={{ color: sp.passedCount > 0 ? '#16A34A' : 'var(--text-tertiary)', fontWeight: 700 }}>
-                        {sp.passedCount} Labs Passed
-                      </span>
-                    </td>
-                    <td style={{ fontFamily: 'IBM Plex Mono' }}>{sp.totalSubmissions} Total</td>
-                    <td>
-                      <span style={{
-                        fontFamily: 'IBM Plex Mono',
-                        fontSize: '13.5px',
-                        fontWeight: 800,
-                        color: 'var(--blue-primary)',
-                        background: 'var(--blue-soft)',
-                        padding: '4px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--blue-border)'
-                      }}>
-                        {sp.totalPoints} Marks
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        className="btn-secondary"
-                        style={{ fontSize: '11px', padding: '5px 10px', color: 'var(--blue-primary)', borderColor: 'var(--blue-border)', background: 'var(--blue-soft)' }}
-                        onClick={() => {
-                          setActiveTab('submissions');
-                        }}
-                      >
-                        <Eye size={12} /> Observe History
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
+      {/* ═══════════ MODALS (unchanged content) ═══════════════ */}
 
       {/* MODAL 1: Module Create/Edit */}
       {moduleModalOpen && (
         <div className="modal-overlay" onClick={() => setModuleModalOpen(false)}>
-          <div className="modal-content" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{maxWidth:'520px'}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingModule ? 'Edit Module' : 'Create New Module'}</h3>
-              <button className="btn-secondary" onClick={() => setModuleModalOpen(false)}>✕</button>
+              <button className="btn-secondary" onClick={() => setModuleModalOpen(false)}>X</button>
             </div>
             <form onSubmit={handleSaveModule}>
               <div className="modal-body">
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Module Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={moduleName}
-                    onChange={(e) => setModuleName(e.target.value)}
-                    placeholder="e.g. Django Async & Channels"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  />
+                <div>
+                  <label>Module Name</label>
+                  <input type="text" required value={moduleName} onChange={e => setModuleName(e.target.value)} placeholder="e.g. Django Async & Channels" />
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
                   <div>
-                    <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Level Tier
-                    </label>
-                    <select
-                      value={moduleLevel}
-                      onChange={(e) => setModuleLevel(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'var(--bg-surface-elevated)',
-                        border: '1px solid var(--border-medium)',
-                        color: '#FFF',
-                        borderRadius: 'var(--radius-sm)'
-                      }}
-                    >
+                    <label>Level Tier</label>
+                    <select value={moduleLevel} onChange={e => setModuleLevel(e.target.value)}>
                       <option value="beginner">Beginner</option>
                       <option value="intermediate">Intermediate</option>
                       <option value="advanced">Advanced</option>
                     </select>
                   </div>
-
                   <div>
-                    <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Order Position
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      value={moduleOrder}
-                      onChange={(e) => setModuleOrder(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'var(--bg-surface-elevated)',
-                        border: '1px solid var(--border-medium)',
-                        color: '#FFF',
-                        borderRadius: 'var(--radius-sm)'
-                      }}
-                    />
+                    <label>Order Position</label>
+                    <input type="number" min="1" required value={moduleOrder} onChange={e => setModuleOrder(e.target.value)} />
                   </div>
                 </div>
               </div>
-
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={() => setModuleModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn-primary" disabled={savingCrud}>
-                  {savingCrud ? 'Saving...' : 'Save Module'}
-                </button>
+                <button type="submit" className="btn-primary" disabled={savingCrud}>{savingCrud ? 'Saving…' : 'Save Module'}</button>
               </div>
             </form>
           </div>
@@ -1588,284 +1073,89 @@ export default function StaffDashboard({ curriculum: rawCurriculum, onRefreshCur
       {/* MODAL 2: Topic Create/Edit */}
       {topicModalOpen && (
         <div className="modal-overlay" onClick={() => setTopicModalOpen(false)}>
-          <div className="modal-content" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{maxWidth:'640px'}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingTopic ? 'Edit Topic' : 'Add New Topic'}</h3>
-              <button className="btn-secondary" onClick={() => setTopicModalOpen(false)}>✕</button>
+              <button className="btn-secondary" onClick={() => setTopicModalOpen(false)}>X</button>
             </div>
             <form onSubmit={handleSaveTopic}>
               <div className="modal-body">
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Parent Module
-                  </label>
-                  <select
-                    value={topicModuleId}
-                    onChange={(e) => setTopicModuleId(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  >
-                    {curriculum.map(m => (
-                      <option key={m.id} value={m.id}>
-                        [{m.level.toUpperCase()}] {m.name}
-                      </option>
-                    ))}
+                <div>
+                  <label>Parent Module</label>
+                  <select value={topicModuleId} onChange={e => setTopicModuleId(e.target.value)} required>
+                    {curriculum.map(m => <option key={m.id} value={m.id}>[{m.level.toUpperCase()}] {m.name}</option>)}
                   </select>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px'}}>
                   <div>
-                    <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Topic Title
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={topicTitle}
-                      onChange={(e) => setTopicTitle(e.target.value)}
-                      placeholder="e.g. Django Middleware Deep Dive"
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'var(--bg-surface-elevated)',
-                        border: '1px solid var(--border-medium)',
-                        color: '#FFF',
-                        borderRadius: 'var(--radius-sm)'
-                      }}
-                    />
+                    <label>Topic Title</label>
+                    <input type="text" required value={topicTitle} onChange={e => setTopicTitle(e.target.value)} placeholder="e.g. Django Middleware Deep Dive" />
                   </div>
-
                   <div>
-                    <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Slug ID
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={topicSlug}
-                      onChange={(e) => setTopicSlug(e.target.value)}
-                      placeholder="e.g. middleware"
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'var(--bg-surface-elevated)',
-                        border: '1px solid var(--border-medium)',
-                        color: '#FFF',
-                        borderRadius: 'var(--radius-sm)',
-                        fontFamily: 'IBM Plex Mono'
-                      }}
-                    />
+                    <label>Slug ID</label>
+                    <input type="text" required value={topicSlug} onChange={e => setTopicSlug(e.target.value)} placeholder="e.g. middleware" style={{fontFamily:'IBM Plex Mono'}} />
                   </div>
                 </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Tamil-English Guide Paragraphs (Separate paragraphs with double enter):
-                  </label>
-                  <textarea
-                    rows={6}
-                    value={topicExplainText}
-                    onChange={(e) => setTopicExplainText(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '13px'
-                    }}
-                  />
+                <div>
+                  <label>Explanation Paragraphs (separate with double Enter):</label>
+                  <textarea rows={6} value={topicExplainText} onChange={e => setTopicExplainText(e.target.value)} />
                 </div>
               </div>
-
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={() => setTopicModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn-primary" disabled={savingCrud}>
-                  {savingCrud ? 'Saving...' : 'Save Topic'}
-                </button>
+                <button type="submit" className="btn-primary" disabled={savingCrud}>{savingCrud ? 'Saving…' : 'Save Topic'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL 3: Challenge / Problem Create/Edit */}
+      {/* MODAL 3: Challenge Create/Edit */}
       {problemModalOpen && (
         <div className="modal-overlay" onClick={() => setProblemModalOpen(false)}>
-          <div className="modal-content" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{maxWidth:'640px'}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingProblem ? 'Edit Practice Challenge' : 'Create Practice Challenge'}</h3>
-              <button className="btn-secondary" onClick={() => setProblemModalOpen(false)}>✕</button>
+              <button className="btn-secondary" onClick={() => setProblemModalOpen(false)}>X</button>
             </div>
             <form onSubmit={handleSaveProblem}>
               <div className="modal-body">
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Select Topic
-                  </label>
-                  <select
-                    value={problemTopicId}
-                    onChange={(e) => setProblemTopicId(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  >
-                    {curriculum.flatMap(m => (m.topics || []).map(t => (
-                      <option key={t.id} value={t.id}>
-                        {m.name} &rarr; {t.title}
-                      </option>
-                    )))}
+                <div>
+                  <label>Select Topic</label>
+                  <select value={problemTopicId} onChange={e => setProblemTopicId(e.target.value)} required>
+                    {curriculum.flatMap(m => (m.topics || []).map(t => <option key={t.id} value={t.id}>{m.name} → {t.title}</option>))}
                   </select>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px'}}>
                   <div>
-                    <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Challenge Title
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={problemTitle}
-                      onChange={(e) => setProblemTitle(e.target.value)}
-                      placeholder="e.g. Build an Author Query Filter"
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'var(--bg-surface-elevated)',
-                        border: '1px solid var(--border-medium)',
-                        color: '#FFF',
-                        borderRadius: 'var(--radius-sm)'
-                      }}
-                    />
+                    <label>Challenge Title</label>
+                    <input type="text" required value={problemTitle} onChange={e => setProblemTitle(e.target.value)} placeholder="e.g. Build an Author Query Filter" />
                   </div>
-
                   <div>
-                    <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Marks / Points
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      value={problemPoints}
-                      onChange={(e) => setProblemPoints(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: 'var(--bg-surface-elevated)',
-                        border: '1px solid var(--border-medium)',
-                        color: '#FFF',
-                        borderRadius: 'var(--radius-sm)'
-                      }}
-                    />
+                    <label>Marks / Points</label>
+                    <input type="number" min="1" required value={problemPoints} onChange={e => setProblemPoints(e.target.value)} />
                   </div>
                 </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Task Instructions & Requirements
-                  </label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={problemDesc}
-                    onChange={(e) => setProblemDesc(e.target.value)}
-                    placeholder="Describe what the student must implement or terminal commands to run..."
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '13px'
-                    }}
-                  />
+                <div>
+                  <label>Task Instructions & Requirements</label>
+                  <textarea rows={4} required value={problemDesc} onChange={e => setProblemDesc(e.target.value)} placeholder="Describe what the student must implement..." />
                 </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Hint / Expected Output (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={problemHint}
-                    onChange={(e) => setProblemHint(e.target.value)}
-                    placeholder="e.g. Check python manage.py migrate output"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-medium)',
-                      color: 'var(--text-primary)',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  />
+                <div>
+                  <label>Hint / Expected Output (Optional)</label>
+                  <input type="text" value={problemHint} onChange={e => setProblemHint(e.target.value)} placeholder="e.g. Check python manage.py migrate output" />
                 </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--blue-primary)', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
-                    ⚡ Automated Evaluation Test Criteria
-                  </label>
-                  <input
-                    type="text"
-                    value={problemTestCriteria}
-                    onChange={(e) => setProblemTestCriteria(e.target.value)}
-                    placeholder="e.g. Must define a view function or DRF serializer returning valid responses"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-medium)',
-                      color: 'var(--text-primary)',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  />
+                <div>
+                  <label style={{color:'var(--blue-primary)',fontWeight:700}}>Automated Evaluation Test Criteria</label>
+                  <input type="text" value={problemTestCriteria} onChange={e => setProblemTestCriteria(e.target.value)} placeholder="e.g. Must define a view function or DRF serializer..." />
                 </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--blue-primary)', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
-                    🔑 Required Django Code Keywords (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={problemKeywords}
-                    onChange={(e) => setProblemKeywords(e.target.value)}
-                    placeholder="e.g. def, HttpResponse, models.Model, Serializer"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-medium)',
-                      color: 'var(--text-primary)',
-                      borderRadius: 'var(--radius-sm)',
-                      fontFamily: 'IBM Plex Mono',
-                      fontSize: '12.5px'
-                    }}
-                  />
+                <div>
+                  <label style={{color:'var(--blue-primary)',fontWeight:700}}>Required Django Code Keywords (comma-separated)</label>
+                  <input type="text" value={problemKeywords} onChange={e => setProblemKeywords(e.target.value)} placeholder="e.g. def, HttpResponse, models.Model" style={{fontFamily:'IBM Plex Mono',fontSize:'12.5px'}} />
                 </div>
               </div>
-
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={() => setProblemModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn-primary" disabled={savingCrud}>
-                  {savingCrud ? 'Saving...' : 'Save Challenge'}
-                </button>
+                <button type="submit" className="btn-primary" disabled={savingCrud}>{savingCrud ? 'Saving…' : 'Save Challenge'}</button>
               </div>
             </form>
           </div>
@@ -1875,101 +1165,21 @@ export default function StaffDashboard({ curriculum: rawCurriculum, onRefreshCur
       {/* MODAL 4: Student Enrollment */}
       {studentModalOpen && (
         <div className="modal-overlay" onClick={() => setStudentModalOpen(false)}>
-          <div className="modal-content" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{maxWidth:'480px'}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Enroll New Student</h3>
-              <button className="btn-secondary" onClick={() => setStudentModalOpen(false)}>✕</button>
+              <button className="btn-secondary" onClick={() => setStudentModalOpen(false)}>X</button>
             </div>
             <form onSubmit={handleCreateStudent}>
               <div className="modal-body">
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Student Username
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newStudentUsername}
-                    onChange={(e) => setNewStudentUsername(e.target.value)}
-                    placeholder="e.g. karthik_dev"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={newStudentEmail}
-                    onChange={(e) => setNewStudentEmail(e.target.value)}
-                    placeholder="karthik@example.com"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Temporary Password
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newStudentPassword}
-                    onChange={(e) => setNewStudentPassword(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)',
-                      fontFamily: 'IBM Plex Mono'
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Assigned Batch
-                  </label>
-                  <input
-                    type="text"
-                    value={newStudentBatch}
-                    onChange={(e) => setNewStudentBatch(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      color: '#FFF',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  />
-                </div>
+                <div><label>Student Username</label><input type="text" required value={newStudentUsername} onChange={e => setNewStudentUsername(e.target.value)} placeholder="e.g. karthik_dev" /></div>
+                <div><label>Email Address</label><input type="email" required value={newStudentEmail} onChange={e => setNewStudentEmail(e.target.value)} placeholder="karthik@example.com" /></div>
+                <div><label>Temporary Password</label><input type="text" required value={newStudentPassword} onChange={e => setNewStudentPassword(e.target.value)} style={{fontFamily:'IBM Plex Mono'}} /></div>
+                <div><label>Assigned Batch</label><input type="text" value={newStudentBatch} onChange={e => setNewStudentBatch(e.target.value)} /></div>
               </div>
-
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={() => setStudentModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn-primary" disabled={savingCrud}>
-                  {savingCrud ? 'Enrolling...' : 'Enroll Student'}
-                </button>
+                <button type="submit" className="btn-primary" disabled={savingCrud}>{savingCrud ? 'Enrolling…' : 'Enroll Student'}</button>
               </div>
             </form>
           </div>
@@ -1979,277 +1189,110 @@ export default function StaffDashboard({ curriculum: rawCurriculum, onRefreshCur
       {/* MODAL 5: Configure Access & Timeline */}
       {editingAccessProblem && (
         <div className="modal-overlay" onClick={() => setEditingAccessProblem(null)}>
-          <div className="modal-content" style={{ maxWidth: '540px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{maxWidth:'540px'}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Configure Access & Timeline</h3>
-              <button className="btn-secondary" onClick={() => setEditingAccessProblem(null)}>✕</button>
+              <button className="btn-secondary" onClick={() => setEditingAccessProblem(null)}>X</button>
             </div>
-
             <div className="modal-body">
-              <div style={{ marginBottom: '18px' }}>
-                <strong style={{ fontSize: '15px' }}>{editingAccessProblem.title}</strong>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  {editingAccessProblem.description}
-                </p>
+              <div style={{marginBottom:'18px'}}>
+                <strong style={{fontSize:'15px'}}>{editingAccessProblem.title}</strong>
+                <p style={{fontSize:'13px',color:'var(--text-secondary)',marginTop:'4px'}}>{editingAccessProblem.description}</p>
               </div>
-
-              {/* Unlock Toggle */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 16px',
-                background: 'var(--bg-surface-elevated)',
-                borderRadius: 'var(--radius-md)',
-                marginBottom: '18px'
-              }}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',background:'var(--gray-100)',borderRadius:'var(--radius)',marginBottom:'18px'}}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '13.5px' }}>Unlock for Students</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    Students can only see and attempt this challenge when unlocked.
-                  </div>
+                  <div style={{fontWeight:600,fontSize:'13.5px'}}>Unlock for Students</div>
+                  <div style={{fontSize:'12px',color:'var(--text-secondary)'}}>Students can see & attempt this when unlocked.</div>
                 </div>
                 <label className="switch">
-                  <input
-                    type="checkbox"
-                    checked={isUnlockedInput}
-                    onChange={(e) => setIsUnlockedInput(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={isUnlockedInput} onChange={e => setIsUnlockedInput(e.target.checked)} />
                   <span className="slider" />
                 </label>
               </div>
-
-              {/* Deadline Setting */}
-              <div style={{ marginBottom: '18px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
-                  Submission Deadline (Date & Time):
-                </label>
-                <input
-                  type="datetime-local"
-                  value={deadlineInput}
-                  onChange={(e) => setDeadlineInput(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    background: 'var(--bg-code)',
-                    border: '1px solid var(--border-medium)',
-                    color: '#FFF',
-                    borderRadius: 'var(--radius-sm)',
-                    fontFamily: 'IBM Plex Mono',
-                    marginBottom: '10px'
-                  }}
-                />
-
-                {/* Quick Presets */}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button type="button" className="btn-secondary" style={{ fontSize: '11px', padding: '4px 8px' }} onClick={() => setPresetDeadline(2)}>+2 Hours</button>
-                  <button type="button" className="btn-secondary" style={{ fontSize: '11px', padding: '4px 8px' }} onClick={() => setPresetDeadline(12)}>+12 Hours</button>
-                  <button type="button" className="btn-secondary" style={{ fontSize: '11px', padding: '4px 8px' }} onClick={() => setPresetDeadline(24)}>+24 Hours</button>
-                  <button type="button" className="btn-secondary" style={{ fontSize: '11px', padding: '4px 8px' }} onClick={() => setPresetDeadline(72)}>+3 Days</button>
-                  <button type="button" className="btn-secondary" style={{ fontSize: '11px', padding: '4px 8px' }} onClick={() => setDeadlineInput('')}>No Expiry</button>
+              <div style={{marginBottom:'18px'}}>
+                <label style={{fontSize:'13px',fontWeight:600,display:'block',marginBottom:'8px'}}>Submission Deadline:</label>
+                <input type="datetime-local" value={deadlineInput} onChange={e => setDeadlineInput(e.target.value)} style={{width:'100%',padding:'10px 14px',border:'1px solid var(--border-medium)',borderRadius:'var(--radius-sm)',fontFamily:'IBM Plex Mono',marginBottom:'10px'}} />
+                <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                  {[['+ 2h',2],['+ 12h',12],['+ 24h',24],['+ 3d',72]].map(([l,h]) => (
+                    <button key={h} type="button" className="btn-secondary" style={{fontSize:'11px',padding:'4px 8px'}} onClick={() => setPresetDeadline(h)}>{l}</button>
+                  ))}
+                  <button type="button" className="btn-secondary" style={{fontSize:'11px',padding:'4px 8px'}} onClick={() => setDeadlineInput('')}>No Expiry</button>
                 </div>
               </div>
-
-              {/* Allow Late Submissions Toggle */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                <input
-                  type="checkbox"
-                  id="allowLate"
-                  checked={allowLateInput}
-                  onChange={(e) => setAllowLateInput(e.target.checked)}
-                />
-                <label htmlFor="allowLate">Allow late submissions after deadline passes (flagged as late)</label>
+              <div style={{display:'flex',alignItems:'center',gap:'8px',fontSize:'13px',color:'var(--text-secondary)'}}>
+                <input type="checkbox" id="allowLate" checked={allowLateInput} onChange={e => setAllowLateInput(e.target.checked)} />
+                <label htmlFor="allowLate">Allow late submissions after deadline (flagged as late)</label>
               </div>
             </div>
-
             <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setEditingAccessProblem(null)}>
-                Cancel
-              </button>
-              <button className="btn-primary" onClick={handleSaveProblemAccess} disabled={savingAccess}>
-                {savingAccess ? 'Saving...' : 'Save Access Rules'}
-              </button>
+              <button className="btn-secondary" onClick={() => setEditingAccessProblem(null)}>Cancel</button>
+              <button className="btn-primary" onClick={handleSaveProblemAccess} disabled={savingAccess}>{savingAccess ? 'Saving…' : 'Save Access Rules'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL 6: Automated Marks Observation & Inspection Modal */}
+      {/* MODAL 6: Submission Inspection & Grade Override */}
       {selectedSub && (
         <div className="modal-overlay" onClick={() => setSelectedSub(null)}>
-          <div className="modal-content" style={{ maxWidth: '880px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{maxWidth:'880px'}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <span className="badge-role role-student" style={{ marginRight: '8px' }}>
-                  {selectedSub.student_username}
-                </span>
-                <strong style={{ fontSize: '16px', color: 'var(--text-primary)' }}>
-                  ⚡ Automated Marks Observer: {selectedSub.problem_title}
-                </strong>
+                <span className="badge-role role-student" style={{marginRight:'8px'}}>{selectedSub.student_username}</span>
+                <strong style={{fontSize:'16px',color:'var(--text-primary)'}}>⚡ Marks Observer: {selectedSub.problem_title}</strong>
               </div>
-              <button className="btn-secondary" onClick={() => setSelectedSub(null)}>✕</button>
+              <button className="btn-secondary" onClick={() => setSelectedSub(null)}>X</button>
             </div>
-
             <div className="modal-body">
-              {/* Submission Meta */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                background: 'var(--bg-surface-elevated)',
-                padding: '12px 16px',
-                borderRadius: 'var(--radius-md)',
-                marginBottom: '16px',
-                fontSize: '13px',
-                border: '1px solid var(--border-subtle)'
-              }}>
+              <div style={{display:'flex',justifyContent:'space-between',background:'var(--gray-100)',padding:'12px 16px',borderRadius:'var(--radius)',marginBottom:'16px',fontSize:'13px',border:'1px solid var(--border-subtle)'}}>
                 <div><strong>Topic:</strong> {selectedSub.topic_title}</div>
                 <div><strong>Submitted:</strong> {new Date(selectedSub.submitted_at).toLocaleString()}</div>
-                <div>{selectedSub.is_late ? <span style={{ color: 'var(--coral)' }}>⚠️ Late</span> : <span style={{ color: '#16A34A' }}>✓ On Time</span>}</div>
+                <div>{selectedSub.is_late ? <span style={{color:'var(--coral)'}}>⚠ Late</span> : <span style={{color:'#16A34A'}}> On Time</span>}</div>
               </div>
-
-              {/* Automated Evaluation Summary Banner */}
-              <div style={{
-                background: selectedSub.status === 'PASSED' ? 'rgba(22, 163, 74, 0.08)' : 'rgba(217, 119, 6, 0.08)',
-                border: `1.5px solid ${selectedSub.status === 'PASSED' ? 'rgba(22, 163, 74, 0.3)' : 'rgba(217, 119, 6, 0.3)'}`,
-                padding: '14px 18px',
-                borderRadius: 'var(--radius-md)',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle2 size={18} color={selectedSub.status === 'PASSED' ? '#16A34A' : '#D97706'} />
-                  <div>
-                    <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>
-                      Automated Evaluation Result: {selectedSub.status}
-                    </strong>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      Evaluated automatically based on code structure, syntax & output criteria
-                    </div>
-                  </div>
+              <div style={{background:selectedSub.status==='PASSED'?'rgba(22,163,74,0.08)':'rgba(217,119,6,0.08)',border:`1.5px solid ${selectedSub.status==='PASSED'?'rgba(22,163,74,0.3)':'rgba(217,119,6,0.3)'}`,padding:'14px 18px',borderRadius:'var(--radius)',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div>
+                  <strong style={{fontSize:'13.5px',color:'var(--text-primary)'}}>Eval Result: {selectedSub.status}</strong>
+                  <div style={{fontSize:'12px',color:'var(--text-secondary)'}}>Auto-evaluated from code structure & output criteria</div>
                 </div>
-
-                <div style={{
-                  fontFamily: 'IBM Plex Mono',
-                  fontWeight: 800,
-                  fontSize: '16px',
-                  color: selectedSub.status === 'PASSED' ? '#16A34A' : '#D97706'
-                }}>
-                  {selectedSub.score ?? selectedSub.max_points} / {selectedSub.max_points} Marks
+                <div style={{fontFamily:'IBM Plex Mono',fontWeight:800,fontSize:'16px',color:selectedSub.status==='PASSED'?'#16A34A':'#D97706'}}>{selectedSub.score??selectedSub.max_points} / {selectedSub.max_points} Marks</div>
+              </div>
+              <div style={{marginBottom:'16px'}}>
+                <label style={{fontSize:'13px',fontWeight:700,color:'var(--text-primary)',display:'block',marginBottom:'6px'}}>Student Submitted Solution:</label>
+                <div style={{background:'var(--gray-900)',borderRadius:'var(--radius)',padding:'16px',overflow:'auto',maxHeight:'260px'}}>
+                  <pre style={{fontFamily:'IBM Plex Mono',fontSize:'12.5px',color:'#e2e8f0',margin:0,whiteSpace:'pre-wrap'}}><code>{selectedSub.submitted_code}</code></pre>
                 </div>
               </div>
-
-              {/* Code Viewer */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Student Submitted Solution:
-                </label>
-                <div className="code-container" style={{ margin: 0 }}>
-                  <pre className="code-pre" style={{ maxHeight: '260px', overflowY: 'auto' }}>
-                    <code>{selectedSub.submitted_code}</code>
-                  </pre>
-                </div>
-              </div>
-
-              {/* Notes */}
               {selectedSub.notes && (
-                <div style={{ marginBottom: '18px', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)', padding: '12px 14px', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
-                  <strong style={{ color: 'var(--text-primary)' }}>Student Output / Terminal Notes:</strong>
-                  <div style={{ marginTop: '4px', color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono', fontSize: '12px' }}>
-                    {selectedSub.notes}
-                  </div>
+                <div style={{marginBottom:'18px',background:'var(--gray-100)',border:'1px solid var(--border-subtle)',padding:'12px 14px',borderRadius:'var(--radius-sm)',fontSize:'13px'}}>
+                  <strong style={{color:'var(--text-primary)'}}>Student Output / Notes:</strong>
+                  <div style={{marginTop:'4px',color:'var(--text-secondary)',fontFamily:'IBM Plex Mono',fontSize:'12px'}}>{selectedSub.notes}</div>
                 </div>
               )}
-
-              {/* Optional Override Section */}
-              <div style={{
-                borderTop: '1px solid var(--border-subtle)',
-                paddingTop: '16px',
-                marginTop: '16px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-                  <Sparkles size={15} color="var(--blue-vibrant)" />
-                  <h4 style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
-                    Instructor Supervisory Note & Optional Override:
-                  </h4>
-                </div>
-                
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '14px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                      Status Override:
-                    </label>
-                    <select
-                      value={reviewStatus}
-                      onChange={(e) => setReviewStatus(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        background: 'var(--bg-surface)',
-                        border: '1px solid var(--border-medium)',
-                        color: 'var(--text-primary)',
-                        borderRadius: 'var(--radius-sm)'
-                      }}
-                    >
+              <div style={{borderTop:'1px solid var(--border-subtle)',paddingTop:'16px'}}>
+                <h4 style={{fontSize:'14px',color:'var(--text-primary)',marginBottom:'12px'}}>Instructor Override:</h4>
+                <div style={{display:'flex',gap:'16px',marginBottom:'14px'}}>
+                  <div style={{flex:1}}>
+                    <label style={{fontSize:'12.5px',color:'var(--text-secondary)',display:'block',marginBottom:'4px'}}>Status Override:</label>
+                    <select value={reviewStatus} onChange={e => setReviewStatus(e.target.value)} style={{width:'100%',padding:'9px 12px',border:'1px solid var(--border-medium)',borderRadius:'var(--radius-sm)'}}>
                       <option value="PASSED">Passed / Approved</option>
                       <option value="REVISION_REQUESTED">Revision Needed</option>
                       <option value="REJECTED">Rejected</option>
                     </select>
                   </div>
-
-                  <div style={{ width: '130px' }}>
-                    <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                      Score (/{selectedSub.max_points}):
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max={selectedSub.max_points}
-                      value={reviewScore}
-                      onChange={(e) => setReviewScore(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        background: 'var(--bg-surface)',
-                        border: '1px solid var(--border-medium)',
-                        color: 'var(--text-primary)',
-                        borderRadius: 'var(--radius-sm)'
-                      }}
-                    />
+                  <div style={{width:'130px'}}>
+                    <label style={{fontSize:'12.5px',color:'var(--text-secondary)',display:'block',marginBottom:'4px'}}>Score (/{selectedSub.max_points}):</label>
+                    <input type="number" min="0" max={selectedSub.max_points} value={reviewScore} onChange={e => setReviewScore(e.target.value)} style={{width:'100%',padding:'9px 12px',border:'1px solid var(--border-medium)',borderRadius:'var(--radius-sm)'}} />
                   </div>
                 </div>
-
                 <div>
-                  <label style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Instructor Feedback & Observations:
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={reviewFeedback}
-                    onChange={(e) => setReviewFeedback(e.target.value)}
-                    placeholder="Auto-evaluated cleanly. Add any custom mentor notes for the student..."
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-medium)',
-                      color: 'var(--text-primary)',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '13px'
-                    }}
-                  />
+                  <label style={{fontSize:'12.5px',color:'var(--text-secondary)',display:'block',marginBottom:'4px'}}>Instructor Feedback:</label>
+                  <textarea rows={3} value={reviewFeedback} onChange={e => setReviewFeedback(e.target.value)} placeholder="Auto-evaluated cleanly. Add custom mentor notes..." style={{width:'100%',padding:'10px 12px',border:'1px solid var(--border-medium)',borderRadius:'var(--radius-sm)',fontSize:'13px'}} />
                 </div>
               </div>
             </div>
-
             <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setSelectedSub(null)}>
-                Close (Observation Complete)
-              </button>
-              <button className="btn-primary" onClick={handleSubmitReview} disabled={submittingReview}>
-                {submittingReview ? 'Updating...' : 'Save Feedback / Override'}
-              </button>
+              <button className="btn-secondary" onClick={() => setSelectedSub(null)}>Close</button>
+              <button className="btn-primary" onClick={handleSubmitReview} disabled={submittingReview}>{submittingReview ? 'Updating…' : 'Save Feedback / Override'}</button>
             </div>
           </div>
         </div>
@@ -2257,89 +1300,23 @@ export default function StaffDashboard({ curriculum: rawCurriculum, onRefreshCur
 
       {/* MODAL: CREATE / EDIT SUBJECT */}
       {subjectModalOpen && (
-        <div className="modal-overlay" style={{ backdropFilter: 'blur(6px)', zIndex: 9999 }}>
-          <div className="modal-content" style={{ maxWidth: '540px', padding: '28px', background: '#FFFFFF' }}>
-            <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BookOpen size={20} color="var(--blue-primary)" />
-                <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-primary)' }}>
-                  {editingSubject ? 'Edit Subject Track' : 'Add New Subject Track'}
-                </h3>
-              </div>
-              <button className="modal-close-btn" onClick={() => setSubjectModalOpen(false)}>
-                <X size={18} />
-              </button>
+        <div className="modal-overlay" onClick={() => setSubjectModalOpen(false)}>
+          <div className="modal-content" style={{maxWidth:'540px'}} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingSubject ? 'Edit Subject Track' : 'Add New Subject Track'}</h3>
+              <button className="btn-secondary" onClick={() => setSubjectModalOpen(false)}>X</button>
             </div>
-
             <form onSubmit={handleSaveSubject}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+              <div className="modal-body">
                 <div>
-                  <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Subject Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Next.js & React Full Stack"
-                    value={subName}
-                    onChange={(e) => {
-                      setSubName(e.target.value);
-                      if (!editingSubject) {
-                        setSubSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''));
-                      }
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: 'var(--bg-main)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '13.5px',
-                      outline: 'none'
-                    }}
-                  />
+                  <label>Subject Name *</label>
+                  <input type="text" required placeholder="e.g. Next.js & React Full Stack" value={subName} onChange={e => { setSubName(e.target.value); if (!editingSubject) setSubSlug(e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')); }} />
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                  <div><label>URL Slug *</label><input type="text" required placeholder="e.g. nextjs-fullstack" value={subSlug} onChange={e => setSubSlug(e.target.value)} /></div>
                   <div>
-                    <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                      URL Slug *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. nextjs-fullstack"
-                      value={subSlug}
-                      onChange={(e) => setSubSlug(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        background: 'var(--bg-main)',
-                        border: '1px solid var(--border-medium)',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '13px',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                      Level *
-                    </label>
-                    <select
-                      value={subLevel}
-                      onChange={(e) => setSubLevel(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        background: 'var(--bg-main)',
-                        border: '1px solid var(--border-medium)',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '13px',
-                        outline: 'none'
-                      }}
-                    >
+                    <label>Level *</label>
+                    <select value={subLevel} onChange={e => setSubLevel(e.target.value)}>
                       <option value="Beginner">Beginner</option>
                       <option value="Intermediate">Intermediate</option>
                       <option value="Advanced">Advanced</option>
@@ -2347,101 +1324,16 @@ export default function StaffDashboard({ curriculum: rawCurriculum, onRefreshCur
                     </select>
                   </div>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                      Duration
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 8 Weeks"
-                      value={subDuration}
-                      onChange={(e) => setSubDuration(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        background: 'var(--bg-main)',
-                        border: '1px solid var(--border-medium)',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '13px',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                      Lead Instructor Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Prof. Deepan"
-                      value={subInstructor}
-                      onChange={(e) => setSubInstructor(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        background: 'var(--bg-main)',
-                        border: '1px solid var(--border-medium)',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '13px',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                  <div><label>Duration</label><input type="text" placeholder="e.g. 8 Weeks" value={subDuration} onChange={e => setSubDuration(e.target.value)} /></div>
+                  <div><label>Lead Instructor</label><input type="text" placeholder="e.g. Prof. Deepan" value={subInstructor} onChange={e => setSubInstructor(e.target.value)} /></div>
                 </div>
-
-                <div>
-                  <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Short Summary (Course Card)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Brief 1-line punchline..."
-                    value={subShortDesc}
-                    onChange={(e) => setSubShortDesc(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: 'var(--bg-main)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '13px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Comprehensive Subject Description
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Describe what students will master in this track..."
-                    value={subDesc}
-                    onChange={(e) => setSubDesc(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: 'var(--bg-main)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '13px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
+                <div><label>Short Summary</label><input type="text" placeholder="Brief 1-line punchline…" value={subShortDesc} onChange={e => setSubShortDesc(e.target.value)} /></div>
+                <div><label>Full Description</label><textarea rows={3} placeholder="Describe what students will master…" value={subDesc} onChange={e => setSubDesc(e.target.value)} /></div>
               </div>
-
-              <div className="modal-footer" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
-                <button type="button" className="btn-secondary" onClick={() => setSubjectModalOpen(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" disabled={savingCrud}>
-                  {savingCrud ? 'Saving...' : editingSubject ? 'Update Subject' : 'Create Subject Track'}
-                </button>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setSubjectModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={savingCrud}>{savingCrud ? 'Saving…' : editingSubject ? 'Update Subject' : 'Create Subject Track'}</button>
               </div>
             </form>
           </div>
@@ -2450,160 +1342,41 @@ export default function StaffDashboard({ curriculum: rawCurriculum, onRefreshCur
 
       {/* MODAL: CREATE FACULTY ACCOUNT */}
       {facultyModalOpen && (
-        <div className="modal-overlay" style={{ backdropFilter: 'blur(6px)', zIndex: 9999 }}>
-          <div className="modal-content" style={{ maxWidth: '480px', padding: '28px', background: '#FFFFFF' }}>
-            <div className="modal-header" style={{ marginBottom: '18px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <UserPlus size={20} color="var(--blue-primary)" />
-                <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-primary)' }}>
-                  Provision Staff / Instructor Account
-                </h3>
-              </div>
-              <button className="modal-close-btn" onClick={() => setFacultyModalOpen(false)}>
-                <X size={18} />
-              </button>
+        <div className="modal-overlay" onClick={() => setFacultyModalOpen(false)}>
+          <div className="modal-content" style={{maxWidth:'480px'}} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Provision Staff / Instructor Account</h3>
+              <button className="btn-secondary" onClick={() => setFacultyModalOpen(false)}>X</button>
             </div>
-
             <form onSubmit={handleSaveFaculty}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
-                <div>
-                  <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Staff Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Dr. K. Vignesh"
-                    value={newStaffFullName}
-                    onChange={(e) => setNewStaffFullName(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: 'var(--bg-main)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '13.5px',
-                      outline: 'none'
-                    }}
-                  />
+              <div className="modal-body">
+                <div><label>Staff Full Name *</label><input type="text" required placeholder="e.g. Dr. K. Vignesh" value={newStaffFullName} onChange={e => setNewStaffFullName(e.target.value)} /></div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                  <div><label>Staff Username *</label><input type="text" required placeholder="instructor_vignesh" value={newStaffUsername} onChange={e => setNewStaffUsername(e.target.value)} /></div>
+                  <div><label>Official Email *</label><input type="email" required placeholder="vignesh@skillstack.org" value={newStaffEmail} onChange={e => setNewStaffEmail(e.target.value)} /></div>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                      Staff Username *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. instructor_vignesh"
-                      value={newStaffUsername}
-                      onChange={(e) => setNewStaffUsername(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        background: 'var(--bg-main)',
-                        border: '1px solid var(--border-medium)',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '13px',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                      Official Email *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="vignesh@djangokalari.org"
-                      value={newStaffEmail}
-                      onChange={(e) => setNewStaffEmail(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        background: 'var(--bg-main)',
-                        border: '1px solid var(--border-medium)',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '13px',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
-                </div>
-
                 <div>
-                  <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Assign Subject Track to Handle
-                  </label>
-                  <select
-                    value={newStaffAssignedSubject}
-                    onChange={(e) => setNewStaffAssignedSubject(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: 'var(--bg-main)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '13px',
-                      outline: 'none'
-                    }}
-                  >
+                  <label>Assign Subject Track</label>
+                  <select value={newStaffAssignedSubject} onChange={e => setNewStaffAssignedSubject(e.target.value)}>
                     <option value="">All Tracks / Lead Mentor</option>
-                    {subjectsList.map(sub => (
-                      <option key={sub.id} value={sub.id}>{sub.name}</option>
-                    ))}
+                    {subjectsList.map(sub => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
                   </select>
                 </div>
-
-                <div>
-                  <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                    Initial Password *
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={newStaffPassword}
-                    onChange={(e) => setNewStaffPassword(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: 'var(--bg-main)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '13.5px',
-                      outline: 'none'
-                    }}
-                  />
+                <div><label>Initial Password *</label><input type="password" required value={newStaffPassword} onChange={e => setNewStaffPassword(e.target.value)} /></div>
+                <div style={{padding:'10px 12px',borderRadius:'var(--radius-sm)',background:'var(--blue-soft)',border:'1px solid var(--blue-border)',fontSize:'12px',color:'var(--text-secondary)'}}>
+                  ℹ️ The instructor can sign in from the Staff Portal using these credentials.
                 </div>
               </div>
-
-              <div style={{
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--blue-soft)',
-                border: '1px solid var(--blue-border)',
-                fontSize: '12px',
-                color: 'var(--text-secondary)',
-                marginBottom: '18px'
-              }}>
-                ℹ️ The instructor can use these credentials to sign in directly from the public website via <strong>Staff Portal</strong>.
-              </div>
-
-              <div className="modal-footer" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
-                <button type="button" className="btn-secondary" onClick={() => setFacultyModalOpen(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" disabled={savingCrud}>
-                  {savingCrud ? 'Creating...' : 'Provision Staff Account'}
-                </button>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setFacultyModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={savingCrud}>{savingCrud ? 'Creating…' : 'Provision Staff Account'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
+
     </div>
   );
 }
+

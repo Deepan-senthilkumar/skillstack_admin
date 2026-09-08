@@ -158,29 +158,10 @@ export default function App() {
         </div>
       </header>
 
-      {/* Subject Selector Strip */}
-      {subjects.length > 0 && (
-        <div className="admin-subject-strip">
-          <span className="strip-label">Active Subject:</span>
-          <div className="strip-tabs">
-            {subjects.map(s => (
-              <button
-                key={s.slug}
-                className={`strip-tab ${selectedSubjectSlug === s.slug ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedSubjectSlug(s.slug);
-                  api.getCurriculum(s.slug).then(setCurriculum).catch(() => {});
-                }}
-              >
-                {s.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Subject strip removed — sidebar navigation handles section switching */}
 
-      {/* Main Dashboard */}
-      <main className="admin-main">
+      {/* Main Dashboard — sidebar is rendered inside StaffDashboard */}
+      <div className="admin-body">
         <StaffDashboard
           curriculum={curriculum}
           onRefreshCurriculum={handleRefreshCurriculum}
@@ -188,7 +169,7 @@ export default function App() {
           onSubjectsUpdated={handleSubjectsUpdated}
           user={user}
         />
-      </main>
+      </div>
     </div>
   );
 }
