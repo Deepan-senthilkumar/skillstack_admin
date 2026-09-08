@@ -74,7 +74,7 @@ export default function AdminLoginPage({ onLoginSuccess }) {
                 <input
                   id="admin-username"
                   type="text"
-                  placeholder="Enter your username"
+                  placeholder="admin@skillstack.com"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   autoComplete="username"
@@ -110,20 +110,6 @@ export default function AdminLoginPage({ onLoginSuccess }) {
               {loading ? <><Loader size={16} className="spin" /> Authenticating...</> : <><Shield size={16} /> Access Admin Panel</>}
             </button>
           </form>
-
-          {/* Quick Login for Super Admin */}
-          <div className="login-quick">
-            <p className="quick-label">Quick Login (Demo)</p>
-            <div className="quick-btns">
-              <button
-                className="quick-btn"
-                onClick={() => handleLogin('staff', 'Staff@12345')}
-                disabled={loading}
-              >
-                <Shield size={13} /> Super Admin
-              </button>
-            </div>
-          </div>
 
           <div className="login-notice">
             <Shield size={13} />
