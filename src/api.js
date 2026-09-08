@@ -1,7 +1,7 @@
 // API Client for Django Kalari — Admin Panel
 // Connects to the same backend as the website
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://skilltrack-backend-a36m.onrender.com/api';
 
 class AdminApiClient {
   constructor() {
