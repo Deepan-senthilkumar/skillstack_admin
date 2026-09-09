@@ -336,10 +336,25 @@ export default function TopicManagerTab({ user, onNavigate }) {
                     {formData.subject && (
                       <button
                         type="button"
-                        className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
                         onClick={() => setQuickChapterOpen(!quickChapterOpen)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '3px 10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          borderRadius: '999px',
+                          border: quickChapterOpen ? '1.5px solid #7B1C6E' : '1.5px solid rgba(123,28,110,0.35)',
+                          background: quickChapterOpen ? '#7B1C6E' : 'rgba(123,28,110,0.06)',
+                          color: quickChapterOpen ? '#FFFFFF' : '#7B1C6E',
+                          cursor: 'pointer',
+                          transition: 'all 0.18s ease',
+                          letterSpacing: '0.01em',
+                          whiteSpace: 'nowrap',
+                        }}
                       >
-                        <Plus size={12} /> {quickChapterOpen ? 'Close Quick Add' : '+ Quick Add Chapter'}
+                        <Plus size={11} /> {quickChapterOpen ? 'Close' : 'Quick Add Chapter'}
                       </button>
                     )}
                   </div>
