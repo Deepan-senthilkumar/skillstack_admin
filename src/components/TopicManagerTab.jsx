@@ -7,6 +7,7 @@ import {
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
+import PaginationControls from './PaginationControls';
 
 const slugify = (text) => {
   return (text || '')
@@ -28,6 +29,8 @@ export default function TopicManagerTab({ user, onNavigate }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('ALL');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [editingTopic, setEditingTopic] = useState(null);
   const [formData, setFormData] = useState({
@@ -284,6 +287,11 @@ export default function TopicManagerTab({ user, onNavigate }) {
     const matchesSubject = selectedSubjectFilter === 'ALL' || String(subId) === String(selectedSubjectFilter);
     return matchesSearch && matchesSubject;
   });
+
+  const totalPages = Math.ceil(filteredTopics.length / pageSize) || 1;
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const paginatedTopics = filteredTopics.slice(startIndex, startIndex + pageSize);
 
   // ----------------------------------------------------
   // DEDICATED IN-PAGE TOPIC FORM VIEW
@@ -724,7 +732,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredTopics.map((t) => {
+                {paginatedTopics.map((t) => {
                   const modObj = modules.find(m => m.id === t.module || m.id === t.module?.id);
                   const subObj = subjects.find(s => s.id === modObj?.subject || s.id === modObj?.subject?.id || s.id === t.subject_id);
 
@@ -779,6 +787,17 @@ export default function TopicManagerTab({ user, onNavigate }) {
                 })}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={safeCurrentPage}
+              totalItems={filteredTopics.length}
+              pageSize={pageSize}
+              onPageChange={(page) => setCurrentPage(page)}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              itemName="topics"
+            />
           </div>
         )}
       </div>

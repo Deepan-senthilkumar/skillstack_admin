@@ -7,6 +7,7 @@ import {
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
+import PaginationControls from './PaginationControls';
 
 export default function SyllabusManagerTab({ user, onNavigate }) {
   const toast = useToast();
@@ -20,6 +21,8 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
   const [levelFilter, setLevelFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [editingModule, setEditingModule] = useState(null);
   const [formData, setFormData] = useState({
@@ -195,6 +198,11 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
     if (aSub !== bSub) return (aSub || 0) - (bSub || 0);
     return (a.order || 0) - (b.order || 0);
   });
+
+  const totalPages = Math.ceil(filteredModules.length / pageSize) || 1;
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const paginatedModules = filteredModules.slice(startIndex, startIndex + pageSize);
 
   // ----------------------------------------------------
   // FORM VIEW
@@ -424,7 +432,7 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredModules.map((mod) => {
+                {paginatedModules.map((mod) => {
                   const modSubId = typeof mod.subject === 'object' ? mod.subject?.id : mod.subject;
                   const subObj = subjects.find(s => s.id === modSubId);
                   const modTopics = topics.filter(t => {
@@ -492,6 +500,17 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
                 })}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={safeCurrentPage}
+              totalItems={filteredModules.length}
+              pageSize={pageSize}
+              onPageChange={(page) => setCurrentPage(page)}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              itemName="chapters"
+            />
           </div>
         )}
       </div>

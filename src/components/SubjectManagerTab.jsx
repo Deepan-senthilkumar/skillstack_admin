@@ -7,6 +7,7 @@ import {
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
+import PaginationControls from './PaginationControls';
 
 const slugify = (text) => {
   return (text || '')
@@ -25,6 +26,8 @@ export default function SubjectManagerTab({ user }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [editingSubject, setEditingSubject] = useState(null);
   const [formData, setFormData] = useState({
@@ -159,6 +162,15 @@ export default function SubjectManagerTab({ user }) {
     const q = (searchQuery || '').toLowerCase();
     return (s.name || '').toLowerCase().includes(q) || (s.slug || '').toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q);
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const totalPages = Math.ceil(filteredSubjects.length / pageSize) || 1;
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const paginatedSubjects = filteredSubjects.slice(startIndex, startIndex + pageSize);
 
   // DEDICATED IN-PAGE SUBJECT FORM VIEW
   if (viewMode === 'form') {
@@ -418,7 +430,7 @@ export default function SubjectManagerTab({ user }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredSubjects.map((sub) => (
+                {paginatedSubjects.map((sub) => (
                   <tr key={sub.id}>
                     <td>
                       <div>
@@ -450,6 +462,17 @@ export default function SubjectManagerTab({ user }) {
                 ))}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={safeCurrentPage}
+              totalItems={filteredSubjects.length}
+              pageSize={pageSize}
+              onPageChange={(page) => setCurrentPage(page)}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              itemName="subjects"
+            />
           </div>
         )}
       </div>
