@@ -755,44 +755,81 @@ export default function TopicManagerTab({ user, onNavigate }) {
 
                 {/* Add New Code Example Box */}
                 <div style={{
-                  background: '#F8FAFC',
-                  borderRadius: '12px',
-                  border: '1px dashed #CBD5E1',
-                  padding: '16px',
+                  background: '#FDF4FF',
+                  borderRadius: '14px',
+                  border: '1.5px solid #F0ABFC',
+                  padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '10px'
+                  gap: '14px',
+                  marginTop: '12px'
                 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
-                    + Add New Practical Code Snippet
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Code2 size={16} color="#7B1C6E" />
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#701A75' }}>
+                      + Add New Practical Code Snippet (For Student Study Reference)
+                    </span>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Snippet Title / Label — e.g. terminal - install & setup or views.py"
-                    value={newExampleLabel}
-                    onChange={(e) => setNewExampleLabel(e.target.value)}
-                    className="form-input text-xs font-semibold"
-                  />
-                  <textarea
-                    rows={4}
-                    placeholder="# Write your practical code implementation here...&#10;def my_view(request):&#10;    return render(request, 'home.html')"
-                    value={newExampleCode}
-                    onChange={(e) => setNewExampleCode(e.target.value)}
-                    className="form-textarea font-mono text-xs"
-                    style={{ background: '#FFFFFF' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCodeExample}
-                    disabled={addingExample || !newExampleLabel.trim() || !newExampleCode.trim()}
-                    className="btn-save-primary text-xs py-1.5 px-3 w-fit"
-                    style={{ alignSelf: 'flex-start' }}
-                  >
-                    <Plus size={13} /> {addingExample ? 'Adding...' : 'Add Code Snippet'}
-                  </button>
+                  
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Snippet Title / Label *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Terminal Setup Commands, or views.py (Function Based), or models.py"
+                      value={newExampleLabel}
+                      onChange={(e) => setNewExampleLabel(e.target.value)}
+                      className="form-input text-xs font-semibold"
+                      style={{ background: '#FFFFFF', border: '1px solid #CBD5E1' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Code Snippet / Commands *
+                    </label>
+                    <textarea
+                      rows={5}
+                      placeholder="# Write practical code or terminal commands here...&#10;python -m venv env&#10;pip install django"
+                      value={newExampleCode}
+                      onChange={(e) => setNewExampleCode(e.target.value)}
+                      className="form-textarea font-mono text-xs"
+                      style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', lineHeight: 1.6 }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={handleAddCodeExample}
+                      disabled={addingExample}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '7px',
+                        padding: '9px 18px',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        background: 'linear-gradient(135deg, #7B1C6E 0%, #A21CAF 100%)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        cursor: addingExample ? 'wait' : 'pointer',
+                        boxShadow: '0 4px 12px rgba(123, 28, 110, 0.25)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Plus size={15} /> {addingExample ? 'Saving Snippet...' : '+ Add Code Snippet to Topic'}
+                    </button>
+                    <span style={{ fontSize: '11.5px', color: '#86198F', fontWeight: 600 }}>
+                      💡 This code will appear under the "Practical Code" tab in the student portal.
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+
 
             {/* Right Column: Live Topic Card Preview */}
             <div className="preview-sticky-box">
