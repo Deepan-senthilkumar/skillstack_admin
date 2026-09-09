@@ -6,6 +6,7 @@ import {
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
+import PaginationControls from './PaginationControls';
 
 export default function PracticeTaskManagerTab({ user }) {
   const toast = useToast();
@@ -18,6 +19,8 @@ export default function PracticeTaskManagerTab({ user }) {
   const [subjectFilter, setSubjectFilter] = useState('ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [editingProblem, setEditingProblem] = useState(null);
   const [formData, setFormData] = useState({
@@ -66,11 +69,11 @@ export default function PracticeTaskManagerTab({ user }) {
 
   const handleOpenCreate = () => {
     const defaultSub = subjects[0]?.id || '';
-    const defaultTopics = topics.filter(t => !defaultSub || t.subject === defaultSub || t.subject_id === defaultSub);
+    const linkedTopics = topics.filter(t => !defaultSub || String(t.subject_id) === String(defaultSub));
     setEditingProblem(null);
     setFormData({
       subject: defaultSub,
-      topic: defaultTopics[0]?.id || topics[0]?.id || '',
+      topic: linkedTopics[0]?.id || topics[0]?.id || '',
       title: '',
       description: '',
       language: 'python',
@@ -88,7 +91,7 @@ export default function PracticeTaskManagerTab({ user }) {
     setEditingProblem(p);
     const topObj = topics.find(t => t.id === p.topic || t.id === p.topic?.id);
     setFormData({
-      subject: topObj?.subject || topObj?.subject_id || subjects[0]?.id || '',
+      subject: topObj?.subject_id || '',
       topic: p.topic || p.topic?.id || '',
       title: p.title,
       description: p.description,
@@ -104,14 +107,11 @@ export default function PracticeTaskManagerTab({ user }) {
   };
 
   const handleSubjectChangeInForm = (subId) => {
-    const subNum = parseInt(subId);
-    const linkedTopics = topics.filter(t => {
-      return t.subject === subNum || t.subject_id === subNum || !subId;
-    });
+    const linkedTopics = topics.filter(t => !subId || String(t.subject_id) === String(subId));
     setFormData(prev => ({
       ...prev,
       subject: subId,
-      topic: linkedTopics[0]?.id || prev.topic || ''
+      topic: linkedTopics[0]?.id || ''
     }));
   };
 
@@ -190,7 +190,24 @@ export default function PracticeTaskManagerTab({ user }) {
     const q = searchQuery.toLowerCase();
     const matchesSearch = p.title.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q);
     const matchesCategory = categoryFilter === 'ALL' || p.language === categoryFilter;
-    return matchesSearch && matchesCategory;
+    const topObj = topics.find(t => t.id === p.topic || t.id === p.topic?.id);
+    const probSubId = topObj?.subject_id;
+    const matchesSubject = subjectFilter === 'ALL' || String(probSubId) === String(subjectFilter);
+    return matchesSearch && matchesCategory && matchesSubject;
+  });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, subjectFilter, categoryFilter]);
+
+  const totalPages = Math.ceil(filteredProblems.length / pageSize) || 1;
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const paginatedProblems = filteredProblems.slice(startIndex, startIndex + pageSize);
+
+  const availableTopicsForForm = topics.filter(t => {
+    if (!formData.subject) return true;
+    return String(t.subject_id) === String(formData.subject);
   });
 
   // DEDICATED IN-PAGE PRACTICE TASK FORM VIEW
@@ -228,6 +245,20 @@ export default function PracticeTaskManagerTab({ user }) {
                 <div className="space-y-4">
                   <div className="form-row-2">
                     <div className="form-group">
+                      <label>Parent Subject Track *</label>
+                      <select
+                        value={formData.subject}
+                        onChange={(e) => handleSubjectChangeInForm(e.target.value)}
+                        className="form-select font-semibold"
+                      >
+                        <option value="">-- Filter by Subject (All) --</option>
+                        {subjects.map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
                       <label>Target Topic *</label>
                       <select
                         value={formData.topic}
@@ -238,9 +269,9 @@ export default function PracticeTaskManagerTab({ user }) {
                         className={`form-select font-semibold ${fieldErrors.topic ? 'input-error' : ''}`}
                       >
                         <option value="">Select Curriculum Topic</option>
-                        {topics.map(t => (
+                        {availableTopicsForForm.map(t => (
                           <option key={t.id} value={t.id}>
-                            {t.title} (#{t.topic_id})
+                            {t.title} {t.module_name ? `(${t.module_name})` : ''}
                           </option>
                         ))}
                       </select>
@@ -248,30 +279,30 @@ export default function PracticeTaskManagerTab({ user }) {
                         <span className="field-error-msg"><AlertCircle size={13} /> {fieldErrors.topic}</span>
                       )}
                     </div>
+                  </div>
 
-                    <div className="form-group">
-                      <label>Subject / Exercise Category *</label>
-                      <select
-                        value={formData.language}
-                        onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                        className="form-select font-semibold"
-                      >
-                        <optgroup label="Spreadsheets & Office">
-                          <option value="excel">📊 MS Excel / Formula & Spreadsheet Task</option>
-                          <option value="word">📄 MS Word & Document Formatting Task</option>
-                          <option value="tally">💰 Tally Prime & Accounting Entry Task</option>
-                        </optgroup>
-                        <optgroup label="Programming & Web">
-                          <option value="python">🐍 Python 3 (CPython)</option>
-                          <option value="c">⚡ C Programming (GCC)</option>
-                          <option value="javascript">🌐 JavaScript (Node.js)</option>
-                          <option value="sql">🗄️ SQL & Database Query</option>
-                        </optgroup>
-                        <optgroup label="General">
-                          <option value="general">📋 General Practical Task / Lab Assignment</option>
-                        </optgroup>
-                      </select>
-                    </div>
+                  <div className="form-group">
+                    <label>Exercise Type & Execution Runtime *</label>
+                    <select
+                      value={formData.language}
+                      onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                      className="form-select font-semibold"
+                    >
+                      <optgroup label="Programming & Web">
+                        <option value="python">🐍 Python 3 (CPython)</option>
+                        <option value="c">⚡ C Programming (GCC)</option>
+                        <option value="javascript">🌐 JavaScript (Node.js)</option>
+                        <option value="sql">🗄️ SQL & Database Query</option>
+                      </optgroup>
+                      <optgroup label="Office & Accounting">
+                        <option value="excel">📊 MS Excel / Formula & Spreadsheet Task</option>
+                        <option value="word">📄 MS Word & Document Formatting Task</option>
+                        <option value="tally">💰 Tally Prime & Accounting Entry Task</option>
+                      </optgroup>
+                      <optgroup label="General">
+                        <option value="general">📋 General Practical Task / Lab Assignment</option>
+                      </optgroup>
+                    </select>
                   </div>
 
                   <div className="form-group">
@@ -501,11 +532,24 @@ export default function PracticeTaskManagerTab({ user }) {
         <div className="filter-dropdown-wrap">
           <Filter size={15} className="text-muted" />
           <select
+            value={subjectFilter}
+            onChange={(e) => setSubjectFilter(e.target.value)}
+            className="filter-select-modern"
+          >
+            <option value="ALL">All Subjects ({problems.length} Tasks)</option>
+            {subjects.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-dropdown-wrap">
+          <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="filter-select-modern"
           >
-            <option value="ALL">All Categories ({problems.length})</option>
+            <option value="ALL">All Categories</option>
             <option value="excel">📊 MS Excel</option>
             <option value="word">📄 MS Word</option>
             <option value="tally">💰 Tally Prime</option>
@@ -547,7 +591,7 @@ export default function PracticeTaskManagerTab({ user }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredProblems.map((prob) => {
+                {paginatedProblems.map((prob) => {
                   const topObj = topics.find(t => t.id === prob.topic || t.id === prob.topic?.id);
 
                   return (
@@ -600,6 +644,17 @@ export default function PracticeTaskManagerTab({ user }) {
                 })}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={safeCurrentPage}
+              totalItems={filteredProblems.length}
+              pageSize={pageSize}
+              onPageChange={(page) => setCurrentPage(page)}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              itemName="practice tasks"
+            />
           </div>
         )}
       </div>
