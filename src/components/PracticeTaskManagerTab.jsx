@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
   Code2, Plus, Edit2, Trash2, ArrowLeft, Check,
-  Search, Filter, Sparkles, BookOpen, Layers, AlertCircle, FileText
+  Search, Filter, Sparkles, BookOpen, Layers, AlertCircle, FileText,
+  Lock, Unlock
 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -22,6 +23,7 @@ export default function PracticeTaskManagerTab({ user }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [togglingId, setTogglingId] = useState(null);
 
   const [editingProblem, setEditingProblem] = useState(null);
   const [formData, setFormData] = useState({
@@ -35,7 +37,9 @@ export default function PracticeTaskManagerTab({ user }) {
     starter_code: '',
     points: 10,
     order: 1,
+    is_unlocked: true,
   });
+
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -83,6 +87,7 @@ export default function PracticeTaskManagerTab({ user }) {
       starter_code: '',
       points: 10,
       order: problems.length + 1,
+      is_unlocked: true,
     });
     setFieldErrors({});
     setViewMode('form');
@@ -91,6 +96,7 @@ export default function PracticeTaskManagerTab({ user }) {
   const handleOpenEdit = (p) => {
     setEditingProblem(p);
     const topObj = topics.find(t => t.id === p.topic || t.id === p.topic?.id);
+    const currentUnlocked = p.access_control ? p.access_control.is_unlocked !== false : true;
     setFormData({
       subject: topObj?.subject_id || '',
       topic: p.topic || p.topic?.id || '',
@@ -102,6 +108,7 @@ export default function PracticeTaskManagerTab({ user }) {
       starter_code: p.starter_code || '',
       points: p.points || 10,
       order: p.order || 1,
+      is_unlocked: currentUnlocked,
     });
     setFieldErrors({});
     setViewMode('form');
@@ -150,13 +157,24 @@ export default function PracticeTaskManagerTab({ user }) {
         starter_code: formData.starter_code,
         points: formData.points,
         order: formData.order,
+        is_unlocked: formData.is_unlocked,
       };
 
       if (editingProblem) {
         await api.updateProblem(editingProblem.id, payload);
+        await api.updateProblemAccess(editingProblem.id, {
+          is_unlocked: formData.is_unlocked,
+          allow_late_submission: true,
+        }).catch(() => {});
         toast.success(`Lab task "${formData.title}" updated successfully!`);
       } else {
-        await api.createProblem(payload);
+        const created = await api.createProblem(payload);
+        if (created?.id) {
+          await api.updateProblemAccess(created.id, {
+            is_unlocked: formData.is_unlocked,
+            allow_late_submission: true,
+          }).catch(() => {});
+        }
         toast.success(`Lab task "${formData.title}" created successfully!`);
       }
       setViewMode('list');
@@ -167,6 +185,64 @@ export default function PracticeTaskManagerTab({ user }) {
       setSaving(false);
     }
   };
+
+  const handleToggleAccess = async (prob) => {
+    const currentUnlocked = prob.access_control ? prob.access_control.is_unlocked !== false : true;
+    const nextStatus = !currentUnlocked;
+    setTogglingId(prob.id);
+
+    try {
+      await api.updateProblemAccess(prob.id, {
+        is_unlocked: nextStatus,
+        allow_late_submission: true,
+      });
+
+      // Update in-memory state immediately for instant feedback
+      setProblems(prev => prev.map(p => {
+        if (p.id === prob.id) {
+          return {
+            ...p,
+            access_control: {
+              ...(p.access_control || {}),
+              is_unlocked: nextStatus,
+            }
+          };
+        }
+        return p;
+      }));
+
+      toast.success(
+        nextStatus
+          ? `Lab "${prob.title}" is now UNLOCKED (Students can solve it).`
+          : `Lab "${prob.title}" is now LOCKED for students.`
+      );
+    } catch (err) {
+      toast.error(err);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleBulkToggleAccess = async (shouldUnlock) => {
+    const actionName = shouldUnlock ? 'Unlock' : 'Lock';
+    const ok = await confirm({
+      title: `${actionName} All Practice Labs?`,
+      message: `Are you sure you want to ${actionName.toLowerCase()} all practice labs for students across all subjects?`,
+      confirmText: `${actionName} All`,
+      cancelText: 'Cancel',
+      type: shouldUnlock ? 'info' : 'warning',
+    });
+    if (!ok) return;
+
+    try {
+      const res = await api.bulkUpdateProblemAccess(shouldUnlock);
+      toast.success(res.detail || `All practice labs ${actionName.toLowerCase()}ed successfully!`);
+      await loadAllData();
+    } catch (e) {
+      toast.error(e);
+    }
+  };
+
 
   const handleDelete = async (id, title) => {
     const ok = await confirm({
@@ -499,6 +575,35 @@ export default function PracticeTaskManagerTab({ user }) {
                       </div>
                     )}
                   </div>
+
+                  {/* Student Access Toggle */}
+                  <div style={{
+                    marginTop: '16px',
+                    padding: '14px',
+                    background: formData.is_unlocked ? '#F0FDF4' : '#FFF7ED',
+                    border: `1.5px solid ${formData.is_unlocked ? '#BBF7D0' : '#FED7AA'}`,
+                    borderRadius: '12px',
+                  }}>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+                      <input
+                        type="checkbox"
+                        checked={formData.is_unlocked}
+                        onChange={(e) => setFormData({ ...formData, is_unlocked: e.target.checked })}
+                        style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer', accentColor: '#16A34A' }}
+                      />
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '700', color: formData.is_unlocked ? '#15803D' : '#C2410C', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          {formData.is_unlocked ? <Unlock size={14} /> : <Lock size={14} />}
+                          {formData.is_unlocked ? 'Unlocked for Students (Active)' : 'Locked (Hidden from execution)'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px', lineHeight: '1.4' }}>
+                          {formData.is_unlocked
+                            ? 'Students can immediately view instructions, write code, run tests, and submit.'
+                            : 'Students will see "Locked by Staff" until an instructor unlocks this lab.'}
+                        </div>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="preview-action-buttons">
@@ -527,9 +632,45 @@ export default function PracticeTaskManagerTab({ user }) {
             Create and maintain coding challenges, spreadsheet labs, and practical assignments with automated answer key evaluation.
           </p>
         </div>
-        <button className="btn-primary" onClick={handleOpenCreate}>
-          <Plus size={16} /> Add New Practice Lab
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="btn-outline-sm"
+            style={{
+              borderColor: '#10B981',
+              color: '#047857',
+              background: '#ECFDF5',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: '600',
+              padding: '7px 12px'
+            }}
+            onClick={() => handleBulkToggleAccess(true)}
+            title="Unlock all practice labs so students can access them immediately"
+          >
+            <Unlock size={14} /> Unlock All Labs
+          </button>
+          <button
+            className="btn-outline-sm"
+            style={{
+              borderColor: '#FCA5A5',
+              color: '#B91C1C',
+              background: '#FEF2F2',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: '600',
+              padding: '7px 12px'
+            }}
+            onClick={() => handleBulkToggleAccess(false)}
+            title="Lock all practice labs"
+          >
+            <Lock size={14} /> Lock All Labs
+          </button>
+          <button className="btn-primary" onClick={handleOpenCreate}>
+            <Plus size={16} /> Add New Practice Lab
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -600,14 +741,17 @@ export default function PracticeTaskManagerTab({ user }) {
                   <th>Task Title</th>
                   <th>Category</th>
                   <th>Linked Topic</th>
+                  <th style={{ width: '130px' }}>Student Access</th>
                   <th>Expected Output / Answer Key</th>
                   <th>Points</th>
-                  <th style={{ width: '120px' }}>Actions</th>
+                  <th style={{ width: '110px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedProblems.map((prob) => {
                   const topObj = topics.find(t => t.id === prob.topic || t.id === prob.topic?.id);
+                  const isUnlocked = prob.access_control ? prob.access_control.is_unlocked !== false : true;
+                  const isThisToggling = togglingId === prob.id;
 
                   return (
                     <tr key={prob.id}>
@@ -637,6 +781,32 @@ export default function PracticeTaskManagerTab({ user }) {
                         <span className="badge-pill course-pill">{topObj?.title || 'Topic'}</span>
                       </td>
                       <td>
+                        <button
+                          onClick={() => handleToggleAccess(prob)}
+                          disabled={isThisToggling}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            cursor: isThisToggling ? 'wait' : 'pointer',
+                            border: '1.5px solid',
+                            background: isUnlocked ? '#ECFDF5' : '#FEF2F2',
+                            borderColor: isUnlocked ? '#A7F3D0' : '#FECACA',
+                            color: isUnlocked ? '#065F46' : '#991B1B',
+                            opacity: isThisToggling ? 0.6 : 1,
+                            transition: 'all 0.15s ease',
+                          }}
+                          title={isUnlocked ? "Click to lock this lab for students" : "Click to unlock this lab for students"}
+                        >
+                          {isUnlocked ? <Unlock size={12} /> : <Lock size={12} />}
+                          {isUnlocked ? 'Unlocked' : 'Locked'}
+                        </button>
+                      </td>
+                      <td>
                         <span className="font-mono text-xs text-muted truncate max-w-xs block" title={prob.expected_output}>
                           {prob.expected_output || '—'}
                         </span>
@@ -659,6 +829,7 @@ export default function PracticeTaskManagerTab({ user }) {
                 })}
               </tbody>
             </table>
+
             <PaginationControls
               currentPage={safeCurrentPage}
               totalItems={filteredProblems.length}

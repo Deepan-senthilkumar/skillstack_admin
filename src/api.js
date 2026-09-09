@@ -194,6 +194,35 @@ class AdminApiClient {
   async updateProblem(id, data) { return this.request(`/staff/problems/${id}/`, { method: 'PUT', body: JSON.stringify(data) }); }
   async deleteProblem(id) { return this.request(`/staff/problems/${id}/`, { method: 'DELETE' }); }
 
+  // Problem Access Control (Lock / Unlock for Students)
+  async updateProblemAccess(problemId, accessData) {
+    return this.request(`/staff/problems/${problemId}/access/`, {
+      method: 'POST',
+      body: JSON.stringify(accessData),
+    });
+  }
+  async bulkUpdateProblemAccess(isUnlocked = true, problemIds = null, allowLate = true) {
+    return this.request('/staff/problems/bulk-access/', {
+      method: 'POST',
+      body: JSON.stringify({
+        is_unlocked: isUnlocked,
+        problem_ids: problemIds,
+        allow_late_submission: allowLate,
+      }),
+    });
+  }
+  async bulkUnlockModule(moduleId, isUnlocked = true, deadline = null) {
+    return this.request('/staff/modules/unlock/', {
+      method: 'POST',
+      body: JSON.stringify({
+        module_id: moduleId,
+        is_unlocked: isUnlocked,
+        deadline: deadline,
+      }),
+    });
+  }
+
+
   // Batch Management CRUD (duplicate course names supported)
   async getBatches(params = {}) {
     const query = new URLSearchParams(params).toString();
