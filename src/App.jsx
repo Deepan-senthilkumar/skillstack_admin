@@ -1,25 +1,72 @@
 import { useState, useEffect } from 'react';
-import { Shield, LogOut, Activity, RefreshCw } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { api } from './api';
 import AdminLoginPage from './pages/AdminLoginPage';
-import StaffDashboard from './pages/StaffDashboard';
+import AdminLayout from './layouts/AdminLayout';
+import DashboardPage from './pages/DashboardPage';
+import SubjectManagerTab from './components/SubjectManagerTab';
+import SyllabusManagerTab from './components/SyllabusManagerTab';
+import TopicManagerTab from './components/TopicManagerTab';
+import PracticeTaskManagerTab from './components/PracticeTaskManagerTab';
+import BatchManagerTab from './components/BatchManagerTab';
+import TopicProgressTab from './components/TopicProgressTab';
+import DailyTaskTrackerTab from './components/DailyTaskTrackerTab';
+import SubmissionInspectorTab from './components/SubmissionInspectorTab';
+import ReportsAnalyticsTab from './components/ReportsAnalyticsTab';
+import UserManagerTab from './components/UserManagerTab';
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activePage, setActivePage] = useState('dashboard');
+  const [selectedBatchIdForProgress, setSelectedBatchIdForProgress] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [curriculum, setCurriculum] = useState([]);
   const [backendOnline, setBackendOnline] = useState(null);
-  const [selectedSubjectSlug, setSelectedSubjectSlug] = useState('django');
+
+  // Sync active page with URL hash
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    const validPages = ['dashboard', 'subjects', 'syllabus', 'courses', 'topics', 'problems', 'batches', 'progress', 'daily_task', 'submissions', 'reports', 'users'];
+    if (hash && validPages.includes(hash)) {
+      setActivePage(hash);
+    }
+
+    const handleHashChange = () => {
+      const currentHash = window.location.hash.replace('#', '');
+      if (currentHash && validPages.includes(currentHash)) {
+        setActivePage(currentHash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const navigateTo = (pageId) => {
+    setActivePage(pageId);
+    window.location.hash = pageId;
+  };
+
+  const handleSelectBatchForProgress = (batchId) => {
+    setSelectedBatchIdForProgress(batchId);
+    navigateTo('progress');
+  };
 
   // Restore session on load
   useEffect(() => {
     const saved = api.getUser();
     if (saved && api.getToken()) {
-      // Validate token is still good
       api.getMe()
         .then(me => {
-          if (me.role === 'STAFF' || me.is_admin_role) {
+          const isAuthorized = me && (
+            me.role === 'ADMIN' ||
+            me.role === 'STAFF' ||
+            me.is_admin ||
+            me.is_admin_role ||
+            me.is_staff ||
+            me.is_superuser
+          );
+          if (isAuthorized) {
             setUser(me);
             loadBootstrap();
           } else {
@@ -34,21 +81,19 @@ export default function App() {
       setLoading(false);
     }
 
-    // Check backend health — retry until online (Render free tier sleeps)
+    // Check backend health
     const checkBackend = () => {
       api.checkHealth().then(h => {
         if (h.status === 'ok') {
           setBackendOnline(true);
         } else {
           setBackendOnline(false);
-          // Retry after 15s if offline (Render cold start can take ~30s)
           setTimeout(checkBackend, 15000);
         }
       });
     };
     checkBackend();
 
-    // Listen for forced logout
     window.addEventListener('admin:logout', handleLogout);
     return () => window.removeEventListener('admin:logout', handleLogout);
   }, []);
@@ -57,7 +102,7 @@ export default function App() {
     try {
       const [subs, curr] = await Promise.all([
         api.getSubjects().catch(() => []),
-        api.getCurriculum(selectedSubjectSlug).catch(() => []),
+        api.getCurriculum('c-programming').catch(() => []),
       ]);
       const safeSubs = Array.isArray(subs) ? subs : (subs?.results || []);
       const safeCurr = Array.isArray(curr) ? curr : (curr?.results || []);
@@ -80,16 +125,8 @@ export default function App() {
     setCurriculum([]);
   };
 
-  const handleRefreshCurriculum = async () => {
-    const curr = await api.getCurriculum(selectedSubjectSlug).catch(() => []);
-    const safeCurr = Array.isArray(curr) ? curr : (curr?.results || []);
-    setCurriculum(safeCurr);
-  };
-
-  const handleSubjectsUpdated = async () => {
-    const subs = await api.getSubjects().catch(() => []);
-    const safeSubs = Array.isArray(subs) ? subs : (subs?.results || []);
-    setSubjects(safeSubs);
+  const handleRefresh = async () => {
+    await loadBootstrap();
   };
 
   if (loading) {
@@ -97,7 +134,7 @@ export default function App() {
       <div className="admin-splash">
         <div className="splash-inner">
           <div className="splash-logo"><Shield size={36} /></div>
-          <p>Loading Admin Panel…</p>
+          <p className="font-semibold text-lg">Initializing SkillStack Admin...</p>
         </div>
       </div>
     );
@@ -108,68 +145,47 @@ export default function App() {
   }
 
   return (
-    <div className="admin-app">
-      {/* Admin Top Bar */}
-      <header className="admin-topbar">
-        <div className="topbar-brand">
-          <div className="topbar-logo"><Shield size={20} /></div>
-          <div>
-            <span className="topbar-title">SkillStack</span>
-            <span className="topbar-badge">Admin Studio</span>
-          </div>
-        </div>
-
-        <div className="topbar-center">
-          <span
-            className={`backend-status-dot ${backendOnline ? 'online' : backendOnline === false ? 'offline' : 'checking'}`}
-          />
-          <span className="backend-status-label">
-            {backendOnline ? 'Backend Online' : backendOnline === false ? 'Backend Offline' : 'Checking…'}
-          </span>
-        </div>
-
-        <div className="topbar-right">
-          <div className="topbar-user">
-            <div className="topbar-avatar">
-              {(user.first_name || user.username || 'A')[0].toUpperCase()}
-            </div>
-            <div className="topbar-user-info">
-              <span className="topbar-user-name">{user.first_name || user.username}</span>
-              <span className="topbar-user-role">{user.is_admin_role ? 'Super Admin' : 'Staff'}</span>
-            </div>
-          </div>
-
-          <button
-            className="topbar-btn"
-            onClick={handleRefreshCurriculum}
-            title="Refresh Curriculum"
-          >
-            <RefreshCw size={15} />
-          </button>
-
-          <button
-            className="topbar-logout"
-            onClick={handleLogout}
-            title="Sign Out"
-          >
-            <LogOut size={15} />
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Subject strip removed — sidebar navigation handles section switching */}
-
-      {/* Main Dashboard — sidebar is rendered inside StaffDashboard */}
-      <div className="admin-body">
-        <StaffDashboard
-          curriculum={curriculum}
-          onRefreshCurriculum={handleRefreshCurriculum}
-          subjects={subjects}
-          onSubjectsUpdated={handleSubjectsUpdated}
-          user={user}
-        />
-      </div>
-    </div>
+    <AdminLayout
+      user={user}
+      activePage={activePage}
+      onNavigate={navigateTo}
+      onLogout={handleLogout}
+      onRefresh={handleRefresh}
+      backendOnline={backendOnline}
+    >
+      {activePage === 'dashboard' && (
+        <DashboardPage user={user} onNavigate={navigateTo} />
+      )}
+      {(activePage === 'subjects' || activePage === 'courses') && (
+        <SubjectManagerTab user={user} />
+      )}
+      {activePage === 'syllabus' && (
+        <SyllabusManagerTab user={user} onNavigate={navigateTo} />
+      )}
+      {activePage === 'topics' && (
+        <TopicManagerTab user={user} onNavigate={navigateTo} />
+      )}
+      {activePage === 'problems' && (
+        <PracticeTaskManagerTab user={user} />
+      )}
+      {activePage === 'batches' && (
+        <BatchManagerTab user={user} onSelectBatchForProgress={handleSelectBatchForProgress} />
+      )}
+      {activePage === 'progress' && (
+        <TopicProgressTab user={user} defaultBatchId={selectedBatchIdForProgress} />
+      )}
+      {activePage === 'daily_task' && (
+        <DailyTaskTrackerTab user={user} />
+      )}
+      {activePage === 'submissions' && (
+        <SubmissionInspectorTab user={user} />
+      )}
+      {activePage === 'reports' && (
+        <ReportsAnalyticsTab user={user} />
+      )}
+      {activePage === 'users' && (
+        <UserManagerTab user={user} />
+      )}
+    </AdminLayout>
   );
 }
