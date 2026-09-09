@@ -7,6 +7,7 @@ import { api } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
+import RichContentRenderer from './RichContentRenderer';
 
 export default function PracticeTaskManagerTab({ user }) {
   const toast = useToast();
@@ -459,6 +460,20 @@ export default function PracticeTaskManagerTab({ user }) {
                   <h3 className="preview-title">
                     {formData.title || 'Task Title Preview'}
                   </h3>
+
+                  {formData.description && (
+                    <div style={{
+                      margin: '12px 0',
+                      padding: '12px 14px',
+                      background: '#F8FAFC',
+                      borderRadius: '10px',
+                      border: '1px solid #E2E8F0',
+                      maxHeight: '260px',
+                      overflowY: 'auto'
+                    }}>
+                      <RichContentRenderer content={formData.description} />
+                    </div>
+                  )}
 
                   <div className="preview-specs-box">
                     <div className="preview-spec-row">
