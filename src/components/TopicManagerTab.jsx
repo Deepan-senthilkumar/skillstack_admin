@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   FileText, Plus, Edit2, Trash2, ArrowLeft, Check,
   Search, Filter, Sparkles, BookOpen, Layers, AlertCircle,
-  FolderPlus, ArrowUpRight
+  FolderPlus, ArrowUpRight, Image, Upload, X, Eye
 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -38,6 +38,12 @@ export default function TopicManagerTab({ user, onNavigate }) {
     notes_content: '',
     order: 1,
   });
+
+  // Image upload state
+  const [topicImages, setTopicImages] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageCaption, setImageCaption] = useState('');
+  const imageInputRef = useRef(null);
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -117,6 +123,8 @@ export default function TopicManagerTab({ user, onNavigate }) {
     });
     setFieldErrors({});
     setQuickChapterOpen(false);
+    setTopicImages([]);
+    setImageCaption('');
     setViewMode('form');
   };
 
@@ -135,6 +143,9 @@ export default function TopicManagerTab({ user, onNavigate }) {
     });
     setFieldErrors({});
     setQuickChapterOpen(false);
+    // Load existing images for this topic
+    setTopicImages(t.images || []);
+    setImageCaption('');
     setViewMode('form');
   };
 
@@ -467,6 +478,109 @@ export default function TopicManagerTab({ user, onNavigate }) {
                   className="form-textarea font-mono text-xs leading-relaxed"
                 />
               </div>
+
+              {/* ====== IMAGE UPLOAD SECTION ====== */}
+              {editingTopic && (
+                <div className="form-group mt-4" style={{ border: '1.5px dashed #CBD5E1', borderRadius: '16px', padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                    <Image size={16} color="#7B1C6E" />
+                    <span style={{ fontWeight: 700, fontSize: '14px', color: '#0F172A' }}>Topic Images</span>
+                    <span style={{ fontSize: '12px', color: '#64748B', marginLeft: '4px' }}>— shown to students in the guide section</span>
+                  </div>
+
+                  {/* Existing images */}
+                  {topicImages.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                      {topicImages.map(img => (
+                        <div key={img.id} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1.5px solid #E2E8F0', background: '#F8FAFC' }}>
+                          <img
+                            src={img.image_url}
+                            alt={img.caption || 'Topic image'}
+                            style={{ width: '160px', height: '120px', objectFit: 'cover', display: 'block' }}
+                          />
+                          {img.caption && (
+                            <div style={{ padding: '4px 8px', fontSize: '11px', color: '#475569', borderTop: '1px solid #E2E8F0' }}>
+                              {img.caption}
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!window.confirm('Delete this image?')) return;
+                              try {
+                                await api.deleteTopicImage(img.id);
+                                setTopicImages(prev => prev.filter(i => i.id !== img.id));
+                                toast.success('Image deleted.');
+                              } catch (e) {
+                                toast.error('Failed to delete image.');
+                              }
+                            }}
+                            style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(239,68,68,0.9)', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <X size={12} color="white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Upload new image */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <input
+                      type="text"
+                      placeholder="Caption (optional) — e.g. Django Request-Response Flow"
+                      value={imageCaption}
+                      onChange={(e) => setImageCaption(e.target.value)}
+                      className="form-input text-sm"
+                    />
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingImage(true);
+                          try {
+                            const fd = new FormData();
+                            fd.append('image', file);
+                            fd.append('caption', imageCaption);
+                            fd.append('order', topicImages.length + 1);
+                            const newImg = await api.uploadTopicImage(editingTopic.id, fd);
+                            setTopicImages(prev => [...prev, newImg]);
+                            setImageCaption('');
+                            toast.success('Image uploaded successfully!');
+                          } catch (err) {
+                            toast.error('Upload failed: ' + (err.message || 'Unknown error'));
+                          } finally {
+                            setUploadingImage(false);
+                            if (imageInputRef.current) imageInputRef.current.value = '';
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn-outline-sm"
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                      >
+                        <Upload size={14} />
+                        {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                      </button>
+                      <span style={{ fontSize: '12px', color: '#94A3B8' }}>JPG, PNG, GIF, WebP — max 5MB</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {!editingTopic && (
+                <div style={{ marginTop: '12px', padding: '12px 16px', background: '#F0F9FF', borderRadius: '10px', fontSize: '12.5px', color: '#0369A1', border: '1px solid #BAE6FD' }}>
+                  <Image size={13} style={{ display: 'inline', marginRight: '6px' }} />
+                  💡 Save this topic first, then re-open it to upload images.
+                </div>
+              )}
             </div>
 
             {/* Right Column: Live Topic Card Preview */}

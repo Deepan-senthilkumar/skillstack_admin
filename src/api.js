@@ -159,6 +159,21 @@ class AdminApiClient {
   async updateTopic(id, data) { return this.request(`/staff/topics/${id}/`, { method: 'PUT', body: JSON.stringify(data) }); }
   async deleteTopic(id) { return this.request(`/staff/topics/${id}/`, { method: 'DELETE' }); }
 
+  // Topic Image Upload (multipart — do NOT set Content-Type manually)
+  async uploadTopicImage(topicId, formData) {
+    const url = `${this.baseUrl}/staff/topics/${topicId}/images/`;
+    const token = this.getToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(url, { method: 'POST', headers, body: formData });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || data.detail || 'Upload failed');
+    return data;
+  }
+  async deleteTopicImage(imageId) { return this.request(`/staff/topic-images/${imageId}/delete/`, { method: 'DELETE' }); }
+  async getTopicImages(topicId) { return this.request(`/staff/topics/${topicId}/images/list/`); }
+
+
   async getProblems() { return this.request('/staff/problems/'); }
   async createProblem(data) { return this.request('/staff/problems/', { method: 'POST', body: JSON.stringify(data) }); }
   async updateProblem(id, data) { return this.request(`/staff/problems/${id}/`, { method: 'PUT', body: JSON.stringify(data) }); }
