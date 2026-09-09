@@ -14,7 +14,15 @@ export default function AdminLoginPage({ onLoginSuccess }) {
     setError('');
     try {
       const user = await api.login(uVal || username, pVal || password);
-      if (user.role !== 'STAFF' && !user.is_admin_role) {
+      const isAuthorized = user && (
+        user.role === 'ADMIN' ||
+        user.role === 'STAFF' ||
+        user.is_admin ||
+        user.is_admin_role ||
+        user.is_staff ||
+        user.is_superuser
+      );
+      if (!isAuthorized) {
         api.clearTokens();
         setError('Access denied. This panel is for authorised staff and administrators only.');
         setLoading(false);
@@ -111,14 +119,14 @@ export default function AdminLoginPage({ onLoginSuccess }) {
             </button>
           </form>
 
-          <div className="login-notice">
+          <div className="login-notice mt-4">
             <Shield size={13} />
-            <span>Restricted access — authorised staff only. Student logins are blocked.</span>
+            <span>Restricted access &mdash; Authorized staff & administrators only.</span>
           </div>
         </div>
 
         <p className="login-footer">
-          Django Kalari Academy &mdash; Admin Studio &copy; 2026
+          SkillStack Tutor Platform &mdash; Admin Studio &copy; 2026
         </p>
       </div>
     </div>
