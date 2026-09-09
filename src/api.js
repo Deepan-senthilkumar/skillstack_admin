@@ -173,6 +173,21 @@ class AdminApiClient {
   async deleteTopicImage(imageId) { return this.request(`/staff/topic-images/${imageId}/delete/`, { method: 'DELETE' }); }
   async getTopicImages(topicId) { return this.request(`/staff/topics/${topicId}/images/list/`); }
 
+  // Code Examples (Practical Code)
+  async getCodeExamples(topicId) {
+    const q = topicId ? `?topic=${topicId}` : '';
+    return this.request(`/staff/code-examples/${q}`);
+  }
+  async createCodeExample(data) {
+    return this.request('/staff/code-examples/', { method: 'POST', body: JSON.stringify(data) });
+  }
+  async updateCodeExample(id, data) {
+    return this.request(`/staff/code-examples/${id}/`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+  async deleteCodeExample(id) {
+    return this.request(`/staff/code-examples/${id}/`, { method: 'DELETE' });
+  }
+
 
   async getProblems() { return this.request('/staff/problems/'); }
   async createProblem(data) { return this.request('/staff/problems/', { method: 'POST', body: JSON.stringify(data) }); }

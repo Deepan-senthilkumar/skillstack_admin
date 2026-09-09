@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   FileText, Plus, Edit2, Trash2, ArrowLeft, Check,
   Search, Filter, Sparkles, BookOpen, Layers, AlertCircle,
-  FolderPlus, ArrowUpRight, Image, Upload, X, Eye
+  FolderPlus, ArrowUpRight, Image, Upload, X, Eye, Code2
 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -47,6 +47,12 @@ export default function TopicManagerTab({ user, onNavigate }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageCaption, setImageCaption] = useState('');
   const imageInputRef = useRef(null);
+
+  // Practical Code Examples state
+  const [topicExamples, setTopicExamples] = useState([]);
+  const [newExampleLabel, setNewExampleLabel] = useState('');
+  const [newExampleCode, setNewExampleCode] = useState('');
+  const [addingExample, setAddingExample] = useState(false);
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -128,6 +134,9 @@ export default function TopicManagerTab({ user, onNavigate }) {
     setQuickChapterOpen(false);
     setTopicImages([]);
     setImageCaption('');
+    setTopicExamples([]);
+    setNewExampleLabel('');
+    setNewExampleCode('');
     setViewMode('form');
   };
 
@@ -146,9 +155,12 @@ export default function TopicManagerTab({ user, onNavigate }) {
     });
     setFieldErrors({});
     setQuickChapterOpen(false);
-    // Load existing images for this topic
+    // Load existing images and code examples for this topic
     setTopicImages(t.images || []);
     setImageCaption('');
+    setTopicExamples(t.examples || []);
+    setNewExampleLabel('');
+    setNewExampleCode('');
     setViewMode('form');
   };
 
@@ -243,6 +255,19 @@ export default function TopicManagerTab({ user, onNavigate }) {
         const created = await api.createTopic(payload);
         if (created && created.id) {
           setTopics(prev => [...prev, created]);
+          // Save queued code examples if any
+          if (topicExamples.length > 0) {
+            await Promise.all(
+              topicExamples.map((ex, idx) =>
+                api.createCodeExample({
+                  topic: created.id,
+                  label: ex.label,
+                  code: ex.code,
+                  order: idx + 1
+                }).catch(() => null)
+              )
+            );
+          }
         }
         toast.success(`Topic "${formData.title}" created successfully!`);
       }
@@ -252,6 +277,55 @@ export default function TopicManagerTab({ user, onNavigate }) {
       toast.error(err);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAddCodeExample = async () => {
+    if (!newExampleLabel.trim() || !newExampleCode.trim()) {
+      toast.error('Please enter both snippet label and code.');
+      return;
+    }
+
+    if (editingTopic) {
+      setAddingExample(true);
+      try {
+        const created = await api.createCodeExample({
+          topic: editingTopic.id,
+          label: newExampleLabel.trim(),
+          code: newExampleCode,
+          order: topicExamples.length + 1
+        });
+        setTopicExamples(prev => [...prev, created]);
+        setNewExampleLabel('');
+        setNewExampleCode('');
+        toast.success('Code example added successfully!');
+      } catch (err) {
+        toast.error('Failed to add code example: ' + (err.message || 'Error'));
+      } finally {
+        setAddingExample(false);
+      }
+    } else {
+      setTopicExamples(prev => [
+        ...prev,
+        { label: newExampleLabel.trim(), code: newExampleCode, order: prev.length + 1 }
+      ]);
+      setNewExampleLabel('');
+      setNewExampleCode('');
+      toast.success('Code snippet queued. It will save with the topic.');
+    }
+  };
+
+  const handleDeleteCodeExample = async (exId, idx) => {
+    if (exId) {
+      try {
+        await api.deleteCodeExample(exId);
+        setTopicExamples(prev => prev.filter(e => e.id !== exId));
+        toast.success('Code example removed.');
+      } catch (err) {
+        toast.error('Failed to delete code example: ' + (err.message || 'Error'));
+      }
+    } else {
+      setTopicExamples(prev => prev.filter((_, i) => i !== idx));
     }
   };
 
@@ -604,6 +678,120 @@ export default function TopicManagerTab({ user, onNavigate }) {
                   💡 Save this topic first, then re-open it to upload images.
                 </div>
               )}
+
+              {/* Practical Code Examples Section */}
+              <div style={{ marginTop: '24px', borderTop: '1px solid rgba(123, 28, 110, 0.12)', paddingTop: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <div>
+                    <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Code2 size={16} color="#7B1C6E" /> Practical Code Examples ({topicExamples.length})
+                    </h4>
+                    <p className="text-xs text-muted">
+                      Code snippets that appear dynamically in the student portal's <strong>Practical Code</strong> tab.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Existing Code Examples List */}
+                {topicExamples.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                    {topicExamples.map((ex, idx) => (
+                      <div
+                        key={ex.id || idx}
+                        style={{
+                          background: '#0F172A',
+                          borderRadius: '12px',
+                          border: '1px solid #1E293B',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 14px',
+                          background: '#1E293B',
+                          borderBottom: '1px solid #334155'
+                        }}>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#F8FAFC' }}>
+                            ● {ex.label}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCodeExample(ex.id, idx)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#F87171',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              padding: '2px 8px',
+                              borderRadius: '5px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <Trash2 size={12} /> Delete
+                          </button>
+                        </div>
+                        <pre style={{
+                          margin: 0,
+                          padding: '12px 14px',
+                          fontFamily: 'monospace',
+                          fontSize: '12px',
+                          color: '#E2E8F0',
+                          lineHeight: 1.6,
+                          maxHeight: '160px',
+                          overflowY: 'auto'
+                        }}>
+                          <code>{ex.code}</code>
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add New Code Example Box */}
+                <div style={{
+                  background: '#F8FAFC',
+                  borderRadius: '12px',
+                  border: '1px dashed #CBD5E1',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px'
+                }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                    + Add New Practical Code Snippet
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Snippet Title / Label — e.g. terminal - install & setup or views.py"
+                    value={newExampleLabel}
+                    onChange={(e) => setNewExampleLabel(e.target.value)}
+                    className="form-input text-xs font-semibold"
+                  />
+                  <textarea
+                    rows={4}
+                    placeholder="# Write your practical code implementation here...&#10;def my_view(request):&#10;    return render(request, 'home.html')"
+                    value={newExampleCode}
+                    onChange={(e) => setNewExampleCode(e.target.value)}
+                    className="form-textarea font-mono text-xs"
+                    style={{ background: '#FFFFFF' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCodeExample}
+                    disabled={addingExample || !newExampleLabel.trim() || !newExampleCode.trim()}
+                    className="btn-save-primary text-xs py-1.5 px-3 w-fit"
+                    style={{ alignSelf: 'flex-start' }}
+                  >
+                    <Plus size={13} /> {addingExample ? 'Adding...' : 'Add Code Snippet'}
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Right Column: Live Topic Card Preview */}
