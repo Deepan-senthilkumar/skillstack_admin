@@ -174,14 +174,16 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
     });
     if (!ok) return;
 
-    try {
-      await api.deleteModule(id);
-      setModules(prev => prev.filter(m => m.id !== id));
-      toast.success(`Chapter "${name}" deleted successfully.`);
-      await loadAllData();
-    } catch (err) {
-      toast.error(err);
-    }
+    // Instant UI update
+    const prevModules = [...modules];
+    setModules(prev => prev.filter(m => m.id !== id));
+    toast.success(`Chapter "${name}" deleted.`);
+
+    // Background delete
+    api.deleteModule(id).catch(err => {
+      setModules(prevModules);
+      toast.error('Failed to delete chapter on server: ' + (err?.message || err || 'Error'));
+    });
   };
 
   // Filter modules by subject, level, and search query

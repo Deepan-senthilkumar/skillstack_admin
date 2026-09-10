@@ -148,14 +148,16 @@ export default function SubjectManagerTab({ user }) {
     });
     if (!ok) return;
 
-    try {
-      await api.deleteSubject(id);
-      setSubjects(prev => prev.filter(s => s.id !== id));
-      toast.success(`Subject "${name}" deleted successfully.`);
-      await loadSubjects();
-    } catch (e) {
-      toast.error(e);
-    }
+    // Instant UI update
+    const prevSubjects = [...subjects];
+    setSubjects(prev => prev.filter(s => s.id !== id));
+    toast.success(`Subject "${name}" deleted.`);
+
+    // Background delete
+    api.deleteSubject(id).catch(e => {
+      setSubjects(prevSubjects);
+      toast.error('Failed to delete subject on server: ' + (e?.message || e || 'Error'));
+    });
   };
 
   const filteredSubjects = subjects.filter(s => {
