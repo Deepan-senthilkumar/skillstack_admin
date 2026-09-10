@@ -12,7 +12,7 @@ function CodeBlock({ code, lang }) {
 
   return (
     <div style={{
-      margin: '14px 0',
+      margin: '16px 0',
       borderRadius: '12px',
       overflow: 'hidden',
       border: '1px solid #1E293B',
@@ -114,45 +114,189 @@ function renderInlineText(text) {
         return <strong key={j} style={{ color: '#0F172A', fontWeight: 700 }}>{bPart.slice(2, -2)}</strong>;
       }
 
-      // Link formatting: [label](url)
-      const linkParts = bPart.split(/(\[[^\]]+\]\([^)]+\))/g);
-      return linkParts.map((lPart, k) => {
-        const linkMatch = lPart.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-        if (linkMatch) {
-          return (
-            <a
-              key={k}
-              href={linkMatch[2]}
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: '#7B1C6E', textDecoration: 'underline', fontWeight: 600 }}
-            >
-              {linkMatch[1]}
-            </a>
-          );
+      // Italic formatting: *italic* or _italic_
+      const italicParts = bPart.split(/(\*[^*]+\*|_[^_]+_)/g);
+      return italicParts.map((itPart, m) => {
+        if ((itPart.startsWith('*') && itPart.endsWith('*') && itPart.length >= 3) ||
+            (itPart.startsWith('_') && itPart.endsWith('_') && itPart.length >= 3)) {
+          return <em key={m} style={{ color: '#475569', fontStyle: 'italic' }}>{itPart.slice(1, -1)}</em>;
         }
 
-        // Raw URLs: http(s)://...
-        const urlParts = lPart.split(/(https?:\/\/[^\s]+)/g);
-        return urlParts.map((uPart, l) => {
-          if (/^https?:\/\//.test(uPart)) {
+        // Link formatting: [label](url)
+        const linkParts = itPart.split(/(\[[^\]]+\]\([^)]+\))/g);
+        return linkParts.map((lPart, k) => {
+          const linkMatch = lPart.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+          if (linkMatch) {
             return (
               <a
-                key={l}
-                href={uPart}
+                key={k}
+                href={linkMatch[2]}
                 target="_blank"
                 rel="noreferrer"
-                style={{ color: '#7B1C6E', textDecoration: 'underline', wordBreak: 'break-all' }}
+                style={{ color: '#7B1C6E', textDecoration: 'underline', fontWeight: 600 }}
               >
-                {uPart}
+                {linkMatch[1]}
               </a>
             );
           }
-          return uPart;
+
+          // Raw URLs: http(s)://...
+          const urlParts = lPart.split(/(https?:\/\/[^\s]+)/g);
+          return urlParts.map((uPart, l) => {
+            if (/^https?:\/\//.test(uPart)) {
+              return (
+                <a
+                  key={l}
+                  href={uPart}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: '#7B1C6E', textDecoration: 'underline', wordBreak: 'break-all' }}
+                >
+                  {uPart}
+                </a>
+              );
+            }
+            return uPart;
+          });
         });
       });
     });
   });
+}
+
+// Universal table helper: detects borders (Unicode box-drawing, ASCII +, and markdown -)
+function isBoxBorderLine(line) {
+  if (!line) return false;
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  
+  // Unicode Box border characters: ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ ─ ═ ╔ ╗ ╚ ╝ ╠ ╣ ╦ ╩ ╬
+  // ASCII grid borders: +---+---+ or |---|---|
+  return /^[┌╔├╠└╚\+][─═\-\+\┬╦┼╬┴╩│║\| \t]*[┐╗┤╣┘╝\+]?$/.test(trimmed) ||
+         /^[\|\+][\-\:\s\+\|]+[\|\+]?$/.test(trimmed) ||
+         /^[─═\-]{3,}$/.test(trimmed);
+}
+
+// Detects content rows with vertical dividers: │, ║, or |
+function isBoxContentRow(line) {
+  if (!line) return false;
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  if (isBoxBorderLine(trimmed)) return false;
+  return trimmed.includes('│') || trimmed.includes('║') || trimmed.includes('|');
+}
+
+// Split cells intelligently while respecting braces {}, backticks ``, and brackets []
+function splitUniversalTableLine(line) {
+  let trimmed = line.trim();
+  // Strip outer vertical borders: │, ║, |
+  if (/^[│║\|]/.test(trimmed)) trimmed = trimmed.slice(1);
+  if (/[│║\|]$/.test(trimmed)) trimmed = trimmed.slice(0, -1);
+
+  const cells = [];
+  let current = '';
+  let inCode = false;
+  let braceDepth = 0;
+
+  for (let i = 0; i < trimmed.length; i++) {
+    const char = trimmed[i];
+    if (char === '`') {
+      inCode = !inCode;
+      current += char;
+    } else if (!inCode && (char === '{' || char === '[' || char === '(')) {
+      braceDepth++;
+      current += char;
+    } else if (!inCode && (char === '}' || char === ']' || char === ')')) {
+      if (braceDepth > 0) braceDepth--;
+      current += char;
+    } else if ((char === '│' || char === '║' || char === '|') && !inCode && braceDepth === 0) {
+      cells.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+function TableBlock({ headers = [], alignments = [], rows = [] }) {
+  return (
+    <div style={{
+      margin: '20px 0',
+      overflowX: 'auto',
+      borderRadius: '14px',
+      border: '1.5px solid rgba(123, 28, 110, 0.16)',
+      boxShadow: '0 6px 24px rgba(123, 28, 110, 0.06)',
+      background: '#FFFFFF'
+    }}>
+      <table style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        textAlign: 'left',
+        fontSize: '13.5px',
+        lineHeight: 1.6
+      }}>
+        {headers && headers.length > 0 && (
+          <thead>
+            <tr style={{
+              background: 'linear-gradient(135deg, #FDF5FD 0%, #F8FAFC 100%)',
+              borderBottom: '2px solid rgba(123, 28, 110, 0.18)'
+            }}>
+              {headers.map((head, idx) => (
+                <th
+                  key={idx}
+                  style={{
+                    padding: '13px 18px',
+                    fontWeight: 800,
+                    color: '#7B1C6E',
+                    textAlign: alignments[idx] || 'left',
+                    whiteSpace: 'nowrap',
+                    fontSize: '12.5px',
+                    letterSpacing: '0.03em',
+                    textTransform: 'uppercase',
+                    borderRight: idx < headers.length - 1 ? '1px solid rgba(123, 28, 110, 0.1)' : 'none'
+                  }}
+                >
+                  {renderInlineText(head)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {rows.map((row, rIdx) => (
+            <tr
+              key={rIdx}
+              style={{
+                borderBottom: rIdx < rows.length - 1 ? '1px solid #F1F5F9' : 'none',
+                background: rIdx % 2 === 0 ? '#FFFFFF' : '#FAFCFF',
+                transition: 'background 0.15s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#FDF5FD'}
+              onMouseLeave={(e) => e.currentTarget.style.background = rIdx % 2 === 0 ? '#FFFFFF' : '#FAFCFF'}
+            >
+              {row.map((cell, cIdx) => (
+                <td
+                  key={cIdx}
+                  style={{
+                    padding: '12px 18px',
+                    color: '#334155',
+                    textAlign: alignments[cIdx] || 'left',
+                    verticalAlign: 'middle',
+                    fontWeight: 500,
+                    borderRight: cIdx < row.length - 1 ? '1px solid #F8FAFC' : 'none'
+                  }}
+                >
+                  {renderInlineText(cell)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export default function RichContentRenderer({ content, className = '' }) {
@@ -160,7 +304,7 @@ export default function RichContentRenderer({ content, className = '' }) {
     return null;
   }
 
-  // Parse markdown into blocks
+  // Parse markdown and ASCII/Unicode box tables into structured blocks
   const lines = content.split('\n');
   const blocks = [];
   let currentCode = null;
@@ -192,6 +336,69 @@ export default function RichContentRenderer({ content, className = '' }) {
       continue;
     }
 
+    // 1. Check for Table start (Unicode Box tables: ┌...┐, or Markdown/ASCII tables: | Header | or +---+---+)
+    const isBoxStart = isBoxBorderLine(line);
+    const isRowStart = isBoxContentRow(line);
+
+    if (isBoxStart || isRowStart) {
+      // Lookahead to see if next lines form a valid table structure
+      let testIdx = isBoxStart ? i + 1 : i;
+      if (testIdx < lines.length && isBoxContentRow(lines[testIdx])) {
+        // We have a table!
+        let headers = [];
+        let alignments = [];
+        const rows = [];
+
+        // Parse header row
+        headers = splitUniversalTableLine(lines[testIdx]);
+        testIdx++;
+
+        // Check if there is an alignment / separator border line
+        if (testIdx < lines.length && isBoxBorderLine(lines[testIdx])) {
+          const delimCells = splitUniversalTableLine(lines[testIdx]);
+          alignments = delimCells.map(d => {
+            const clean = d.trim();
+            if (clean.startsWith(':') && clean.endsWith(':')) return 'center';
+            if (clean.endsWith(':')) return 'right';
+            return 'left';
+          });
+          testIdx++;
+        }
+
+        // Collect body rows
+        while (testIdx < lines.length) {
+          const curLine = lines[testIdx];
+          if (isBoxBorderLine(curLine)) {
+            // Check if bottom border or middle divider
+            testIdx++;
+            // If the next line is not a content row, this was the bottom border
+            if (testIdx >= lines.length || !isBoxContentRow(lines[testIdx])) {
+              break;
+            }
+            continue;
+          }
+
+          if (isBoxContentRow(curLine)) {
+            const rowCells = splitUniversalTableLine(curLine);
+            rows.push(rowCells);
+            testIdx++;
+          } else {
+            // Non-table line encountered
+            break;
+          }
+        }
+
+        i = testIdx - 1; // Update loop index to the end of the table
+        blocks.push({
+          type: 'table',
+          headers,
+          alignments,
+          rows
+        });
+        continue;
+      }
+    }
+
     // Headings
     if (/^# /.test(line)) {
       blocks.push({ type: 'h1', text: line.replace(/^# /, '') });
@@ -210,8 +417,14 @@ export default function RichContentRenderer({ content, className = '' }) {
       continue;
     }
 
-    // Horizontal Rule
-    if (/^---/.test(line.trim())) {
+    // Blockquote
+    if (/^>\s?/.test(line)) {
+      blocks.push({ type: 'quote', text: line.replace(/^>\s?/, '') });
+      continue;
+    }
+
+    // Horizontal Rule (exact dashes or stars)
+    if (/^---+$|^\*\*\*+$/.test(line.trim())) {
       blocks.push({ type: 'hr' });
       continue;
     }
@@ -249,22 +462,51 @@ export default function RichContentRenderer({ content, className = '' }) {
   }
 
   return (
-    <div className={`rich-content-flow ${className}`} style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155' }}>
+    <div className={`rich-content-flow ${className}`} style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155' }}>
       {blocks.map((block, idx) => {
         switch (block.type) {
+          case 'table':
+            return (
+              <TableBlock
+                key={idx}
+                headers={block.headers}
+                alignments={block.alignments}
+                rows={block.rows}
+              />
+            );
+
           case 'code':
             return <CodeBlock key={idx} code={block.code} lang={block.lang} />;
+
+          case 'quote':
+            return (
+              <blockquote
+                key={idx}
+                style={{
+                  margin: '14px 0',
+                  padding: '12px 18px',
+                  background: 'rgba(123, 28, 110, 0.05)',
+                  borderLeft: '4px solid #7B1C6E',
+                  borderRadius: '0 10px 10px 0',
+                  color: '#475569',
+                  fontStyle: 'italic',
+                  lineHeight: 1.65
+                }}
+              >
+                {renderInlineText(block.text)}
+              </blockquote>
+            );
 
           case 'h1':
             return (
               <h2
                 key={idx}
                 style={{
-                  fontSize: '18px',
+                  fontSize: '20px',
                   fontWeight: 800,
                   color: '#0F172A',
-                  margin: '18px 0 8px',
-                  paddingBottom: '5px',
+                  margin: '22px 0 10px',
+                  paddingBottom: '6px',
                   borderBottom: '2px solid rgba(123, 28, 110, 0.15)'
                 }}
               >
@@ -277,10 +519,10 @@ export default function RichContentRenderer({ content, className = '' }) {
               <h3
                 key={idx}
                 style={{
-                  fontSize: '16px',
+                  fontSize: '17px',
                   fontWeight: 800,
                   color: '#1E293B',
-                  margin: '16px 0 6px'
+                  margin: '18px 0 8px'
                 }}
               >
                 {renderInlineText(block.text)}
@@ -292,13 +534,13 @@ export default function RichContentRenderer({ content, className = '' }) {
               <h4
                 key={idx}
                 style={{
-                  fontSize: '14px',
+                  fontSize: '15px',
                   fontWeight: 700,
                   color: '#7B1C6E',
-                  margin: '14px 0 6px',
+                  margin: '16px 0 6px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px'
+                  gap: '8px'
                 }}
               >
                 <span style={{
@@ -317,10 +559,10 @@ export default function RichContentRenderer({ content, className = '' }) {
               <h5
                 key={idx}
                 style={{
-                  fontSize: '13.5px',
+                  fontSize: '14px',
                   fontWeight: 700,
                   color: '#334155',
-                  margin: '10px 0 4px'
+                  margin: '12px 0 4px'
                 }}
               >
                 {renderInlineText(block.text)}
@@ -334,7 +576,7 @@ export default function RichContentRenderer({ content, className = '' }) {
                 style={{
                   border: 'none',
                   borderTop: '1.5px solid rgba(123, 28, 110, 0.12)',
-                  margin: '14px 0'
+                  margin: '18px 0'
                 }}
               />
             );
@@ -345,9 +587,9 @@ export default function RichContentRenderer({ content, className = '' }) {
                 key={idx}
                 style={{
                   display: 'flex',
-                  gap: '8px',
+                  gap: '10px',
                   alignItems: 'flex-start',
-                  margin: '3px 0'
+                  margin: '4px 0'
                 }}
               >
                 <span style={{ color: '#7B1C6E', fontWeight: 800, marginTop: '2px', flexShrink: 0 }}>•</span>
@@ -361,9 +603,9 @@ export default function RichContentRenderer({ content, className = '' }) {
                 key={idx}
                 style={{
                   display: 'flex',
-                  gap: '8px',
+                  gap: '10px',
                   alignItems: 'flex-start',
-                  margin: '5px 0'
+                  margin: '6px 0'
                 }}
               >
                 <span
@@ -371,12 +613,12 @@ export default function RichContentRenderer({ content, className = '' }) {
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    minWidth: '20px',
-                    height: '20px',
-                    borderRadius: '5px',
+                    minWidth: '22px',
+                    height: '22px',
+                    borderRadius: '6px',
                     background: 'rgba(123, 28, 110, 0.08)',
                     color: '#7B1C6E',
-                    fontSize: '11px',
+                    fontSize: '12px',
                     fontWeight: 700,
                     flexShrink: 0,
                     marginTop: '2px'
@@ -389,7 +631,7 @@ export default function RichContentRenderer({ content, className = '' }) {
             );
 
           case 'spacer':
-            return <div key={idx} style={{ height: '6px' }} />;
+            return <div key={idx} style={{ height: '8px' }} />;
 
           case 'p':
           default:
@@ -397,8 +639,8 @@ export default function RichContentRenderer({ content, className = '' }) {
               <p
                 key={idx}
                 style={{
-                  margin: '5px 0',
-                  lineHeight: 1.65,
+                  margin: '6px 0',
+                  lineHeight: 1.7,
                   color: '#334155'
                 }}
               >
