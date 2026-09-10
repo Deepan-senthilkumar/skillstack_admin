@@ -160,6 +160,16 @@ class AdminApiClient {
   async deleteTopic(id) { return this.request(`/staff/topics/${id}/`, { method: 'DELETE' }); }
 
   // Topic Image Upload (multipart — do NOT set Content-Type manually)
+  async uploadGenericImage(formData) {
+    const url = `${this.baseUrl}/staff/upload-image/`;
+    const token = this.getToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(url, { method: 'POST', headers, body: formData });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || data.detail || 'Upload failed');
+    return data;
+  }
   async uploadTopicImage(topicId, formData) {
     const url = `${this.baseUrl}/staff/topics/${topicId}/images/`;
     const token = this.getToken();
