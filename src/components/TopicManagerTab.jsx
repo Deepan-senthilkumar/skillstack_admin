@@ -68,7 +68,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
 
   const [quickChapterOpen, setQuickChapterOpen] = useState(false);
   const [quickChapterData, setQuickChapterData] = useState({ name: '', level: 'beginner' });
-  const [creatingQuickChapter, setCreatingQuickChapter] = useState(false);
+  const [selectedTopicIds, setSelectedTopicIds] = useState([]);
 
   useEffect(() => {
     loadAllData();
@@ -348,13 +348,62 @@ export default function TopicManagerTab({ user, onNavigate }) {
     });
     if (!ok) return;
 
-    try {
-      await api.deleteTopic(id);
-      setTopics(prev => prev.filter(t => t.id !== id));
-      toast.success(`Topic "${title}" deleted successfully.`);
-      await loadAllData();
-    } catch (e) {
-      toast.error(e);
+    // Optimistic UI update: remove immediately without waiting
+    const prevTopics = [...topics];
+    setTopics(prev => prev.filter(t => t.id !== id));
+    setSelectedTopicIds(prev => prev.filter(selectedId => selectedId !== id));
+    toast.success(`Topic "${title}" deleted.`);
+
+    // Perform delete in background
+    api.deleteTopic(id).catch((e) => {
+      setTopics(prevTopics);
+      toast.error('Failed to delete topic on server: ' + (e?.message || e || 'Error'));
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedTopicIds.length === 0) return;
+    const count = selectedTopicIds.length;
+    const ok = await confirm({
+      title: `Delete ${count} Selected Topics?`,
+      message: `Are you sure you want to permanently delete these ${count} selected topics and all attached notes/practice problems?`,
+      confirmText: `Delete ${count} Topics`,
+      cancelText: 'Cancel',
+      type: 'danger',
+    });
+    if (!ok) return;
+
+    const idsToDelete = [...selectedTopicIds];
+    const prevTopics = [...topics];
+
+    // Optimistic UI update: remove all immediately
+    setTopics(prev => prev.filter(t => !idsToDelete.includes(t.id)));
+    setSelectedTopicIds([]);
+    toast.success(`${count} topics deleted.`);
+
+    // Call delete API for all in background
+    Promise.allSettled(idsToDelete.map(id => api.deleteTopic(id))).then(results => {
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        toast.error(`Warning: ${failed.length} topics failed to delete on server.`);
+        loadAllData();
+      }
+    });
+  };
+
+  const toggleSelectTopic = (id) => {
+    setSelectedTopicIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllPage = (pageItems) => {
+    const pageIds = pageItems.map(p => p.id);
+    const allSelected = pageIds.every(id => selectedTopicIds.includes(id));
+    if (allSelected) {
+      setSelectedTopicIds(prev => prev.filter(id => !pageIds.includes(id)));
+    } else {
+      setSelectedTopicIds(prev => Array.from(new Set([...prev, ...pageIds])));
     }
   };
 
@@ -1423,6 +1472,63 @@ export default function TopicManagerTab({ user, onNavigate }) {
         </div>
       </div>
 
+      {/* Bulk Action Toolbar */}
+      {selectedTopicIds.length > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: '#FEF2F2',
+          border: '1.5px solid #F87171',
+          padding: '12px 18px',
+          borderRadius: '12px',
+          marginTop: '16px',
+          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.12)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: '#991B1B' }}>
+              ✓ {selectedTopicIds.length} topic{selectedTopicIds.length > 1 ? 's' : ''} selected
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={() => setSelectedTopicIds([])}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                color: '#475569',
+                cursor: 'pointer'
+              }}
+            >
+              Clear Selection
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#DC2626',
+                border: 'none',
+                padding: '6px 16px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#FFFFFF',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.3)'
+              }}
+            >
+              <Trash2 size={14} /> Delete Selected ({selectedTopicIds.length})
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Topics Table */}
       <div className="dashboard-section-card mt-4">
         {loading ? (
@@ -1443,6 +1549,15 @@ export default function TopicManagerTab({ user, onNavigate }) {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th style={{ width: '40px', textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={paginatedTopics.length > 0 && paginatedTopics.every(t => selectedTopicIds.includes(t.id))}
+                      onChange={() => toggleSelectAllPage(paginatedTopics)}
+                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#7B1C6E' }}
+                      title="Select all on this page"
+                    />
+                  </th>
                   <th>Topic Title & Identifier</th>
                   <th>Parent Subject</th>
                   <th>Module / Chapter</th>
@@ -1455,9 +1570,18 @@ export default function TopicManagerTab({ user, onNavigate }) {
                 {paginatedTopics.map((t) => {
                   const modObj = modules.find(m => m.id === t.module || m.id === t.module?.id);
                   const subObj = subjects.find(s => s.id === modObj?.subject || s.id === modObj?.subject?.id || s.id === t.subject_id);
+                  const isSelected = selectedTopicIds.includes(t.id);
 
                   return (
-                    <tr key={t.id}>
+                    <tr key={t.id} style={{ background: isSelected ? '#FAF5FF' : undefined }}>
+                      <td style={{ textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectTopic(t.id)}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#7B1C6E' }}
+                        />
+                      </td>
                       <td>
                         <div>
                           <div className="font-bold text-sm text-gray-900">{t.title}</div>

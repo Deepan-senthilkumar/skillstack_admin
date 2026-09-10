@@ -254,13 +254,16 @@ export default function PracticeTaskManagerTab({ user }) {
     });
     if (!ok) return;
 
-    try {
-      await api.deleteProblem(id);
-      toast.success(`Practice task "${title}" deleted successfully.`);
-      await loadAllData();
-    } catch (e) {
-      toast.error(e);
-    }
+    // Instant UI update
+    const prevProblems = [...problems];
+    setProblems(prev => prev.filter(p => p.id !== id));
+    toast.success(`Practice task "${title}" deleted.`);
+
+    // Background delete
+    api.deleteProblem(id).catch(e => {
+      setProblems(prevProblems);
+      toast.error('Failed to delete problem on server: ' + (e?.message || e || 'Error'));
+    });
   };
 
   const filteredProblems = problems.filter(p => {
