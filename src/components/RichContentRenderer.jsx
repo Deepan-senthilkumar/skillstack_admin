@@ -164,26 +164,57 @@ function renderInlineText(text) {
   });
 }
 
-// Universal table helper: detects borders (Unicode box-drawing, ASCII +, and markdown -)
+// Universal table helper: detects border lines (Unicode box-drawing ┌─┬─┐, ASCII +---+---+, and markdown |--|--|)
 function isBoxBorderLine(line) {
   if (!line) return false;
   const trimmed = line.trim();
   if (!trimmed) return false;
   
   // Unicode Box border characters: ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ ─ ═ ╔ ╗ ╚ ╝ ╠ ╣ ╦ ╩ ╬
-  // ASCII grid borders: +---+---+ or |---|---|
-  return /^[┌╔├╠└╚\+][─═\-\+\┬╦┼╬┴╩│║\| \t]*[┐╗┤╣┘╝\+]?$/.test(trimmed) ||
-         /^[\|\+][\-\:\s\+\|]+[\|\+]?$/.test(trimmed) ||
-         /^[─═\-]{3,}$/.test(trimmed);
+  if (/^[┌╔├╠└╚\+][─═\-\+\┬╦┼╬┴╩│║\| \t]*[┐╗┤╣┘╝\+]?$/.test(trimmed)) return true;
+  // Markdown / ASCII table delimiters: |---|---| or +---+---+
+  if (/^[\|\+][\-\:\s\+\|]+[\|\+]?$/.test(trimmed) && trimmed.includes('-')) return true;
+  if (/^[─═]{3,}$/.test(trimmed)) return true;
+  return false;
 }
 
-// Detects content rows with vertical dividers: │, ║, or |
+// Detects genuine content rows with vertical dividers: │, ║, or outside-code |
 function isBoxContentRow(line) {
   if (!line) return false;
   const trimmed = line.trim();
   if (!trimmed) return false;
+
+  // Never treat bullets (*, -, +), numbered items (1.), headings (#), or quotes (>) as table rows!
+  if (/^#{1,6}\s|^[\*\-\+]\s|^\d+\.\s|^>/.test(trimmed)) {
+    return false;
+  }
+
+  // Pure border line is not a content row
   if (isBoxBorderLine(trimmed)) return false;
-  return trimmed.includes('│') || trimmed.includes('║') || trimmed.includes('|');
+
+  // Unicode box vertical lines
+  if (trimmed.includes('│') || trimmed.includes('║')) return true;
+
+  // For ASCII pipe '|', count pipes outside backticks and braces
+  let inCode = false;
+  let braceDepth = 0;
+  let outsidePipeCount = 0;
+
+  for (let i = 0; i < trimmed.length; i++) {
+    const char = trimmed[i];
+    if (char === '`') {
+      inCode = !inCode;
+    } else if (!inCode && (char === '{' || char === '[' || char === '(')) {
+      braceDepth++;
+    } else if (!inCode && (char === '}' || char === ']' || char === ')')) {
+      if (braceDepth > 0) braceDepth--;
+    } else if (char === '|' && !inCode && braceDepth === 0) {
+      outsidePipeCount++;
+    }
+  }
+
+  // Must have at least 1 genuine structural cell separator pipe
+  return outsidePipeCount >= 1;
 }
 
 // Split cells intelligently while respecting braces {}, backticks ``, and brackets []
@@ -202,7 +233,6 @@ function splitUniversalTableLine(line) {
     const char = trimmed[i];
     if (char === '`') {
       inCode = !inCode;
-      current += char;
     } else if (!inCode && (char === '{' || char === '[' || char === '(')) {
       braceDepth++;
       current += char;
@@ -304,7 +334,6 @@ export default function RichContentRenderer({ content, className = '' }) {
     return null;
   }
 
-  // Parse markdown and ASCII/Unicode box tables into structured blocks
   const lines = content.split('\n');
   const blocks = [];
   let currentCode = null;
@@ -336,15 +365,18 @@ export default function RichContentRenderer({ content, className = '' }) {
       continue;
     }
 
-    // 1. Check for Table start (Unicode Box tables: ┌...┐, or Markdown/ASCII tables: | Header | or +---+---+)
+    // Check for Table structure:
+    // Case 1: Unicode Box start: ┌...┐, ╔...╗, +---+
+    // Case 2: Unicode Box content row: │...│
+    // Case 3: Markdown table: header row with outside pipes followed immediately by delimiter line |---|---|
     const isBoxStart = isBoxBorderLine(line);
-    const isRowStart = isBoxContentRow(line);
+    const isUnicodeRow = !isBoxStart && (line.includes('│') || line.includes('║')) && isBoxContentRow(line);
+    const isMarkdownTableCandidate = !isBoxStart && isBoxContentRow(line) && i + 1 < lines.length && isBoxBorderLine(lines[i + 1]);
 
-    if (isBoxStart || isRowStart) {
-      // Lookahead to see if next lines form a valid table structure
+    if (isBoxStart || isUnicodeRow || isMarkdownTableCandidate) {
       let testIdx = isBoxStart ? i + 1 : i;
+
       if (testIdx < lines.length && isBoxContentRow(lines[testIdx])) {
-        // We have a table!
         let headers = [];
         let alignments = [];
         const rows = [];
@@ -369,7 +401,6 @@ export default function RichContentRenderer({ content, className = '' }) {
         while (testIdx < lines.length) {
           const curLine = lines[testIdx];
           if (isBoxBorderLine(curLine)) {
-            // Check if bottom border or middle divider
             testIdx++;
             // If the next line is not a content row, this was the bottom border
             if (testIdx >= lines.length || !isBoxContentRow(lines[testIdx])) {
@@ -383,7 +414,6 @@ export default function RichContentRenderer({ content, className = '' }) {
             rows.push(rowCells);
             testIdx++;
           } else {
-            // Non-table line encountered
             break;
           }
         }
@@ -429,14 +459,14 @@ export default function RichContentRenderer({ content, className = '' }) {
       continue;
     }
 
-    // Bullet item
-    if (/^[-*] /.test(line)) {
-      blocks.push({ type: 'bullet', text: line.replace(/^[-*] /, '') });
+    // Bullet item (* item, - item, + item)
+    if (/^[\*\-\+]\s/.test(line.trim())) {
+      blocks.push({ type: 'bullet', text: line.trim().replace(/^[\*\-\+]\s+/, '') });
       continue;
     }
 
     // Numbered step: 1. Step name
-    const numMatch = line.match(/^(\d+)\.\s+(.*)$/);
+    const numMatch = line.trim().match(/^(\d+)\.\s+(.*)$/);
     if (numMatch) {
       blocks.push({ type: 'numbered', num: numMatch[1], text: numMatch[2] });
       continue;
@@ -589,7 +619,7 @@ export default function RichContentRenderer({ content, className = '' }) {
                   display: 'flex',
                   gap: '10px',
                   alignItems: 'flex-start',
-                  margin: '4px 0'
+                  margin: '6px 0'
                 }}
               >
                 <span style={{ color: '#7B1C6E', fontWeight: 800, marginTop: '2px', flexShrink: 0 }}>•</span>
