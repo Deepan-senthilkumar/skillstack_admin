@@ -79,6 +79,123 @@ function CodeBlock({ code, lang }) {
   );
 }
 
+function ImageBlock({ src, alt, caption }) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <div style={{
+      margin: '22px 0',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%'
+    }}>
+      <div
+        onClick={() => setModalOpen(true)}
+        style={{
+          borderRadius: '16px',
+          overflow: 'hidden',
+          border: '1.5px solid rgba(123, 28, 110, 0.16)',
+          background: '#F8FAFC',
+          boxShadow: '0 8px 30px rgba(123, 28, 110, 0.08)',
+          cursor: 'pointer',
+          maxWidth: '100%',
+          textAlign: 'center',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.01)';
+          e.currentTarget.style.boxShadow = '0 12px 36px rgba(123, 28, 110, 0.14)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 8px 30px rgba(123, 28, 110, 0.08)';
+        }}
+        title="Click to zoom image"
+      >
+        {!imgError ? (
+          <img
+            src={src}
+            alt={alt || caption || 'Topic diagram'}
+            onError={() => setImgError(true)}
+            style={{
+              maxWidth: '100%',
+              maxHeight: '520px',
+              display: 'block',
+              objectFit: 'contain',
+              margin: '0 auto'
+            }}
+          />
+        ) : (
+          <div style={{ padding: '30px 20px', color: '#94A3B8', fontSize: '13px' }}>
+            📷 Image: {alt || 'Illustration'} ({src})
+          </div>
+        )}
+      </div>
+
+      {(caption || alt) && (
+        <span style={{
+          marginTop: '8px',
+          fontSize: '12px',
+          fontWeight: 600,
+          color: '#64748B',
+          textAlign: 'center'
+        }}>
+          📌 {caption || alt}
+        </span>
+      )}
+
+      {/* Lightbox zoom modal */}
+      {modalOpen && !imgError && (
+        <div
+          onClick={() => setModalOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            background: 'rgba(15, 23, 42, 0.88)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+            cursor: 'zoom-out'
+          }}
+        >
+          <img
+            src={src}
+            alt={alt || caption}
+            style={{
+              maxWidth: '92vw',
+              maxHeight: '86vh',
+              objectFit: 'contain',
+              borderRadius: '16px',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.5)'
+            }}
+          />
+          {(caption || alt) && (
+            <div style={{
+              marginTop: '14px',
+              color: '#F8FAFC',
+              fontSize: '13.5px',
+              fontWeight: 600,
+              background: 'rgba(0,0,0,0.6)',
+              padding: '6px 16px',
+              borderRadius: '999px'
+            }}>
+              {caption || alt}
+            </div>
+          )}
+          <span style={{ color: '#94A3B8', fontSize: '11px', marginTop: '8px' }}>Click anywhere to close</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function renderInlineText(text) {
   if (!text) return null;
 
@@ -122,41 +239,50 @@ function renderInlineText(text) {
           return <em key={m} style={{ color: '#475569', fontStyle: 'italic' }}>{itPart.slice(1, -1)}</em>;
         }
 
-        // Link formatting: [label](url)
-        const linkParts = itPart.split(/(\[[^\]]+\]\([^)]+\))/g);
-        return linkParts.map((lPart, k) => {
-          const linkMatch = lPart.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-          if (linkMatch) {
-            return (
-              <a
-                key={k}
-                href={linkMatch[2]}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: '#7B1C6E', textDecoration: 'underline', fontWeight: 600 }}
-              >
-                {linkMatch[1]}
-              </a>
-            );
+        // Image formatting: ![alt](url)
+        const imageParts = itPart.split(/(!\[[^\]]*\]\([^)]+\))/g);
+        return imageParts.map((imgPart, n) => {
+          const imgMatch = imgPart.match(/^!\[(.*?)\]\((.*?)\)$/);
+          if (imgMatch) {
+            return <ImageBlock key={n} alt={imgMatch[1]} src={imgMatch[2]} caption={imgMatch[1]} />;
           }
 
-          // Raw URLs: http(s)://...
-          const urlParts = lPart.split(/(https?:\/\/[^\s]+)/g);
-          return urlParts.map((uPart, l) => {
-            if (/^https?:\/\//.test(uPart)) {
+          // Link formatting: [label](url)
+          const linkParts = imgPart.split(/(\[[^\]]+\]\([^)]+\))/g);
+          return linkParts.map((lPart, k) => {
+            const linkMatch = lPart.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+            if (linkMatch) {
               return (
                 <a
-                  key={l}
-                  href={uPart}
+                  key={k}
+                  href={linkMatch[2]}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ color: '#7B1C6E', textDecoration: 'underline', wordBreak: 'break-all' }}
+                  style={{ color: '#7B1C6E', textDecoration: 'underline', fontWeight: 600 }}
                 >
-                  {uPart}
+                  {linkMatch[1]}
                 </a>
               );
             }
-            return uPart;
+
+            // Raw URLs: http(s)://...
+            const urlParts = lPart.split(/(https?:\/\/[^\s]+)/g);
+            return urlParts.map((uPart, l) => {
+              if (/^https?:\/\//.test(uPart)) {
+                return (
+                  <a
+                    key={l}
+                    href={uPart}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: '#7B1C6E', textDecoration: 'underline', wordBreak: 'break-all' }}
+                  >
+                    {uPart}
+                  </a>
+                );
+              }
+              return uPart;
+            });
           });
         });
       });
@@ -365,6 +491,18 @@ export default function RichContentRenderer({ content, className = '' }) {
       continue;
     }
 
+    // Check for Standalone Image: ![alt](url) or ![alt](url "title")
+    const imgMatch = line.trim().match(/^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)$/);
+    if (imgMatch) {
+      blocks.push({
+        type: 'image',
+        alt: imgMatch[1],
+        src: imgMatch[2],
+        caption: imgMatch[3] || imgMatch[1]
+      });
+      continue;
+    }
+
     // Check for Table structure:
     // Case 1: Unicode Box start: ┌...┐, ╔...╗, +---+
     // Case 2: Unicode Box content row: │...│
@@ -495,6 +633,16 @@ export default function RichContentRenderer({ content, className = '' }) {
     <div className={`rich-content-flow ${className}`} style={{ fontSize: '14.5px', lineHeight: 1.75, color: '#334155' }}>
       {blocks.map((block, idx) => {
         switch (block.type) {
+          case 'image':
+            return (
+              <ImageBlock
+                key={idx}
+                src={block.src}
+                alt={block.alt}
+                caption={block.caption}
+              />
+            );
+
           case 'table':
             return (
               <TableBlock

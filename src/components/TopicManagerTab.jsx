@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import {
   FileText, Plus, Edit2, Trash2, ArrowLeft, Check,
   Search, Filter, Sparkles, BookOpen, Layers, AlertCircle,
-  FolderPlus, ArrowUpRight, Image, Upload, X, Eye, Code2
+  FolderPlus, ArrowUpRight, Image, Upload, X, Eye, Code2,
+  Copy, ImagePlus, Columns, PenTool, Table, Hash, Quote
 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
+import RichContentRenderer from './RichContentRenderer';
 
 const slugify = (text) => {
   return (text || '')
@@ -41,6 +43,13 @@ export default function TopicManagerTab({ user, onNavigate }) {
     notes_content: '',
     order: 1,
   });
+
+  // Notes editor ref and preview state
+  const notesTextareaRef = useRef(null);
+  const inlineImageInputRef = useRef(null);
+  const [notesViewMode, setNotesViewMode] = useState('edit'); // 'edit' | 'split' | 'preview'
+  const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
   // Image upload state
   const [topicImages, setTopicImages] = useState([]);
@@ -565,119 +574,605 @@ export default function TopicManagerTab({ user, onNavigate }) {
                 />
               </div>
 
+              {/* ====== STUDY NOTES EDITOR WITH TOOLBAR & CURSOR INSERTION ====== */}
               <div className="form-group mt-3">
-                <label>Study Notes Content (Markdown Supported)</label>
-                <textarea
-                  rows={12}
-                  placeholder="# Topic Overview&#10;&#10;Key concepts, step-by-step instructions, and syntax guidelines for students..."
-                  value={formData.notes_content}
-                  onChange={(e) => setFormData({ ...formData, notes_content: e.target.value })}
-                  className="form-textarea font-mono text-xs leading-relaxed"
-                />
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginBottom: '8px'
+                }}>
+                  <label style={{ margin: 0, fontWeight: 700, fontSize: '13.5px', color: '#0F172A' }}>
+                    Study Notes Content (Markdown & Images Supported)
+                  </label>
+
+                  {/* View Mode Switcher */}
+                  <div style={{
+                    display: 'flex',
+                    background: '#F1F5F9',
+                    padding: '2px',
+                    borderRadius: '8px',
+                    gap: '2px'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => setNotesViewMode('edit')}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        background: notesViewMode === 'edit' ? '#FFFFFF' : 'transparent',
+                        color: notesViewMode === 'edit' ? '#7B1C6E' : '#64748B',
+                        boxShadow: notesViewMode === 'edit' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <PenTool size={12} style={{ display: 'inline', marginRight: '4px' }} /> Editor Only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNotesViewMode('split')}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        background: notesViewMode === 'split' ? '#FFFFFF' : 'transparent',
+                        color: notesViewMode === 'split' ? '#7B1C6E' : '#64748B',
+                        boxShadow: notesViewMode === 'split' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Columns size={12} style={{ display: 'inline', marginRight: '4px' }} /> Split View
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNotesViewMode('preview')}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        background: notesViewMode === 'preview' ? '#FFFFFF' : 'transparent',
+                        color: notesViewMode === 'preview' ? '#7B1C6E' : '#64748B',
+                        boxShadow: notesViewMode === 'preview' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Eye size={12} style={{ display: 'inline', marginRight: '4px' }} /> Live Preview
+                    </button>
+                  </div>
+                </div>
+
+                {/* Markdown Formatting & Image Insertion Toolbar */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '6px',
+                  padding: '8px 12px',
+                  background: 'linear-gradient(135deg, #FDF5FD 0%, #F8FAFC 100%)',
+                  border: '1.5px solid #E2CBDD',
+                  borderBottom: 'none',
+                  borderRadius: '12px 12px 0 0'
+                }}>
+                  {/* Hidden inline file picker */}
+                  <input
+                    ref={inlineImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const userCaption = window.prompt('Enter an optional image caption / description:', file.name.replace(/\.[^/.]+$/, ''));
+                      setUploadingInlineImage(true);
+                      try {
+                        const fd = new FormData();
+                        fd.append('image', file);
+                        if (userCaption) fd.append('caption', userCaption);
+                        if (editingTopic?.id) fd.append('topic_id', editingTopic.id);
+
+                        const res = await api.uploadGenericImage(fd);
+                        if (res && res.image_url) {
+                          setTopicImages(prev => [
+                            ...prev,
+                            { id: res.id || Date.now(), image_url: res.image_url, caption: userCaption || '' }
+                          ]);
+
+                          // Insert markdown tag at exact cursor position!
+                          const captionText = userCaption || 'Diagram';
+                          const markdownTag = `\n\n![${captionText}](${res.image_url})\n\n`;
+                          
+                          const textarea = notesTextareaRef.current;
+                          if (textarea) {
+                            const start = textarea.selectionStart ?? 0;
+                            const end = textarea.selectionEnd ?? 0;
+                            const cur = formData.notes_content || '';
+                            const next = cur.substring(0, start) + markdownTag + cur.substring(end);
+                            setFormData(prev => ({ ...prev, notes_content: next }));
+                            setTimeout(() => {
+                              textarea.focus();
+                              const newPos = start + markdownTag.length;
+                              textarea.setSelectionRange(newPos, newPos);
+                            }, 50);
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              notes_content: (prev.notes_content ? prev.notes_content + '\n\n' : '') + markdownTag
+                            }));
+                          }
+                          toast.success('Image uploaded & inserted at cursor position! 🎯');
+                        }
+                      } catch (err) {
+                        toast.error('Image upload failed: ' + (err.message || 'Error'));
+                      } finally {
+                        setUploadingInlineImage(false);
+                        if (inlineImageInputRef.current) inlineImageInputRef.current.value = '';
+                      }
+                    }}
+                  />
+
+                  {/* 1. Primary Highlight Button: Upload & Insert Image at Cursor */}
+                  <button
+                    type="button"
+                    onClick={() => inlineImageInputRef.current?.click()}
+                    disabled={uploadingInlineImage}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '5px 12px',
+                      borderRadius: '8px',
+                      background: 'linear-gradient(135deg, #7B1C6E 0%, #9D248C 100%)',
+                      color: '#FFFFFF',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(123, 28, 110, 0.25)',
+                      transition: 'all 0.15s ease'
+                    }}
+                    title="Upload image from device and insert directly at cursor"
+                  >
+                    <ImagePlus size={14} />
+                    <span>{uploadingInlineImage ? 'Uploading Image...' : '📷 Upload & Insert Image at Cursor'}</span>
+                  </button>
+
+                  {/* 2. Choose from already uploaded topic images */}
+                  {topicImages.length > 0 && (
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        type="button"
+                        onClick={() => setImagePickerOpen(!imagePickerOpen)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '5px 10px',
+                          borderRadius: '8px',
+                          background: '#FFFFFF',
+                          color: '#7B1C6E',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          border: '1.5px solid rgba(123, 28, 110, 0.25)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Image size={13} />
+                        <span>Insert Uploaded Image ({topicImages.length})</span>
+                      </button>
+
+                      {imagePickerOpen && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          marginTop: '6px',
+                          width: '320px',
+                          maxHeight: '280px',
+                          overflowY: 'auto',
+                          background: '#FFFFFF',
+                          border: '1.5px solid #CBD5E1',
+                          borderRadius: '12px',
+                          boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+                          zIndex: 999,
+                          padding: '8px'
+                        }}>
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', padding: '4px 6px', textTransform: 'uppercase' }}>
+                            Click image to insert at cursor:
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                            {topicImages.map(img => (
+                              <div
+                                key={img.id}
+                                onClick={() => {
+                                  const markdownTag = `\n\n![${img.caption || 'Topic Diagram'}](${img.image_url})\n\n`;
+                                  const textarea = notesTextareaRef.current;
+                                  if (textarea) {
+                                    const start = textarea.selectionStart ?? 0;
+                                    const end = textarea.selectionEnd ?? 0;
+                                    const cur = formData.notes_content || '';
+                                    const next = cur.substring(0, start) + markdownTag + cur.substring(end);
+                                    setFormData(prev => ({ ...prev, notes_content: next }));
+                                    setTimeout(() => {
+                                      textarea.focus();
+                                      const newPos = start + markdownTag.length;
+                                      textarea.setSelectionRange(newPos, newPos);
+                                    }, 50);
+                                  } else {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      notes_content: (prev.notes_content ? prev.notes_content + '\n\n' : '') + markdownTag
+                                    }));
+                                  }
+                                  setImagePickerOpen(false);
+                                  toast.success(`Inserted "${img.caption || 'Image'}" at cursor!`);
+                                }}
+                                style={{
+                                  border: '1px solid #E2E8F0',
+                                  borderRadius: '8px',
+                                  padding: '4px',
+                                  cursor: 'pointer',
+                                  background: '#F8FAFC',
+                                  transition: 'all 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#7B1C6E'}
+                                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#E2E8F0'}
+                              >
+                                <img src={img.image_url} alt={img.caption} style={{ width: '100%', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                                <div style={{ fontSize: '10px', fontWeight: 600, color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
+                                  {img.caption || 'Image'}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Formatting quick shortcuts */}
+                  <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const snippet = '\n\n| Delimiter | Name | Purpose | Example |\n|---|---|---|---|\n| `{{ ... }}` | Variables | Context data output | `{{ user.name }}` |\n| `{% ... %}` | Tags | Logic control | `{% for item in list %}` |\n\n';
+                        const textarea = notesTextareaRef.current;
+                        if (textarea) {
+                          const start = textarea.selectionStart ?? 0;
+                          const end = textarea.selectionEnd ?? 0;
+                          const cur = formData.notes_content || '';
+                          setFormData(prev => ({ ...prev, notes_content: cur.substring(0, start) + snippet + cur.substring(end) }));
+                          setTimeout(() => textarea.focus(), 50);
+                        } else {
+                          setFormData(prev => ({ ...prev, notes_content: (prev.notes_content ? prev.notes_content + '\n\n' : '') + snippet }));
+                        }
+                      }}
+                      style={{ padding: '4px 8px', fontSize: '11px', fontWeight: 600, background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '6px', cursor: 'pointer' }}
+                      title="Insert Table"
+                    >
+                      <Table size={12} style={{ display: 'inline', marginRight: '2px' }} /> Table
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const snippet = '\n```python\n# Practical Code Implementation\ndef example_function():\n    return "Success"\n```\n';
+                        const textarea = notesTextareaRef.current;
+                        if (textarea) {
+                          const start = textarea.selectionStart ?? 0;
+                          const end = textarea.selectionEnd ?? 0;
+                          const cur = formData.notes_content || '';
+                          setFormData(prev => ({ ...prev, notes_content: cur.substring(0, start) + snippet + cur.substring(end) }));
+                          setTimeout(() => textarea.focus(), 50);
+                        } else {
+                          setFormData(prev => ({ ...prev, notes_content: (prev.notes_content ? prev.notes_content + '\n\n' : '') + snippet }));
+                        }
+                      }}
+                      style={{ padding: '4px 8px', fontSize: '11px', fontWeight: 600, background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '6px', cursor: 'pointer' }}
+                      title="Insert Code Block"
+                    >
+                      <Code2 size={12} style={{ display: 'inline', marginRight: '2px' }} /> Code
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const snippet = '\n> **Key Concept:** Important engineering takeaway goes here.\n';
+                        const textarea = notesTextareaRef.current;
+                        if (textarea) {
+                          const start = textarea.selectionStart ?? 0;
+                          const end = textarea.selectionEnd ?? 0;
+                          const cur = formData.notes_content || '';
+                          setFormData(prev => ({ ...prev, notes_content: cur.substring(0, start) + snippet + cur.substring(end) }));
+                          setTimeout(() => textarea.focus(), 50);
+                        } else {
+                          setFormData(prev => ({ ...prev, notes_content: (prev.notes_content ? prev.notes_content + '\n\n' : '') + snippet }));
+                        }
+                      }}
+                      style={{ padding: '4px 8px', fontSize: '11px', fontWeight: 600, background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '6px', cursor: 'pointer' }}
+                      title="Insert Callout Note"
+                    >
+                      <Quote size={12} style={{ display: 'inline', marginRight: '2px' }} /> Note
+                    </button>
+                  </div>
+                </div>
+
+                {/* Editor Container based on view mode */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: notesViewMode === 'split' ? '1fr 1fr' : '1fr',
+                  gap: '12px',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #E2CBDD',
+                  borderRadius: '0 0 12px 12px',
+                  padding: '12px'
+                }}>
+                  {/* Left: Textarea Editor */}
+                  {(notesViewMode === 'edit' || notesViewMode === 'split') && (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <textarea
+                        ref={notesTextareaRef}
+                        rows={16}
+                        placeholder="# Topic Overview&#10;&#10;Key concepts, step-by-step instructions...&#10;&#10;![Architecture Diagram](https://...)&#10;&#10;| Delimiter | Purpose |&#10;|---|---|&#10;| {{ name }} | Variable |"
+                        value={formData.notes_content}
+                        onChange={(e) => setFormData({ ...formData, notes_content: e.target.value })}
+                        className="form-textarea font-mono text-xs leading-relaxed"
+                        style={{
+                          width: '100%',
+                          minHeight: '340px',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          resize: 'vertical'
+                        }}
+                      />
+                      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Tip: Click <strong>"📷 Upload & Insert Image at Cursor"</strong> to place images anywhere in your notes.</span>
+                        <span>{formData.notes_content?.length || 0} characters</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Right: Live Preview */}
+                  {(notesViewMode === 'preview' || notesViewMode === 'split') && (
+                    <div style={{
+                      minHeight: '340px',
+                      maxHeight: '480px',
+                      overflowY: 'auto',
+                      background: '#FDFBFD',
+                      border: '1px solid #F0E2EE',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.02)'
+                    }}>
+                      <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#7B1C6E', letterSpacing: '0.05em', marginBottom: '8px', borderBottom: '1px solid rgba(123,28,110,0.1)', paddingBottom: '4px' }}>
+                        Live Student Guide Preview
+                      </div>
+                      {formData.notes_content ? (
+                        <RichContentRenderer content={formData.notes_content} />
+                      ) : (
+                        <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px' }}>
+                          Start typing notes or insert images above to see live preview here.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* ====== IMAGE UPLOAD SECTION ====== */}
-              {editingTopic && (
-                <div className="form-group mt-4" style={{ border: '1.5px dashed #CBD5E1', borderRadius: '16px', padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                    <Image size={16} color="#7B1C6E" />
-                    <span style={{ fontWeight: 700, fontSize: '14px', color: '#0F172A' }}>Topic Images</span>
-                    <span style={{ fontSize: '12px', color: '#64748B', marginLeft: '4px' }}>— shown to students in the guide section</span>
+              {/* ====== TOPIC IMAGES GALLERY SECTION ====== */}
+              <div className="form-group mt-4" style={{ border: '1.5px dashed #CBD5E1', borderRadius: '16px', padding: '20px', background: '#FAFCFF' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Image size={17} color="#7B1C6E" />
+                    <span style={{ fontWeight: 800, fontSize: '14.5px', color: '#0F172A' }}>Topic Images Gallery ({topicImages.length})</span>
+                    <span style={{ fontSize: '12px', color: '#64748B' }}>— You can insert any of these directly into your notes</span>
                   </div>
+                </div>
 
-                  {/* Existing images */}
-                  {topicImages.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-                      {topicImages.map(img => (
-                        <div key={img.id} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1.5px solid #E2E8F0', background: '#F8FAFC' }}>
+                {/* Existing images list */}
+                {topicImages.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+                    {topicImages.map(img => (
+                      <div
+                        key={img.id}
+                        style={{
+                          position: 'relative',
+                          borderRadius: '12px',
+                          overflow: 'hidden',
+                          border: '1.5px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                          display: 'flex',
+                          flexDirection: 'column'
+                        }}
+                      >
+                        <div style={{ position: 'relative', height: '130px', background: '#F8FAFC', overflow: 'hidden' }}>
                           <img
                             src={img.image_url}
                             alt={img.caption || 'Topic image'}
-                            style={{ width: '160px', height: '120px', objectFit: 'cover', display: 'block' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                           />
-                          {img.caption && (
-                            <div style={{ padding: '4px 8px', fontSize: '11px', color: '#475569', borderTop: '1px solid #E2E8F0' }}>
-                              {img.caption}
-                            </div>
-                          )}
                           <button
                             type="button"
                             onClick={async () => {
                               if (!window.confirm('Delete this image?')) return;
                               try {
-                                await api.deleteTopicImage(img.id);
+                                if (img.id && typeof img.id === 'number') {
+                                  await api.deleteTopicImage(img.id);
+                                }
                                 setTopicImages(prev => prev.filter(i => i.id !== img.id));
-                                toast.success('Image deleted.');
+                                toast.success('Image removed from gallery.');
                               } catch (e) {
                                 toast.error('Failed to delete image.');
                               }
                             }}
-                            style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(239,68,68,0.9)', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            style={{
+                              position: 'absolute',
+                              top: '6px',
+                              right: '6px',
+                              background: 'rgba(239,68,68,0.92)',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '24px',
+                              height: '24px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            title="Delete Image"
                           >
                             <X size={12} color="white" />
                           </button>
                         </div>
-                      ))}
-                    </div>
-                  )}
 
-                  {/* Upload new image */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
+                          <div style={{ fontSize: '11.5px', fontWeight: 600, color: '#334155', lineHeight: 1.4 }}>
+                            {img.caption || 'Topic Illustration'}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            {/* Insert at cursor button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const snippet = `\n\n![${img.caption || 'Topic Diagram'}](${img.image_url})\n\n`;
+                                const textarea = notesTextareaRef.current;
+                                if (textarea) {
+                                  const start = textarea.selectionStart ?? 0;
+                                  const end = textarea.selectionEnd ?? 0;
+                                  const cur = formData.notes_content || '';
+                                  const next = cur.substring(0, start) + snippet + cur.substring(end);
+                                  setFormData(prev => ({ ...prev, notes_content: next }));
+                                  setTimeout(() => {
+                                    textarea.focus();
+                                    const newPos = start + snippet.length;
+                                    textarea.setSelectionRange(newPos, newPos);
+                                  }, 50);
+                                } else {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    notes_content: (prev.notes_content ? prev.notes_content + '\n\n' : '') + snippet
+                                  }));
+                                }
+                                toast.success('Inserted at cursor position! 🎯');
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '5px 8px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                borderRadius: '6px',
+                                background: 'linear-gradient(135deg, #7B1C6E 0%, #9D248C 100%)',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px'
+                              }}
+                              title="Insert this image at the cursor position in your Study Notes"
+                            >
+                              <PenTool size={11} />
+                              <span>Insert at Cursor</span>
+                            </button>
+
+                            {/* Copy markdown tag */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`![${img.caption || 'Diagram'}](${img.image_url})`);
+                                toast.success('Markdown tag copied to clipboard! 📋');
+                              }}
+                              style={{
+                                padding: '5px 8px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                borderRadius: '6px',
+                                background: '#F1F5F9',
+                                color: '#475569',
+                                border: '1px solid #CBD5E1',
+                                cursor: 'pointer'
+                              }}
+                              title="Copy Markdown code"
+                            >
+                              <Copy size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#94A3B8', fontSize: '12.5px' }}>
+                    No images uploaded yet for this topic. Use the upload button below or in the toolbar.
+                  </div>
+                )}
+
+                {/* Upload new image to gallery */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#FFFFFF', padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                  <input
+                    type="text"
+                    placeholder="Caption (optional) — e.g. Django MTV Architecture Diagram"
+                    value={imageCaption}
+                    onChange={(e) => setImageCaption(e.target.value)}
+                    className="form-input text-sm"
+                  />
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input
-                      type="text"
-                      placeholder="Caption (optional) — e.g. Django Request-Response Flow"
-                      value={imageCaption}
-                      onChange={(e) => setImageCaption(e.target.value)}
-                      className="form-input text-sm"
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setUploadingImage(true);
+                        try {
+                          const fd = new FormData();
+                          fd.append('image', file);
+                          if (imageCaption) fd.append('caption', imageCaption);
+                          if (editingTopic?.id) fd.append('topic_id', editingTopic.id);
+                          
+                          const newImg = await api.uploadGenericImage(fd);
+                          setTopicImages(prev => [...prev, newImg]);
+                          setImageCaption('');
+                          toast.success('Image uploaded to gallery!');
+                        } catch (err) {
+                          toast.error('Upload failed: ' + (err.message || 'Unknown error'));
+                        } finally {
+                          setUploadingImage(false);
+                          if (imageInputRef.current) imageInputRef.current.value = '';
+                        }
+                      }}
                     />
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                      <input
-                        ref={imageInputRef}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingImage(true);
-                          try {
-                            const fd = new FormData();
-                            fd.append('image', file);
-                            fd.append('caption', imageCaption);
-                            fd.append('order', topicImages.length + 1);
-                            const newImg = await api.uploadTopicImage(editingTopic.id, fd);
-                            setTopicImages(prev => [...prev, newImg]);
-                            setImageCaption('');
-                            toast.success('Image uploaded successfully!');
-                          } catch (err) {
-                            toast.error('Upload failed: ' + (err.message || 'Unknown error'));
-                          } finally {
-                            setUploadingImage(false);
-                            if (imageInputRef.current) imageInputRef.current.value = '';
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="btn-outline-sm"
-                        onClick={() => imageInputRef.current?.click()}
-                        disabled={uploadingImage}
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
-                      >
-                        <Upload size={14} />
-                        {uploadingImage ? 'Uploading...' : 'Upload Image'}
-                      </button>
-                      <span style={{ fontSize: '12px', color: '#94A3B8' }}>JPG, PNG, GIF, WebP — max 5MB</span>
-                    </div>
+                    <button
+                      type="button"
+                      className="btn-outline-sm"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                    >
+                      <Upload size={14} />
+                      {uploadingImage ? 'Uploading...' : 'Upload Image to Gallery'}
+                    </button>
+                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>JPG, PNG, GIF, WebP — max 5MB</span>
                   </div>
                 </div>
-              )}
-              {!editingTopic && (
-                <div style={{ marginTop: '12px', padding: '12px 16px', background: '#F0F9FF', borderRadius: '10px', fontSize: '12.5px', color: '#0369A1', border: '1px solid #BAE6FD' }}>
-                  <Image size={13} style={{ display: 'inline', marginRight: '6px' }} />
-                  💡 Save this topic first, then re-open it to upload images.
-                </div>
-              )}
+              </div>
 
               {/* Practical Code Examples Section */}
               <div style={{ marginTop: '24px', borderTop: '1px solid rgba(123, 28, 110, 0.12)', paddingTop: '20px' }}>
