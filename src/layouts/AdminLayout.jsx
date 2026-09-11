@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Shield, LayoutDashboard, Layers, CheckSquare, Calendar,
   Code2, BarChart3, BookOpen, Users, LogOut,
-  Menu, X, Sparkles, ExternalLink, FileText
+  Menu, X, Sparkles, ExternalLink, FileText, HelpCircle, Award
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -31,6 +31,7 @@ export default function AdminLayout({
         { id: 'subjects', label: 'Master Subjects', icon: BookOpen },
         { id: 'syllabus', label: 'Syllabus & Modules', icon: Layers },
         { id: 'topics', label: 'Topics & Notes', icon: FileText },
+        { id: 'quiz_bank', label: 'Topic Question Bank', icon: HelpCircle, badge: '20+ MCQs' },
         { id: 'problems', label: 'Practice Labs & Tasks', icon: Code2 },
         { id: 'batches', label: 'Batches & Enrollment', icon: Users },
         { id: 'progress', label: 'Topic Progress Tracker', icon: CheckSquare },
@@ -46,6 +47,7 @@ export default function AdminLayout({
     {
       title: 'Analytics & Administration',
       items: [
+        { id: 'quiz_analytics', label: 'Test & Quiz Analytics', icon: Award },
         { id: 'reports', label: 'Reports & Performance', icon: BarChart3 },
         { id: 'users', label: 'User Directory', icon: Shield },
       ]
@@ -64,11 +66,13 @@ export default function AdminLayout({
       case 'syllabus': return 'Syllabus & Module Hierarchy Manager';
       case 'courses': return 'Course & Curriculum Management';
       case 'topics': return 'Topics & Study Notes Management';
+      case 'quiz_bank': return 'Topic Question Bank (20+ MCQs)';
       case 'problems': return 'Practice Labs & Assignment Tasks';
       case 'batches': return 'Batch Management & Student Rosters';
       case 'progress': return 'Curriculum Completion & Topic Progress';
       case 'daily_task': return 'Daily Session Logs & Student Attendance';
       case 'submissions': return 'Student Code Submissions & Automated Grading';
+      case 'quiz_analytics': return 'Test & Quiz Attempt Analytics';
       case 'reports': return 'Multi-Dimensional Analytics & Performance Reports';
       case 'users': return 'User Directory & Access Control';
       default: return 'Admin Studio';

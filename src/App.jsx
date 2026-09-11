@@ -7,11 +7,13 @@ import DashboardPage from './pages/DashboardPage';
 import SubjectManagerTab from './components/SubjectManagerTab';
 import SyllabusManagerTab from './components/SyllabusManagerTab';
 import TopicManagerTab from './components/TopicManagerTab';
+import TopicQuizManagerTab from './components/TopicQuizManagerTab';
 import PracticeTaskManagerTab from './components/PracticeTaskManagerTab';
 import BatchManagerTab from './components/BatchManagerTab';
 import TopicProgressTab from './components/TopicProgressTab';
 import DailyTaskTrackerTab from './components/DailyTaskTrackerTab';
 import SubmissionInspectorTab from './components/SubmissionInspectorTab';
+import QuizAnalyticsTab from './components/QuizAnalyticsTab';
 import ReportsAnalyticsTab from './components/ReportsAnalyticsTab';
 import UserManagerTab from './components/UserManagerTab';
 
@@ -27,7 +29,10 @@ export default function App() {
   // Sync active page with URL hash
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
-    const validPages = ['dashboard', 'subjects', 'syllabus', 'courses', 'topics', 'problems', 'batches', 'progress', 'daily_task', 'submissions', 'reports', 'users'];
+    const validPages = [
+      'dashboard', 'subjects', 'syllabus', 'courses', 'topics', 'quiz_bank',
+      'problems', 'batches', 'progress', 'daily_task', 'submissions', 'quiz_analytics', 'reports', 'users'
+    ];
     if (hash && validPages.includes(hash)) {
       setActivePage(hash);
     }
@@ -165,6 +170,9 @@ export default function App() {
       {activePage === 'topics' && (
         <TopicManagerTab user={user} onNavigate={navigateTo} />
       )}
+      {activePage === 'quiz_bank' && (
+        <TopicQuizManagerTab user={user} />
+      )}
       {activePage === 'problems' && (
         <PracticeTaskManagerTab user={user} />
       )}
@@ -179,6 +187,9 @@ export default function App() {
       )}
       {activePage === 'submissions' && (
         <SubmissionInspectorTab user={user} />
+      )}
+      {activePage === 'quiz_analytics' && (
+        <QuizAnalyticsTab user={user} />
       )}
       {activePage === 'reports' && (
         <ReportsAnalyticsTab user={user} />
