@@ -292,6 +292,39 @@ class AdminApiClient {
   }
   async deleteSubmission(id) { return this.request(`/staff/submissions/${id}/`, { method: 'DELETE' }); }
 
+  // Topic Quiz Question Bank (MCQs)
+  async getQuizQuestions(topicId = null) {
+    const query = topicId ? `?topic_id=${topicId}` : '';
+    return this.request(`/staff/quiz-questions/${query}`);
+  }
+  async createQuizQuestion(data) {
+    return this.request('/staff/quiz-questions/', { method: 'POST', body: JSON.stringify(data) });
+  }
+  async updateQuizQuestion(id, data) {
+    return this.request(`/staff/quiz-questions/${id}/`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+  async deleteQuizQuestion(id) {
+    return this.request(`/staff/quiz-questions/${id}/`, { method: 'DELETE' });
+  }
+  async bulkUploadQuizQuestions(topicId, questions) {
+    return this.request('/staff/quiz-questions/bulk/', {
+      method: 'POST',
+      body: JSON.stringify({ topic_id: topicId, questions }),
+    });
+  }
+
+  // Quiz Attempt Analytics & Cooldown Reset
+  async getQuizAnalytics(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/staff/quiz-analytics/${query ? '?' + query : ''}`);
+  }
+  async resetQuizCooldown(studentId, topicId) {
+    return this.request('/staff/quiz-cooldown/reset/', {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId, topic_id: topicId }),
+    });
+  }
+
   // User Management (Staff and Students CRUD)
   async getUsers(params = {}) {
     const query = new URLSearchParams(params).toString();
@@ -304,3 +337,4 @@ class AdminApiClient {
 }
 
 export const api = new AdminApiClient();
+
