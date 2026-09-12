@@ -329,6 +329,49 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
         </div>
       </div>
 
+      {/* Pre-filtered topic banner */}
+      {defaultTopicId && selectedTopicId !== 'ALL' && !loading && (() => {
+        const topicObj = topics.find(t => String(t.id) === String(selectedTopicId));
+        if (!topicObj) return null;
+        return (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '10px 16px',
+            borderRadius: '12px',
+            background: 'rgba(99, 102, 241, 0.08)',
+            border: '1.5px solid rgba(99, 102, 241, 0.25)',
+            fontSize: '12.5px',
+            fontWeight: 600,
+            color: '#3730A3',
+            marginBottom: '4px',
+            flexWrap: 'wrap',
+          }}>
+            <HelpCircle size={15} style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>
+              Viewing MCQ questions for topic: <strong>"{topicObj.title}"</strong>
+              &nbsp;— Add 20+ randomized questions so students can take the assessment.
+            </span>
+            <button
+              onClick={() => setSelectedTopicId('ALL')}
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#4338CA',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                flexShrink: 0,
+              }}
+            >
+              View All Topics
+            </button>
+          </div>
+        );
+      })()}
+
       {viewMode === 'list' ? (
         <div className="space-y-4">
           {/* Filter Bar */}
