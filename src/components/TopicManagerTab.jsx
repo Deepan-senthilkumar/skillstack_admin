@@ -3,7 +3,7 @@ import {
   FileText, Plus, Edit2, Trash2, ArrowLeft, Check,
   Search, Filter, Sparkles, BookOpen, Layers, AlertCircle,
   FolderPlus, ArrowUpRight, Image, Upload, X, Eye, Code2,
-  Copy, ImagePlus, Columns, PenTool, Table, Hash, Quote
+  Copy, ImagePlus, Columns, PenTool, Table, Hash, Quote, HelpCircle
 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -1563,6 +1563,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                   <th>Module / Chapter</th>
                   <th>Order</th>
                   <th>Notes Length</th>
+                  <th>MCQs</th>
                   <th style={{ width: '120px' }}>Actions</th>
                 </tr>
               </thead>
@@ -1607,6 +1608,33 @@ export default function TopicManagerTab({ user, onNavigate }) {
                         <span className="text-xs text-muted">
                           {t.notes_content ? `${t.notes_content.length} chars` : 'No notes'}
                         </span>
+                      </td>
+                      <td>
+                        {onNavigate && (
+                          <button
+                            onClick={() => onNavigate('quiz_bank', { topicId: t.id })}
+                            title={`Add / View MCQ Questions for "${t.title}"`}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '5px 11px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              borderRadius: '8px',
+                              border: '1.5px solid rgba(99, 102, 241, 0.4)',
+                              background: 'rgba(99, 102, 241, 0.07)',
+                              color: '#4338CA',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#4338CA'; e.currentTarget.style.color = '#FFFFFF'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.07)'; e.currentTarget.style.color = '#4338CA'; }}
+                          >
+                            <HelpCircle size={12} /> Add MCQs
+                          </button>
+                        )}
                       </td>
                       <td>
                         <div className="flex items-center gap-2">

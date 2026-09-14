@@ -22,6 +22,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
   const [selectedBatchIdForProgress, setSelectedBatchIdForProgress] = useState(null);
+  const [quizBankTopicId, setQuizBankTopicId] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [curriculum, setCurriculum] = useState([]);
   const [backendOnline, setBackendOnline] = useState(null);
@@ -47,7 +48,12 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const navigateTo = (pageId) => {
+  const navigateTo = (pageId, meta = {}) => {
+    if (pageId === 'quiz_bank' && meta.topicId) {
+      setQuizBankTopicId(meta.topicId);
+    } else if (pageId !== 'quiz_bank') {
+      setQuizBankTopicId(null);
+    }
     setActivePage(pageId);
     window.location.hash = pageId;
   };
@@ -171,7 +177,7 @@ export default function App() {
         <TopicManagerTab user={user} onNavigate={navigateTo} />
       )}
       {activePage === 'quiz_bank' && (
-        <TopicQuizManagerTab user={user} />
+        <TopicQuizManagerTab user={user} defaultTopicId={quizBankTopicId} key={quizBankTopicId || 'all'} />
       )}
       {activePage === 'problems' && (
         <PracticeTaskManagerTab user={user} />
