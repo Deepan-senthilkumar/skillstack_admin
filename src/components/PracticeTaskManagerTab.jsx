@@ -38,6 +38,7 @@ export default function PracticeTaskManagerTab({ user }) {
     points: 10,
     order: 1,
     is_unlocked: true,
+    test_criteria: [],
   });
 
 
@@ -88,6 +89,7 @@ export default function PracticeTaskManagerTab({ user }) {
       points: 10,
       order: problems.length + 1,
       is_unlocked: true,
+      test_criteria: [],
     });
     setFieldErrors({});
     setViewMode('form');
@@ -109,9 +111,47 @@ export default function PracticeTaskManagerTab({ user }) {
       points: p.points || 10,
       order: p.order || 1,
       is_unlocked: currentUnlocked,
+      test_criteria: Array.isArray(p.test_criteria) ? p.test_criteria : [],
     });
     setFieldErrors({});
     setViewMode('form');
+  };
+
+  const autoGenerateTestCases = () => {
+    const titleLower = (formData.title || '').toLowerCase();
+    const expectedLower = (formData.expected_output || '').toLowerCase();
+    let generated = [];
+
+    if (titleLower.includes('even') || titleLower.includes('odd') || expectedLower.includes('even') || expectedLower.includes('odd')) {
+      generated = [
+        { id: 1, name: 'Sample Case 1', input: '8\n', expected_output: '8 is Even', is_hidden: false },
+        { id: 2, name: 'Sample Case 2', input: '7\n', expected_output: '7 is Odd', is_hidden: false },
+        { id: 3, name: 'Hidden Case 3 (Zero)', input: '0\n', expected_output: '0 is Even', is_hidden: true },
+        { id: 4, name: 'Hidden Case 4 (Large Odd)', input: '101\n', expected_output: '101 is Odd', is_hidden: true },
+        { id: 5, name: 'Hidden Case 5 (Negative Even)', input: '-4\n', expected_output: '-4 is Even', is_hidden: true },
+      ];
+    } else if (titleLower.includes('positive') || titleLower.includes('negative')) {
+      generated = [
+        { id: 1, name: 'Sample Case 1', input: '15\n', expected_output: '15 is Positive', is_hidden: false },
+        { id: 2, name: 'Sample Case 2', input: '-9\n', expected_output: '-9 is Negative', is_hidden: false },
+        { id: 3, name: 'Hidden Case 3 (Zero)', input: '0\n', expected_output: 'Zero', is_hidden: true },
+        { id: 4, name: 'Hidden Case 4 (Large Positive)', input: '420\n', expected_output: '420 is Positive', is_hidden: true },
+        { id: 5, name: 'Hidden Case 5 (Negative)', input: '-99\n', expected_output: '-99 is Negative', is_hidden: true },
+      ];
+    } else {
+      const matchDigits = (formData.expected_output || '').match(/-?\d+/);
+      const baseNum = matchDigits ? matchDigits[0] : '10';
+      generated = [
+        { id: 1, name: 'Sample Case 1', input: `${baseNum}\n`, expected_output: formData.expected_output || 'Output 1', is_hidden: false },
+        { id: 2, name: 'Sample Case 2', input: '5\n', expected_output: formData.expected_output || 'Output 2', is_hidden: false },
+        { id: 3, name: 'Hidden Case 3', input: '20\n', expected_output: formData.expected_output || 'Output 3', is_hidden: true },
+        { id: 4, name: 'Hidden Case 4', input: '1\n', expected_output: formData.expected_output || 'Output 4', is_hidden: true },
+        { id: 5, name: 'Hidden Case 5', input: '100\n', expected_output: formData.expected_output || 'Output 5', is_hidden: true },
+      ];
+    }
+
+    setFormData(prev => ({ ...prev, test_criteria: generated }));
+    toast.success('Generated 5 test cases (2 Sample Visible + 3 Hidden Edge-Cases)!');
   };
 
   const handleSubjectChangeInForm = (subId) => {
@@ -158,6 +198,7 @@ export default function PracticeTaskManagerTab({ user }) {
         points: formData.points,
         order: formData.order,
         is_unlocked: formData.is_unlocked,
+        test_criteria: formData.test_criteria || [],
       };
 
       if (editingProblem) {
@@ -494,6 +535,133 @@ export default function PracticeTaskManagerTab({ user }) {
                       value={formData.expected_output}
                       onChange={(e) => setFormData({ ...formData, expected_output: e.target.value })}
                     />
+                  </div>
+
+                  {/* Multi-Testcase Manager (Visible + Hidden) */}
+                  <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <div>
+                        <label className="text-slate-800 dark:text-slate-200 font-bold flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                          <Layers size={14} className="text-primary" /> Automated Multi-Test Cases ({formData.test_criteria?.length || 0})
+                        </label>
+                        <span className="text-[11px] text-muted">
+                          Supports 2 visible sample cases + 3 hidden edge cases for comprehensive code evaluation.
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={autoGenerateTestCases}
+                          className="btn btn-secondary text-xs py-1 px-2.5 flex items-center gap-1 bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-700"
+                        >
+                          <Sparkles size={13} /> Auto-Generate 5 Cases
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newId = (formData.test_criteria?.length || 0) + 1;
+                            setFormData(prev => ({
+                              ...prev,
+                              test_criteria: [
+                                ...(prev.test_criteria || []),
+                                {
+                                  id: newId,
+                                  name: `Test Case ${newId}`,
+                                  input: '10\n',
+                                  expected_output: '10 is Even',
+                                  is_hidden: newId > 2
+                                }
+                              ]
+                            }));
+                          }}
+                          className="btn btn-secondary text-xs py-1 px-2.5 flex items-center gap-1"
+                        >
+                          <Plus size={13} /> Add Case
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Test Cases List */}
+                    {formData.test_criteria && formData.test_criteria.length > 0 ? (
+                      <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                        {formData.test_criteria.map((tc, idx) => (
+                          <div
+                            key={tc.id || idx}
+                            className={`p-3 rounded-lg border text-xs ${tc.is_hidden ? 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900' : 'bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700'}`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-700 dark:text-slate-300">
+                                  #{idx + 1} {tc.name}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${tc.is_hidden ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200'}`}>
+                                  {tc.is_hidden ? '🔒 Hidden Case' : 'Visible Sample'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-1 cursor-pointer text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(tc.is_hidden)}
+                                    onChange={(e) => {
+                                      const updated = [...formData.test_criteria];
+                                      updated[idx] = { ...updated[idx], is_hidden: e.target.checked };
+                                      setFormData({ ...formData, test_criteria: updated });
+                                    }}
+                                  />
+                                  Hidden
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = formData.test_criteria.filter((_, i) => i !== idx);
+                                    setFormData({ ...formData, test_criteria: updated });
+                                  }}
+                                  className="text-red-500 hover:text-red-700 p-1"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <span className="text-[10px] font-bold text-muted block mb-0.5">Stdin Input:</span>
+                                <input
+                                  type="text"
+                                  value={tc.input || ''}
+                                  onChange={(e) => {
+                                    const updated = [...formData.test_criteria];
+                                    updated[idx] = { ...updated[idx], input: e.target.value };
+                                    setFormData({ ...formData, test_criteria: updated });
+                                  }}
+                                  placeholder="e.g. 8\n"
+                                  className="form-input text-xs py-1 px-2 font-mono bg-slate-50 dark:bg-slate-900 w-full"
+                                />
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-bold text-muted block mb-0.5">Expected Output:</span>
+                                <input
+                                  type="text"
+                                  value={tc.expected_output || ''}
+                                  onChange={(e) => {
+                                    const updated = [...formData.test_criteria];
+                                    updated[idx] = { ...updated[idx], expected_output: e.target.value };
+                                    setFormData({ ...formData, test_criteria: updated });
+                                  }}
+                                  placeholder="e.g. 8 is Even"
+                                  className="form-input text-xs py-1 px-2 font-mono bg-slate-50 dark:bg-slate-900 w-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center border border-dashed rounded-lg border-slate-300 dark:border-slate-700 text-muted text-xs">
+                        No automated test criteria configured yet. Click "Auto-Generate 5 Cases" to create 2 visible sample and 3 hidden edge cases automatically.
+                      </div>
+                    )}
                   </div>
 
                   <div className="form-group">

@@ -1,5 +1,40 @@
 import { useState } from 'react';
-import { Copy, Check, Terminal, Code2 } from 'lucide-react';
+import { Copy, Check, Terminal, Code2, RefreshCw, Image as ImageIcon } from 'lucide-react';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://skilltrack-backend-a36m.onrender.com/api';
+const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
+function resolveImageUrl(rawSrc) {
+  if (!rawSrc) return '';
+  let url = rawSrc.trim();
+
+  // If local development host is in URL but user is on production (or vice-versa)
+  if (url.includes('127.0.0.1:8000') || url.includes('localhost:8000')) {
+    url = url.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000/, BACKEND_ORIGIN);
+  }
+
+  // Upgrade http:// to https://
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && url.startsWith('http://')) {
+    url = url.replace('http://', 'https://');
+  }
+
+  // If relative path like /media/... or /api/media/...
+  if (url.startsWith('/media/') || url.startsWith('/api/media/')) {
+    return `${BACKEND_ORIGIN}${url}`;
+  }
+
+  // If relative path like media/...
+  if (url.startsWith('media/')) {
+    return `${BACKEND_ORIGIN}/${url}`;
+  }
+
+  // If relative images/...
+  if (url.startsWith('images/') || url.startsWith('/images/')) {
+    return url.startsWith('/') ? url : `/${url}`;
+  }
+
+  return url;
+}
 
 function CodeBlock({ code, lang }) {
   const [copied, setCopied] = useState(false);
@@ -80,8 +115,26 @@ function CodeBlock({ code, lang }) {
 }
 
 function ImageBlock({ src, alt, caption }) {
+  const resolvedUrl = resolveImageUrl(src);
+  const [currentSrc, setCurrentSrc] = useState(resolvedUrl);
+  const [triedFallback, setTriedFallback] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  const handleImageError = () => {
+    if (!triedFallback) {
+      setTriedFallback(true);
+      if (currentSrc.includes('/media/') && !currentSrc.includes('/api/media/')) {
+        setCurrentSrc(currentSrc.replace('/media/', '/api/media/'));
+        return;
+      }
+      if (currentSrc.includes('/api/media/')) {
+        setCurrentSrc(currentSrc.replace('/api/media/', '/media/'));
+        return;
+      }
+    }
+    setImgError(true);
+  };
 
   return (
     <div style={{
@@ -93,49 +146,95 @@ function ImageBlock({ src, alt, caption }) {
       width: '100%'
     }}>
       <div
-        onClick={() => setModalOpen(true)}
+        onClick={() => { if (!imgError) setModalOpen(true); }}
         style={{
           borderRadius: '16px',
           overflow: 'hidden',
           border: '1.5px solid rgba(123, 28, 110, 0.16)',
-          background: '#F8FAFC',
+          background: '#FFFFFF',
           boxShadow: '0 8px 30px rgba(123, 28, 110, 0.08)',
-          cursor: 'pointer',
+          cursor: imgError ? 'default' : 'pointer',
           maxWidth: '100%',
+          width: '100%',
           textAlign: 'center',
           transition: 'transform 0.2s ease, box-shadow 0.2s ease'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.01)';
-          e.currentTarget.style.boxShadow = '0 12px 36px rgba(123, 28, 110, 0.14)';
+          if (!imgError) {
+            e.currentTarget.style.transform = 'scale(1.01)';
+            e.currentTarget.style.boxShadow = '0 12px 36px rgba(123, 28, 110, 0.14)';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = '0 8px 30px rgba(123, 28, 110, 0.08)';
+          if (!imgError) {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 8px 30px rgba(123, 28, 110, 0.08)';
+          }
         }}
-        title="Click to zoom image"
+        title={imgError ? undefined : "Click to zoom image"}
       >
         {!imgError ? (
           <img
-            src={src}
+            src={currentSrc}
             alt={alt || caption || 'Topic diagram'}
-            onError={() => setImgError(true)}
+            onError={handleImageError}
+            loading="lazy"
             style={{
               maxWidth: '100%',
               maxHeight: '520px',
               display: 'block',
               objectFit: 'contain',
-              margin: '0 auto'
+              margin: '0 auto',
+              background: '#FFFFFF'
             }}
           />
         ) : (
-          <div style={{ padding: '30px 20px', color: '#94A3B8', fontSize: '13px' }}>
-            📷 Image: {alt || 'Illustration'} ({src})
+          <div style={{
+            padding: '28px 24px',
+            background: 'linear-gradient(135deg, rgba(123, 28, 110, 0.04) 0%, rgba(67, 56, 202, 0.04) 100%)',
+            border: '1.5px dashed rgba(123, 28, 110, 0.2)',
+            borderRadius: '16px',
+            textAlign: 'center'
+          }}>
+            <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(123, 28, 110, 0.08)', color: '#7B1C6E', marginBottom: '10px' }}>
+              <ImageIcon size={28} />
+            </div>
+            <div style={{ fontWeight: 800, fontSize: '14.5px', color: '#0F172A', marginBottom: '4px' }}>
+              {caption || alt || 'Topic Diagram / Illustration'}
+            </div>
+            <div style={{ fontSize: '12px', color: '#64748B', maxWidth: '420px', margin: '0 auto 14px' }}>
+              Visual reference diagram for this study section. (Image file not yet uploaded or stored on server).
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setImgError(false);
+                setTriedFallback(false);
+                setCurrentSrc(`${resolvedUrl}?r=${Date.now()}`);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                background: '#FFFFFF',
+                color: '#7B1C6E',
+                fontSize: '11.5px',
+                fontWeight: 700,
+                border: '1.5px solid rgba(123, 28, 110, 0.25)',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+              }}
+            >
+              <RefreshCw size={12} /> Retry Loading
+            </button>
           </div>
         )}
       </div>
 
-      {(caption || alt) && (
+      {(caption || alt) && !imgError && (
         <span style={{
           marginTop: '8px',
           fontSize: '12px',
@@ -239,12 +338,18 @@ function renderInlineText(text) {
           return <em key={m} style={{ color: '#475569', fontStyle: 'italic' }}>{itPart.slice(1, -1)}</em>;
         }
 
-        // Image formatting: ![alt](url)
-        const imageParts = itPart.split(/(!\[[^\]]*\]\([^)]+\))/g);
+        // Image formatting: ![alt](url) or <img src="..." alt="..." />
+        const imageParts = itPart.split(/(!\[[^\]]*\]\([^)]+\)|<img\s+[^>]*\/?>)/gi);
         return imageParts.map((imgPart, n) => {
           const imgMatch = imgPart.match(/^!\[(.*?)\]\((.*?)\)$/);
           if (imgMatch) {
             return <ImageBlock key={n} alt={imgMatch[1]} src={imgMatch[2]} caption={imgMatch[1]} />;
+          }
+          const htmlImgMatch = imgPart.match(/^<img\s+[^>]*src=["']([^"']+)["'][^>]*\/?>/i);
+          if (htmlImgMatch) {
+            const altMatch = imgPart.match(/alt=["']([^"']*)["']/i);
+            const altText = altMatch ? altMatch[1] : '';
+            return <ImageBlock key={n} alt={altText} src={htmlImgMatch[1]} caption={altText} />;
           }
 
           // Link formatting: [label](url)
