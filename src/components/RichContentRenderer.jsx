@@ -117,13 +117,17 @@ function CodeBlock({ code, lang }) {
 function ImageBlock({ src, alt, caption }) {
   const resolvedUrl = resolveImageUrl(src);
   const [currentSrc, setCurrentSrc] = useState(resolvedUrl);
-  const [triedFallback, setTriedFallback] = useState(false);
+  const [fallbackStep, setFallbackStep] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   const handleImageError = () => {
-    if (!triedFallback) {
-      setTriedFallback(true);
+    const fname = (currentSrc || '').split('/').pop()?.split('?')[0];
+    const altSlug = (alt || caption || '').trim();
+
+    // Fallback Step 0: Switch between /media/ and /api/media/
+    if (fallbackStep === 0) {
+      setFallbackStep(1);
       if (currentSrc.includes('/media/') && !currentSrc.includes('/api/media/')) {
         setCurrentSrc(currentSrc.replace('/media/', '/api/media/'));
         return;
@@ -133,6 +137,29 @@ function ImageBlock({ src, alt, caption }) {
         return;
       }
     }
+
+    // Fallback Step 1: Try local static images bundle by filename
+    if (fallbackStep <= 1) {
+      setFallbackStep(2);
+      if (fname && !currentSrc.startsWith('/images/')) {
+        setCurrentSrc(`/images/${fname}`);
+        return;
+      }
+    }
+
+    // Fallback Step 2: Try local static images bundle by alt/slug name (e.g. img_06_forms_getpost.png)
+    if (fallbackStep <= 2) {
+      setFallbackStep(3);
+      if (altSlug && !altSlug.includes('/') && !currentSrc.includes(altSlug)) {
+        setCurrentSrc(`/images/${altSlug}.png`);
+        return;
+      }
+      if (altSlug && altSlug.startsWith('img_')) {
+        setCurrentSrc(`/images/${altSlug}.jpg`);
+        return;
+      }
+    }
+
     setImgError(true);
   };
 
@@ -210,7 +237,7 @@ function ImageBlock({ src, alt, caption }) {
               onClick={(e) => {
                 e.stopPropagation();
                 setImgError(false);
-                setTriedFallback(false);
+                setFallbackStep(0);
                 setCurrentSrc(`${resolvedUrl}?r=${Date.now()}`);
               }}
               style={{
