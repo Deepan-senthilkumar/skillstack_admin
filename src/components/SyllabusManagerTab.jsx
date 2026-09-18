@@ -361,17 +361,21 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Syllabus & Modules Management</h2>
-          <p className="text-muted">
-            Manage curriculum chapter milestones, difficulty levels, and sequence ordering across all teaching tracks.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Syllabus & Modules Management</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Manage curriculum chapter milestones, difficulty levels, and sequence ordering across all teaching tracks.
+            </p>
+          </div>
         </div>
 
-        <button className="btn-primary" onClick={handleOpenCreate}>
-          <Plus size={16} /> Add New Chapter
-        </button>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={handleOpenCreate}>
+            <Plus size={16} /> Add New Chapter
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar with Dropdowns */}
@@ -489,7 +493,7 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
                         </span>
                       </td>
                       <td>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <button
                             className="btn-outline-sm"
                             onClick={() => onNavigate && onNavigate('topics')}
@@ -498,18 +502,18 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
                             <Plus size={12} /> Topic
                           </button>
                           <button
-                            className="icon-btn"
+                            className="icon-btn edit"
                             onClick={() => handleOpenEdit(mod)}
                             title="Edit Chapter"
                           >
-                            <Edit2 size={13} />
+                            <Edit2 size={14} />
                           </button>
                           <button
                             className="icon-btn danger"
                             onClick={() => handleDelete(mod.id, mod.name)}
                             title="Delete Chapter"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>

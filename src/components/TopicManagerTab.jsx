@@ -1458,16 +1458,20 @@ export default function TopicManagerTab({ user, onNavigate }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Topics & Study Notes Management</h2>
-          <p className="text-muted">
-            Create and organize lecture topics, chapter guides, and rich study notes across all subject curriculums.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Topics & Study Notes Management</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Create and organize lecture topics, chapter guides, and rich study notes across all subject curriculums.
+            </p>
+          </div>
         </div>
-        <button className="btn-primary" onClick={handleOpenCreate}>
-          <Plus size={16} /> Add New Topic
-        </button>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={handleOpenCreate}>
+            <Plus size={16} /> Add New Topic
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -1646,27 +1650,27 @@ export default function TopicManagerTab({ user, onNavigate }) {
                         )}
                       </td>
                       <td>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <button
-                            className="icon-btn"
+                            className="icon-btn view"
                             onClick={() => setViewingTopic(t)}
                             title="View Topic Notes"
                           >
-                            <Eye size={13} />
+                            <Eye size={14} />
                           </button>
                           <button
-                            className="icon-btn"
+                            className="icon-btn edit"
                             onClick={() => handleOpenEdit(t)}
                             title="Edit Topic"
                           >
-                            <Edit2 size={13} />
+                            <Edit2 size={14} />
                           </button>
                           <button
                             className="icon-btn danger"
                             onClick={() => handleDelete(t.id, t.title)}
                             title="Delete Topic"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>

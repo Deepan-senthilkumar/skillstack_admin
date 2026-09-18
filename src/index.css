@@ -22,6 +22,7 @@
 /* Dashboard Page */
 @import './styles/pages/dashboard/hero-banner.css';
 @import './styles/pages/dashboard/kpi-cards.css';
+@import './styles/pages/dashboard/dashboard-panels.css';
 @import './styles/pages/dashboard/batch-matrix.css';
 @import './styles/pages/dashboard/recent-submissions.css';
 @import './styles/pages/dashboard/course-quick-strip.css';

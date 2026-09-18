@@ -452,16 +452,20 @@ export default function DailyTaskTrackerTab({ user }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Staff Daily Task & Attendance Tracker</h2>
-          <p className="text-muted">
-            Daily-entry table filled by Staff and reviewed by Admin. View all batches running on any given date with session types and attendance numbers.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Staff Daily Task & Attendance Tracker</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Daily-entry table filled by Staff and reviewed by Admin. View all batches running on any given date with session types and attendance numbers.
+            </p>
+          </div>
         </div>
-        <button className="btn-primary" onClick={() => handleOpenLogModal(null)}>
-          <Plus size={16} /> New Session Entry
-        </button>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => handleOpenLogModal(null)}>
+            <Plus size={16} /> New Session Entry
+          </button>
+        </div>
       </div>
 
       {/* Date Picker Bar */}
@@ -576,7 +580,7 @@ export default function DailyTaskTrackerTab({ user }) {
                       </span>
                     </td>
                     <td>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <button
                           className="btn-outline-sm"
                           onClick={() => handleOpenLogModal(row)}

@@ -609,16 +609,20 @@ export default function BatchManagerTab({ user, onSelectBatchForProgress }) {
   return (
     <div className="tab-pane-container">
       {/* Top action header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Batch Management</h2>
-          <p className="text-muted">
-            Manage cohort instances, distinct time slots, trainer assignments, and student rosters. Multiple batches can run the same course in parallel.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Batch Management</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Manage cohort instances, distinct time slots, trainer assignments, and student rosters. Multiple batches can run the same course in parallel.
+            </p>
+          </div>
         </div>
-        <button className="btn-primary" onClick={handleOpenCreate}>
-          <Plus size={16} /> Create New Batch
-        </button>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={handleOpenCreate}>
+            <Plus size={16} /> Create New Batch
+          </button>
+        </div>
       </div>
 
       {/* Unified Filter Bar */}
@@ -733,11 +737,11 @@ export default function BatchManagerTab({ user, onSelectBatchForProgress }) {
                     Topic Checklist
                   </button>
                   <div className="btn-group-sm flex items-center gap-1.5">
-                    <button className="item-action-icon edit" onClick={() => handleOpenEdit(b)} title="Edit Batch">
-                      <Edit2 size={13} />
+                    <button className="icon-btn edit" onClick={() => handleOpenEdit(b)} title="Edit Batch">
+                      <Edit2 size={14} />
                     </button>
-                    <button className="item-action-icon danger" onClick={() => handleDelete(b.id, b.name)} title="Delete Batch">
-                      <Trash2 size={13} />
+                    <button className="icon-btn danger" onClick={() => handleDelete(b.id, b.name)} title="Delete Batch">
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>

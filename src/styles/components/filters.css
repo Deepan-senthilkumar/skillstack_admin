@@ -3,53 +3,71 @@
    Location: src/styles/components/filters.css
    ========================================================================== */
 
-/* ── EMPTY STATE ──────────────────────────────────────────────────── */
-.empty-state {
-  padding: 48px 24px;
-  text-align: center;
-  color: var(--text-tertiary);
-  font-size: 0.9rem;
-}
-
-/* ── SUBJECT CARDS ────────────────────────────────────────────────── */
-
-/* ============================================================
-   ADMIN TABLES, BUTTONS, FILTERS, AND MODAL OVERHAUL
-   ============================================================ */
-
 /* ── Tab Panes & Section Headers ───────────────────────────── */
 .tab-pane-container {
   display: flex;
   flex-direction: column;
   gap: 20px;
   animation: fadeIn 0.25s ease;
+  width: 100%;
 }
 
-.tab-pane-header {
+.tab-pane-header,
+.admin-page-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding-bottom: 8px;
+  width: 100% !important;
+  text-align: left !important;
+  flex-wrap: wrap !important;
+}
+
+.tab-pane-header > div:first-child,
+.admin-page-header > div:first-child,
+.tab-pane-header .header-left-content,
+.admin-page-header .header-left-content {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 4px;
+  align-items: center;
+  gap: 14px;
+  text-align: left !important;
 }
 
-.tab-pane-header h2 {
+.tab-pane-header h1,
+.tab-pane-header h2,
+.admin-page-header h1,
+.admin-page-header h2 {
   font-family: var(--font-head);
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: var(--gray-900);
-  letter-spacing: -0.5px;
-  line-height: 1.2;
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  text-align: left !important;
+  margin: 0 !important;
 }
 
-.tab-pane-header p {
+.tab-pane-header p,
+.admin-page-header p {
   font-size: 0.85rem;
   color: var(--gray-500);
   margin-top: 4px;
+  margin-bottom: 0;
   max-width: 780px;
+  text-align: left !important;
 }
 
-/* ── Modern Filter Card ────────────────────────────────────── */
+.tab-pane-header .header-actions,
+.admin-page-header .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* ── Filter Card & Search Box ──────────────────────────────── */
 .filter-card {
   background: #FFFFFF;
   border: 1px solid var(--border-subtle);
@@ -90,6 +108,7 @@
   outline: none;
   transition: all 0.2s ease;
 }
+
 .search-box input:focus {
   background: #FFFFFF;
   border-color: var(--blue-primary);
@@ -109,12 +128,12 @@
   cursor: pointer;
   transition: all 0.15s ease;
 }
+
 .filter-select:focus, .filter-date-input:focus {
   background: #FFFFFF;
   border-color: var(--blue-primary);
   box-shadow: 0 0 0 3px rgba(123, 28, 110, 0.12);
 }
-
 
 /* ── Empty & Loading States ────────────────────────────────── */
 .empty-card {
@@ -126,10 +145,12 @@
   justify-content: center;
   color: var(--gray-400);
 }
+
 .empty-icon {
   margin-bottom: 12px;
   opacity: 0.6;
 }
+
 .loading-state {
   padding: 48px 24px;
   text-align: center;
@@ -137,7 +158,6 @@
   font-size: 0.9rem;
   font-weight: 600;
 }
-
 
 /* ── Unified Filter Bar ── */
 .filter-bar-unified {
@@ -252,4 +272,3 @@
   max-width: 420px !important;
   line-height: 1.5 !important;
 }
-

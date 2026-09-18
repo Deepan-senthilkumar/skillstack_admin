@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   BookOpen, Plus, Edit2, Trash2, ArrowLeft, Check,
   Search, Filter, Sparkles, CheckCircle2, AlertCircle, Layers,
-  Clock, Calendar
+  Clock, Calendar, Eye, X
 } from 'lucide-react';
 import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -28,6 +28,7 @@ export default function SubjectManagerTab({ user }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [viewingSubject, setViewingSubject] = useState(null);
 
   const [editingSubject, setEditingSubject] = useState(null);
   const [formData, setFormData] = useState({
@@ -391,16 +392,20 @@ export default function SubjectManagerTab({ user }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Master Subjects Catalog</h2>
-          <p className="text-muted">
-            Manage all teaching subjects (Excel, MS Word, Tally, Python, C, Web Development, etc.) dynamically.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Master Subjects Catalog</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Manage all teaching subjects (Excel, MS Word, Tally, Python, C, Web Development, etc.) dynamically.
+            </p>
+          </div>
         </div>
-        <button className="btn-primary" onClick={handleOpenCreate}>
-          <Plus size={16} /> Add New Subject
-        </button>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={handleOpenCreate}>
+            <Plus size={16} /> Add New Subject
+          </button>
+        </div>
       </div>
 
       {/* Search & Filter Bar */}
@@ -444,7 +449,7 @@ export default function SubjectManagerTab({ user }) {
                   <th>Duration</th>
                   <th>Weekly Schedule</th>
                   <th>Modules & Topics</th>
-                  <th style={{ width: '120px' }}>Actions</th>
+                  <th style={{ width: '130px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -467,12 +472,15 @@ export default function SubjectManagerTab({ user }) {
                       </span>
                     </td>
                     <td>
-                      <div className="flex items-center gap-2">
-                        <button className="icon-btn" onClick={() => handleOpenEdit(sub)} title="Edit Subject">
-                          <Edit2 size={13} />
+                      <div className="flex items-center gap-1.5">
+                        <button className="icon-btn view" onClick={() => setViewingSubject(sub)} title="View Subject Details">
+                          <Eye size={14} />
+                        </button>
+                        <button className="icon-btn edit" onClick={() => handleOpenEdit(sub)} title="Edit Subject">
+                          <Edit2 size={14} />
                         </button>
                         <button className="icon-btn danger" onClick={() => handleDelete(sub.id, sub.name)} title="Delete Subject">
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -494,6 +502,84 @@ export default function SubjectManagerTab({ user }) {
           </div>
         )}
       </div>
+
+      {/* View Subject Modal */}
+      {viewingSubject && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 9999, padding: '20px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '16px', maxWidth: '520px', width: '100%',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)', overflow: 'hidden'
+          }}>
+            <div style={{
+              padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex',
+              alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Eye size={18} color="#0284C7" />
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
+                  Subject Details: {viewingSubject.name}
+                </h3>
+              </div>
+              <button
+                onClick={() => setViewingSubject(null)}
+                className="icon-btn"
+                style={{ width: '28px', height: '28px', borderRadius: '6px' }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <span className="text-xs text-muted" style={{ display: 'block' }}>Subject Name</span>
+                <strong style={{ fontSize: '1rem', color: '#1e293b' }}>{viewingSubject.name}</strong>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <span className="text-xs text-muted" style={{ display: 'block' }}>Slug</span>
+                  <span className="font-mono text-xs text-slate-700">{viewingSubject.slug}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted" style={{ display: 'block' }}>Level</span>
+                  <span className="badge-pill info">{viewingSubject.level || 'Beginner'}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted" style={{ display: 'block' }}>Duration</span>
+                  <span className="text-sm font-semibold text-slate-700">{viewingSubject.duration}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted" style={{ display: 'block' }}>Schedule</span>
+                  <span className="text-xs text-slate-600">{viewingSubject.schedule_type}</span>
+                </div>
+              </div>
+              {viewingSubject.description && (
+                <div>
+                  <span className="text-xs text-muted" style={{ display: 'block' }}>Description</span>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#475569', lineHeight: 1.5 }}>
+                    {viewingSubject.description}
+                  </p>
+                </div>
+              )}
+            </div>
+            <div style={{
+              padding: '12px 20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0',
+              display: 'flex', justifyContent: 'flex-end', gap: '8px'
+            }}>
+              <button className="btn-secondary" onClick={() => setViewingSubject(null)}>Close</button>
+              <button className="btn-primary" onClick={() => {
+                const sub = viewingSubject;
+                setViewingSubject(null);
+                handleOpenEdit(sub);
+              }}>
+                <Edit2 size={14} /> Edit Subject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

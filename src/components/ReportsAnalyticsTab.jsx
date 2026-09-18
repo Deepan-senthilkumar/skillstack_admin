@@ -119,85 +119,110 @@ export default function ReportsAnalyticsTab({ user }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Operational Reporting & Analytics</h2>
-          <p className="text-muted">
-            Multi-dimensional reporting across Daily, Monthly, and Yearly aggregates with customizable filters and configurable pagination.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Operational Reporting & Analytics</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Multi-dimensional reporting across Daily, Monthly, and Yearly aggregates with customizable filters and configurable pagination.
+            </p>
+          </div>
         </div>
-        <button className="btn-primary" onClick={handleExportCSV}>
-          <Download size={15} /> Export CSV Report
-        </button>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={handleExportCSV}>
+            <Download size={15} /> Export CSV Report
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards Summary */}
-      <div className="stats-grid">
+      <div className="kpi-metric-grid">
+        {/* Metric 1: Total Sessions Conducted */}
         <div className="kpi-card">
-          <div className="kpi-icon-wrap blue">
-            <Calendar size={20} />
-          </div>
-          <div className="kpi-info">
-            <span className="kpi-label">Total Sessions Conducted</span>
-            <span className="kpi-value">{kpis.total_sessions || 0}</span>
-          </div>
-        </div>
-
-        <div className="kpi-card">
-          <div className="kpi-icon-wrap emerald">
-            <Users size={20} />
-          </div>
-          <div className="kpi-info">
-            <span className="kpi-label">Overall Attendance Average</span>
-            <div className="kpi-val-row">
-              <span className="kpi-value">{kpis.overall_attendance_pct || 0}%</span>
-              <span className="kpi-tag">{kpis.total_attended_sum || 0} Total Presents</span>
+          <div className="kpi-card-header">
+            <span className="kpi-card-label">Total Sessions Conducted</span>
+            <div className="kpi-icon-bubble magenta">
+              <Calendar size={20} />
             </div>
           </div>
+          <div className="kpi-metric-number">{kpis.total_sessions || 0}</div>
+          <div className="kpi-card-footer">
+            <span className="kpi-pill info">All Batches</span>
+            <span className="kpi-footnote">Completed sessions</span>
+          </div>
         </div>
 
+        {/* Metric 2: Overall Attendance Average */}
         <div className="kpi-card">
-          <div className="kpi-icon-wrap purple">
-            <Award size={20} />
-          </div>
-          <div className="kpi-info">
-            <span className="kpi-label">Code Submissions</span>
-            <div className="kpi-val-row">
-              <span className="kpi-value">{kpis.total_submissions || 0}</span>
-              <span className="kpi-tag success">{kpis.passed_submissions || 0} Passed</span>
+          <div className="kpi-card-header">
+            <span className="kpi-card-label">Overall Attendance Average</span>
+            <div className="kpi-icon-bubble emerald">
+              <Users size={20} />
             </div>
           </div>
+          <div className="kpi-metric-number">
+            {kpis.overall_attendance_pct || 0}%
+          </div>
+          <div className="kpi-card-footer">
+            <span className="kpi-pill success">{kpis.total_attended_sum || 0} Total Presents</span>
+            <span className="kpi-footnote">Across active batches</span>
+          </div>
         </div>
 
+        {/* Metric 3: Code Submissions */}
         <div className="kpi-card">
-          <div className="kpi-icon-wrap amber">
-            <Clock size={20} />
+          <div className="kpi-card-header">
+            <span className="kpi-card-label">Code Submissions</span>
+            <div className="kpi-icon-bubble purple">
+              <Award size={20} />
+            </div>
           </div>
-          <div className="kpi-info">
-            <span className="kpi-label">Avg Execution Time</span>
-            <span className="kpi-value">{kpis.avg_execution_time_ms || 0} ms</span>
+          <div className="kpi-metric-number">{kpis.total_submissions || 0}</div>
+          <div className="kpi-card-footer">
+            <span className="kpi-pill success">{kpis.passed_submissions || 0} Passed</span>
+            <span className="kpi-footnote">Auto-evaluated</span>
+          </div>
+        </div>
+
+        {/* Metric 4: Avg Execution Time */}
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <span className="kpi-card-label">Avg Execution Time</span>
+            <div className="kpi-icon-bubble gold">
+              <Clock size={20} />
+            </div>
+          </div>
+          <div className="kpi-metric-number">
+            {kpis.avg_execution_time_ms || 0} <span style={{ fontSize: '1rem', fontWeight: 600, color: '#64748b' }}>ms</span>
+          </div>
+          <div className="kpi-card-footer">
+            <span className="kpi-pill info">Compiler Sandbox</span>
+            <span className="kpi-footnote">Average runtime</span>
           </div>
         </div>
       </div>
 
       {/* View Mode & Filter Controls */}
-      <div className="filter-card mt-4">
+      <div className="filter-card mt-4 reports-filter-card">
         {/* View Mode Switcher (Daily, Monthly, Yearly) */}
-        <div className="view-mode-tabs">
+        <div className="reports-view-tabs">
           <button
-            className={`view-tab-btn ${viewType === 'daily' ? 'active' : ''}`}
+            type="button"
+            className={`reports-view-tab ${viewType === 'daily' ? 'active' : ''}`}
             onClick={() => { setViewType('daily'); setPage(1); }}
           >
             Daily (Date-Wise)
           </button>
           <button
-            className={`view-tab-btn ${viewType === 'monthly' ? 'active' : ''}`}
+            type="button"
+            className={`reports-view-tab ${viewType === 'monthly' ? 'active' : ''}`}
             onClick={() => { setViewType('monthly'); setPage(1); }}
           >
             Monthly Aggregate
           </button>
           <button
-            className={`view-tab-btn ${viewType === 'yearly' ? 'active' : ''}`}
+            type="button"
+            className={`reports-view-tab ${viewType === 'yearly' ? 'active' : ''}`}
             onClick={() => { setViewType('yearly'); setPage(1); }}
           >
             Yearly Aggregate
@@ -205,7 +230,7 @@ export default function ReportsAnalyticsTab({ user }) {
         </div>
 
         {/* Filters Group */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="reports-filter-group">
           {viewType === 'monthly' && (
             <input
               type="month"
@@ -263,12 +288,12 @@ export default function ReportsAnalyticsTab({ user }) {
           )}
 
           {/* Page Size Selector */}
-          <div className="flex items-center gap-1 ml-auto text-xs text-muted">
+          <div className="reports-page-size">
             <span>Show:</span>
             <select
               value={pageSize}
               onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }}
-              className="filter-select text-xs py-1"
+              className="filter-select"
             >
               <option value="10">10 per page</option>
               <option value="25">25 per page</option>

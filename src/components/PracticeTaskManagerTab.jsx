@@ -821,14 +821,16 @@ export default function PracticeTaskManagerTab({ user }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Practice Labs & Tasks Management</h2>
-          <p className="text-muted">
-            Create and maintain coding challenges, spreadsheet labs, and practical assignments with automated answer key evaluation.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Practice Labs & Tasks Management</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Create and maintain coding challenges, spreadsheet labs, and practical assignments with automated answer key evaluation.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="header-actions">
           <button
             className="btn-outline-sm"
             style={{
@@ -1011,15 +1013,15 @@ export default function PracticeTaskManagerTab({ user }) {
                         <span className="points-badge font-bold">{prob.points} pts</span>
                       </td>
                       <td>
-                        <div className="flex items-center gap-2">
-                          <button className="icon-btn" onClick={() => setViewingProblem(prob)} title="View Task Details">
-                            <Eye size={13} />
+                        <div className="flex items-center gap-1.5">
+                          <button className="icon-btn view" onClick={() => setViewingProblem(prob)} title="View Task Details">
+                            <Eye size={14} />
                           </button>
-                          <button className="icon-btn" onClick={() => handleOpenEdit(prob)} title="Edit Task">
-                            <Edit2 size={13} />
+                          <button className="icon-btn edit" onClick={() => handleOpenEdit(prob)} title="Edit Task">
+                            <Edit2 size={14} />
                           </button>
                           <button className="icon-btn danger" onClick={() => handleDelete(prob.id, prob.title)} title="Delete Task">
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>

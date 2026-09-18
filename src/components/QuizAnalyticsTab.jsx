@@ -121,26 +121,28 @@ export default function QuizAnalyticsTab({ user }) {
   return (
     <div className="admin-page-container space-y-5">
       {/* Header */}
-      <div className="admin-page-header flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
-            <BarChart3 size={22} />
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600 flex-shrink-0" style={{ background: '#FAF5FF', border: '1px solid #E9D5FF' }}>
+            <BarChart3 size={24} />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Test &amp; Quiz Analytics</h1>
-            <p className="text-xs text-slate-500">
+          <div style={{ textAlign: 'left' }}>
+            <h1 className="text-xl font-bold text-slate-800" style={{ margin: 0, textAlign: 'left' }}>Test &amp; Quiz Analytics</h1>
+            <p className="text-xs text-slate-500" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
               Detailed tracking of student attempts, randomized 5-question scores, security infractions, and answer inspection.
             </p>
           </div>
         </div>
 
-        <button
-          onClick={loadAnalytics}
-          className="btn-secondary flex items-center gap-2 text-xs"
-        >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>Refresh Data</span>
-        </button>
+        <div className="header-actions">
+          <button
+            onClick={loadAnalytics}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            <span>Refresh Data</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -328,18 +330,18 @@ export default function QuizAnalyticsTab({ user }) {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setInspectingAttempt(att)}
-                          className="icon-btn"
+                          className="icon-btn view"
                           title="Inspect Student Answers"
                         >
-                          <Eye size={13} />
+                          <Eye size={14} />
                         </button>
                         {!att.is_passed && (
                           <button
                             onClick={() => handleResetCooldown(att.student, att.topic, att.student_name || att.student_username)}
-                            className="icon-btn"
+                            className="icon-btn reset"
                             title="Reset 10-Min Cooldown Timer"
                           >
-                            <RotateCcw size={13} />
+                            <RotateCcw size={14} />
                           </button>
                         )}
                       </div>
