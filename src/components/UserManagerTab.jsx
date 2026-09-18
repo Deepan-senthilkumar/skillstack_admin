@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
   Users, UserPlus, Edit2, Trash2, Shield,
-  Search, Filter, X, AlertCircle, CheckCircle2, Lock, Phone, Mail, ArrowLeft
+  Search, Filter, X, AlertCircle, CheckCircle2, Lock, Phone, Mail, ArrowLeft, Eye
 } from 'lucide-react';
-import { api } from '../api';
+import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 
@@ -18,6 +18,7 @@ export default function UserManagerTab({ user }) {
 
   // User Modal
   const [showModal, setShowModal] = useState(false);
+  const [viewingUser, setViewingUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
@@ -57,7 +58,11 @@ export default function UserManagerTab({ user }) {
 
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
 
-  const handleOpenCreate = (defaultRole = 'STUDENT') => {
+  const handleOpenCreate = (initialRole = 'STUDENT') => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Creating new user accounts');
+      return;
+    }
     setEditingUser(null);
     setFormData({
       username: '',
@@ -77,6 +82,10 @@ export default function UserManagerTab({ user }) {
   };
 
   const handleOpenEdit = (u) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Editing user accounts');
+      return;
+    }
     setEditingUser(u);
     setFormData({
       username: u.username,
@@ -114,6 +123,10 @@ export default function UserManagerTab({ user }) {
 
   const handleSaveUser = async (e) => {
     e.preventDefault();
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Saving user accounts');
+      return;
+    }
     if (!validateForm()) {
       setErrorMsg('Please fill in all mandatory fields highlighted in red below.');
       return;
@@ -140,6 +153,10 @@ export default function UserManagerTab({ user }) {
   };
 
   const handleDeleteUser = async (id, name) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Deleting user accounts');
+      return;
+    }
     const ok = await confirm({
       title: 'Delete User Account?',
       message: `Are you sure you want to delete user "${name}"? This action cannot be undone.`,
@@ -159,6 +176,10 @@ export default function UserManagerTab({ user }) {
   };
 
   const handleToggleActive = async (u) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Toggling user active status');
+      return;
+    }
     try {
       await api.updateUser(u.id, { is_active: !u.is_active });
       await loadUsersAndBatches();
@@ -575,6 +596,9 @@ export default function UserManagerTab({ user }) {
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
+                        <button className="icon-btn" onClick={() => setViewingUser(u)} title="View user details">
+                          <Eye size={13} />
+                        </button>
                         <button className="icon-btn" onClick={() => handleOpenEdit(u)} title="Edit user">
                           <Edit2 size={13} />
                         </button>
@@ -590,6 +614,127 @@ export default function UserManagerTab({ user }) {
           </div>
         )}
       </div>
+
+      {/* View User Details Modal */}
+      {viewingUser && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(6px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            maxWidth: '520px',
+            width: '100%',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '20px',
+            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
+            overflow: 'hidden',
+            border: '1.5px solid #E2E8F0'
+          }}>
+            <div style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#F8FAFC'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Eye size={16} color="#7B1C6E" />
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>User Account Profile</span>
+              </div>
+              <button
+                onClick={() => setViewingUser(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+                <div style={{
+                  width: '54px',
+                  height: '54px',
+                  borderRadius: '50%',
+                  backgroundColor: viewingUser.role === 'ADMIN' ? '#7B1C6E' : viewingUser.role === 'STAFF' ? '#2563EB' : '#10B981',
+                  color: '#FFFFFF',
+                  fontSize: '20px',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {(viewingUser.first_name || viewingUser.username || 'U')[0].toUpperCase()}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    {viewingUser.display_name || viewingUser.first_name}
+                  </h3>
+                  <div style={{ fontSize: '12px', color: '#64748B' }}>@{viewingUser.username}</div>
+                  <span style={{
+                    display: 'inline-block',
+                    marginTop: '4px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    background: viewingUser.role === 'ADMIN' ? '#F3E8FF' : viewingUser.role === 'STAFF' ? '#DBEAFE' : '#DCFCE7',
+                    color: viewingUser.role === 'ADMIN' ? '#6B21A8' : viewingUser.role === 'STAFF' ? '#1E40AF' : '#166534'
+                  }}>
+                    {viewingUser.role === 'ADMIN' ? 'Admin / Owner' : viewingUser.role === 'STAFF' ? 'Staff Trainer' : 'Student / Learner'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12.5px', marginBottom: '16px' }}>
+                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
+                  <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Email Address</span>
+                  <strong style={{ color: '#0F172A' }}>{viewingUser.email || '—'}</strong>
+                </div>
+                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
+                  <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Mobile Number</span>
+                  <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{viewingUser.mobile_number || '—'}</strong>
+                </div>
+                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
+                  <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Account Status</span>
+                  <strong style={{ color: viewingUser.is_active ? '#059669' : '#DC2626' }}>
+                    {viewingUser.is_active ? 'Active' : 'Deactivated'}
+                  </strong>
+                </div>
+                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
+                  <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Joined Date</span>
+                  <strong style={{ color: '#0F172A' }}>{viewingUser.date_joined ? new Date(viewingUser.date_joined).toLocaleDateString() : 'Active'}</strong>
+                </div>
+              </div>
+
+              {viewingUser.bio && (
+                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', fontSize: '12px', color: '#475569', marginBottom: '16px' }}>
+                  <strong style={{ display: 'block', color: '#0F172A', marginBottom: '2px' }}>Bio / Notes:</strong>
+                  {viewingUser.bio}
+                </div>
+              )}
+
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setViewingUser(null)}
+                  style={{ padding: '8px 20px', borderRadius: '10px' }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

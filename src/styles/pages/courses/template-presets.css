@@ -1,0 +1,50 @@
+/* ==========================================================================
+   Quick Subject Template Presets Box
+   Location: src/styles/pages/courses/template-presets.css
+   ========================================================================== */
+
+/* ── Quick Subject Template Presets Box ── */
+.template-presets-box {
+  background: linear-gradient(135deg, #fdf8fc 0%, #f7eff9 100%) !important;
+  border: 1.5px solid #ebd3e7 !important;
+  border-radius: 16px !important;
+  padding: 16px 18px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 2px 10px rgba(123, 28, 110, 0.04) !important;
+}
+
+.template-presets-box .preset-header-title {
+  font-size: 0.75rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: #7B1C6E !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 10px !important;
+}
+
+.template-preset-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: #ffffff !important;
+  border: 1.5px solid #e9d5e7 !important;
+  border-radius: 9999px !important;
+  padding: 7px 14px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #4a1d46 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+.template-preset-pill:hover {
+  background: #7B1C6E !important;
+  border-color: #7B1C6E !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 14px rgba(123, 28, 110, 0.28) !important;
+}

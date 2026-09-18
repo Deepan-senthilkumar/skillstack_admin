@@ -1,0 +1,295 @@
+/* ==========================================================================
+   Modern Tables, Badges, Chips & Pagination
+   Location: src/styles/components/tables.css
+   ========================================================================== */
+
+/* ── TABLE CARD ───────────────────────────────────────────────────── */
+.table-card {
+  background: white;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.table-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: white;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.table-card-title {
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.table-card-sub {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Page size picker */
+.table-size-picker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.table-size-picker select {
+  padding: 4px 8px;
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  background: white;
+  cursor: pointer;
+}
+
+/* ── TABLE HORIZONTAL SCROLL ──────────────────────────────────────── */
+.table-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-scroll-wrapper::-webkit-scrollbar { height: 5px; }
+.table-scroll-wrapper::-webkit-scrollbar-track { background: var(--gray-100); }
+.table-scroll-wrapper::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+
+/* Sticky header in tables with scroll */
+.table-scroll-wrapper .staff-table thead th {
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* ── PAGINATION ───────────────────────────────────────────────────── */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--gray-50);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pagination-info {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-medium);
+  background: white;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pg-btn:hover:not(:disabled) {
+  border-color: var(--blue-primary);
+  color: var(--blue-primary);
+  background: var(--blue-soft);
+}
+.pg-btn.active {
+  background: var(--gradient);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(123,28,110,0.25);
+}
+.pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pg-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+}
+
+/* ── EMPTY STATE ──────────────────────────────────────────────────── */
+
+/* ── RANK BADGES ──────────────────────────────────────────────────── */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.rank-gold   { background: #FEF3C7; color: #92400E; border: 1.5px solid #FCD34D; }
+.rank-silver { background: #F1F5F9; color: #475569; border: 1.5px solid #CBD5E1; }
+.rank-bronze { background: #FEF2F2; color: #9F1239; border: 1.5px solid #FCA5A5; }
+.rank-normal { background: var(--gray-100); color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
+
+/* ── MARKS CHIP ───────────────────────────────────────────────────── */
+.marks-chip {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--blue-primary);
+  background: var(--blue-soft);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--blue-border);
+}
+
+/* ── TOGGLE SWITCH ────────────────────────────────────────────────── */
+.switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top:0;left:0;right:0;bottom:0; background: var(--gray-300); border-radius: 24px; transition: 0.3s; }
+.slider::before { position: absolute; content:""; height: 18px; width: 18px; left:3px; bottom:3px; background: white; border-radius: 50%; transition: 0.3s; }
+input:checked + .slider { background: var(--blue-primary); }
+input:checked + .slider::before { transform: translateX(22px); }
+
+/* ── MODAL CLOSE BTN ──────────────────────────────────────────────── */
+
+/* ── Section Cards & Tables ────────────────────────────────── */
+.dashboard-section-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(123, 28, 110, 0.04);
+}
+
+.section-card-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-card-header h3 {
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table thead th {
+  background: #FAF5F9;
+  padding: 13px 18px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid #F1F5F9;
+  transition: background 0.15s ease;
+}
+.admin-table tbody tr:last-child {
+  border-bottom: none;
+}
+.admin-table tbody tr:hover {
+  background: #FDF5FD;
+}
+.admin-table tbody tr.row-logged {
+  background: #FAFDFB;
+}
+
+.admin-table tbody td {
+  padding: 13px 18px;
+  font-size: 0.85rem;
+  color: #1E293B;
+  vertical-align: middle;
+}
+
+/* ── User Table Cells & Avatars ────────────────────────────── */
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.avatar-xs {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.bg-purple-600 { background: #7B1C6E !important; }
+.bg-blue-600 { background: #4338CA !important; }
+.bg-emerald-600 { background: #059669 !important; }
+
+/* ── Badge Pills ───────────────────────────────────────────── */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  line-height: 1.3;
+}
+.badge-pill.purple { background: #FDF5FD; color: #7B1C6E; border: 1px solid #F6E2F3; }
+.badge-pill.info { background: #EFF6FF; color: #1D4ED8; border: 1px solid #DBEAFE; }
+.badge-pill.success { background: #ECFDF5; color: #047857; border: 1px solid #D1FAE5; }
+.badge-pill.warning { background: #FFFBEB; color: #B45309; border: 1px solid #FEF3C7; }
+.badge-pill.danger { background: #FFF1F2; color: #BE123C; border: 1px solid #FFE4E6; }
+.badge-pill.course-pill { background: #FAF5F9; color: #7B1C6E; font-weight: 700; border: 1px solid #E2CBDD; }
+.badge-pill.trainer-pill { background: #F0FDF4; color: #15803D; font-weight: 600; border: 1px solid #DCFCE7; }
+

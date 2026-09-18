@@ -1,0 +1,84 @@
+/* ==========================================================================
+   Base Resets, Body Styles & Scrollbars
+   Location: src/styles/base/reset.css
+   ========================================================================== */
+
+/* ── Staff Dashboard Resets ───────────────────────────────────── */
+/* Override any global styles for admin context */
+.admin-main .dashboard-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── Form / Modal overrides ─────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+  padding: 16px;
+}
+.modal-content {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ── Generic Utility Classes ─────────────────────────────────────── */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.mb-4 { margin-bottom: 16px; }
+.p-4 { padding: 16px; }
+.rounded { border-radius: var(--radius); }
+.w-full { width: 100%; }
+.text-sm { font-size: 0.875rem; }
+.text-xs { font-size: 0.78rem; }
+.font-semibold { font-weight: 600; }
+.text-gray-500 { color: var(--gray-500); }
+.text-blue { color: var(--blue-700); }
+
+/* ── Scrollbar ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--gray-50); }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .admin-topbar { padding: 0 16px; }
+  .topbar-center { display: none; }
+  .topbar-badge { display: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ADMIN BODY — fills height below topbar
+   ══════════════════════════════════════════════════════════════════ */
+.admin-body {
+  height: calc(100vh - 62px);
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DASH LAYOUT — Sidebar + Content
+   ══════════════════════════════════════════════════════════════════ */
+.dash-layout {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+

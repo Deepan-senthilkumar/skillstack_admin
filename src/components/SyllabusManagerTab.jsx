@@ -4,7 +4,7 @@ import {
   Search, Filter, Sparkles, BookOpen, FileText,
   AlertCircle
 } from 'lucide-react';
-import { api } from '../api';
+import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
@@ -90,6 +90,10 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
   };
 
   const handleOpenCreate = () => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Creating modules/units');
+      return;
+    }
     const defaultSub = selectedSubjectFilter !== 'ALL' ? selectedSubjectFilter : (subjects[0]?.id ? String(subjects[0].id) : '');
     const currentSubMods = modules.filter(m => String(m.subject) === String(defaultSub));
     setEditingModule(null);
@@ -104,6 +108,10 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
   };
 
   const handleOpenEdit = (mod) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Editing modules/units');
+      return;
+    }
     setEditingModule(mod);
     const subId = typeof mod.subject === 'object' ? mod.subject?.id : mod.subject;
     setFormData({
@@ -130,6 +138,10 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Saving modules/units');
+      return;
+    }
     if (!validateForm()) {
       toast.error('Please complete all mandatory fields.');
       return;
@@ -165,6 +177,10 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
   };
 
   const handleDelete = async (id, name) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Deleting modules/units');
+      return;
+    }
     const ok = await confirm({
       title: 'Delete Curriculum Chapter?',
       message: `Are you sure you want to delete chapter "${name}"? This will detach any associated topics.`,
@@ -475,7 +491,7 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
                       <td>
                         <div className="flex items-center gap-2">
                           <button
-                            className="btn-outline-sm text-xs py-1 px-2 flex items-center gap-1 font-semibold"
+                            className="btn-outline-sm"
                             onClick={() => onNavigate && onNavigate('topics')}
                             title="Add Topic to this Chapter"
                           >

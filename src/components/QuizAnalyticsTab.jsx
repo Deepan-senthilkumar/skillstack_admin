@@ -256,90 +256,90 @@ export default function QuizAnalyticsTab({ user }) {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+        <div className="dashboard-section-card mt-4">
+          <div className="table-responsive">
+            <table className="admin-table">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
-                  <th className="p-3.5 w-12 text-center">#</th>
-                  <th className="p-3.5">Student</th>
-                  <th className="p-3.5">Topic</th>
-                  <th className="p-3.5 text-center">Score / Total</th>
-                  <th className="p-3.5 text-center">Percentage</th>
-                  <th className="p-3.5 text-center">Result Status</th>
-                  <th className="p-3.5 text-center">Security Violations</th>
-                  <th className="p-3.5 text-center">Time Taken</th>
-                  <th className="p-3.5">Date &amp; Time</th>
-                  <th className="p-3.5 text-right">Actions</th>
+                <tr>
+                  <th style={{ width: '50px', textAlign: 'center' }}>#</th>
+                  <th>Student</th>
+                  <th>Topic</th>
+                  <th style={{ textAlign: 'center' }}>Score / Total</th>
+                  <th style={{ textAlign: 'center' }}>Percentage</th>
+                  <th style={{ textAlign: 'center' }}>Result Status</th>
+                  <th style={{ textAlign: 'center' }}>Security Violations</th>
+                  <th style={{ textAlign: 'center' }}>Time Taken</th>
+                  <th>Date &amp; Time</th>
+                  <th style={{ width: '90px', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {attempts.map((att, idx) => (
-                  <tr key={att.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="p-3.5 text-center font-mono text-slate-400">
+                  <tr key={att.id}>
+                    <td style={{ textAlign: 'center' }} className="font-mono text-muted text-xs">
                       {(currentPage - 1) * pageSize + idx + 1}
                     </td>
-                    <td className="p-3.5">
-                      <div className="font-bold text-slate-800">{att.student_name || att.student_username}</div>
-                      <div className="text-[11px] text-slate-400">{att.student_username}</div>
+                    <td>
+                      <div className="font-bold text-gray-900 dark:text-white text-sm">{att.student_name || att.student_username}</div>
+                      <div className="text-xs text-muted">@{att.student_username}</div>
                     </td>
-                    <td className="p-3.5">
-                      <div className="font-semibold text-slate-800">{att.topic_title}</div>
+                    <td>
+                      <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{att.topic_title}</div>
                     </td>
-                    <td className="p-3.5 text-center font-bold text-slate-800">
+                    <td style={{ textAlign: 'center' }} className="font-bold text-gray-900 dark:text-white text-xs">
                       {att.score} / {att.total_questions}
                     </td>
-                    <td className="p-3.5 text-center font-black">
-                      <span className={att.percentage >= 50 ? 'text-emerald-600' : 'text-rose-600'}>
+                    <td style={{ textAlign: 'center' }} className="font-bold text-xs">
+                      <span className={att.percentage >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                         {att.percentage}%
                       </span>
                     </td>
-                    <td className="p-3.5 text-center">
+                    <td style={{ textAlign: 'center' }}>
                       {att.status === 'PASSED' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">
+                        <span className="badge-pill success">
                           <CheckCircle2 size={12} /> Passed
                         </span>
                       ) : att.status === 'FAILED_SECURITY' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold text-[11px]" title={att.violation_details}>
+                        <span className="badge-pill danger" title={att.violation_details}>
                           <ShieldAlert size={12} /> Security Terminated
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[11px]">
+                        <span className="badge-pill warning">
                           <XCircle size={12} /> Failed (&lt;50%)
                         </span>
                       )}
                     </td>
-                    <td className="p-3.5 text-center">
+                    <td style={{ textAlign: 'center' }}>
                       {att.security_violations > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-[11px]">
+                        <span className="badge-pill danger">
                           <AlertTriangle size={11} /> {att.security_violations} Infraction{att.security_violations > 1 ? 's' : ''}
                         </span>
                       ) : (
-                        <span className="text-slate-400 font-mono">0</span>
+                        <span className="text-muted font-mono text-xs">0</span>
                       )}
                     </td>
-                    <td className="p-3.5 text-center text-slate-600 font-mono text-[11px]">
+                    <td style={{ textAlign: 'center' }} className="text-muted font-mono text-xs">
                       {formatSeconds(att.time_taken_seconds)}
                     </td>
-                    <td className="p-3.5 text-slate-500 text-[11px]">
+                    <td className="text-muted text-xs">
                       {new Date(att.created_at).toLocaleString()}
                     </td>
-                    <td className="p-3.5 text-right">
+                    <td style={{ textAlign: 'right' }}>
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setInspectingAttempt(att)}
-                          className="p-1.5 rounded hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
+                          className="icon-btn"
                           title="Inspect Student Answers"
                         >
-                          <Eye size={14} />
+                          <Eye size={13} />
                         </button>
                         {!att.is_passed && (
                           <button
                             onClick={() => handleResetCooldown(att.student, att.topic, att.student_name || att.student_username)}
-                            className="p-1.5 rounded hover:bg-amber-50 text-slate-400 hover:text-amber-600"
+                            className="icon-btn"
                             title="Reset 10-Min Cooldown Timer"
                           >
-                            <RotateCcw size={14} />
+                            <RotateCcw size={13} />
                           </button>
                         )}
                       </div>

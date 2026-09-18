@@ -1,0 +1,135 @@
+/* ==========================================================================
+   Course Form 2-Column Responsive Layout
+   Location: src/styles/pages/courses/course-form.css
+   ========================================================================== */
+
+/* ── 2-Column Form Layout ── */
+.form-layout-2col {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .form-layout-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-card-main {
+  background: #ffffff;
+  border: 1px solid #f0e2ee;
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: 0 4px 20px -4px rgba(123, 28, 110, 0.06);
+}
+
+.preview-sticky-box {
+  position: sticky;
+  top: 24px;
+  background: #ffffff;
+  border: 1px solid #f0e2ee;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 30px -5px rgba(123, 28, 110, 0.08);
+}
+
+.preview-header-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7B1C6E;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.live-preview-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fdf9fc 100%);
+  border: 1.5px solid #ebd3e7;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.live-preview-card h3 {
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.preview-specs-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 14px;
+}
+
+/* ── Quick Select Chips ── */
+.quick-select-chip,
+.preset-chip-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 5px 11px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer !important;
+}
+
+.quick-select-chip:hover,
+.preset-chip-btn:hover {
+  border-color: #7B1C6E !important;
+  background: #fdf5fc !important;
+  color: #7B1C6E !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── Buttons & Action Bars ── */
+.preview-action-buttons,
+.preview-actions-stack,
+.form-actions-stack {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-top: 20px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.preview-action-buttons .btn-save-primary,
+.preview-action-buttons .btn-primary,
+.preview-action-buttons .btn-cancel-outline,
+.preview-action-buttons .btn-outline,
+.preview-action-buttons .btn-secondary,
+.preview-actions-stack .btn-save-primary,
+.preview-actions-stack .btn-primary,
+.preview-actions-stack .btn-cancel-outline,
+.preview-actions-stack .btn-outline,
+.preview-actions-stack .btn-secondary,
+.form-actions-stack .btn-save-primary,
+.form-actions-stack .btn-primary,
+.form-actions-stack .btn-cancel-outline,
+.form-actions-stack .btn-outline,
+.form-actions-stack .btn-secondary {
+  width: 100% !important;
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  font-size: 0.88rem !important;
+}

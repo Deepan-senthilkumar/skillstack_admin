@@ -1,0 +1,273 @@
+/* ==========================================================================
+   Top Header, Global Search & Header Navigation
+   Location: src/styles/layout/header.css
+   ========================================================================== */
+
+/* ============================================================
+   NEW MODERN ADMIN STUDIO LAYOUT & DASHBOARD STYLES
+   ============================================================ */
+
+.admin-app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #FDFBFD;
+  color: var(--gray-900);
+}
+
+/* ── Top Header ────────────────────────────────────────────── */
+.admin-header {
+  height: 64px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(123, 28, 110, 0.05);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sidebar-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.sidebar-toggle-btn:hover {
+  background: var(--gray-100);
+  color: var(--blue-primary);
+}
+
+.brand-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(123, 28, 110, 0.25);
+}
+
+.brand-text-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--gray-900);
+  letter-spacing: -0.5px;
+}
+
+.brand-tag {
+  background: #FDC029;
+  color: #1F081C;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.brand-sub {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--blue-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.header-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+  padding-left: 16px;
+  border-left: 1px solid var(--border-medium);
+}
+.current-page-crumb {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+/* ── Global Search Bar ─────────────────────────────────────── */
+.header-center {
+  flex: 1;
+  max-width: 420px;
+  margin: 0 24px;
+}
+
+.global-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.global-search-wrapper .search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--gray-400);
+  pointer-events: none;
+}
+
+.global-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 42px 0 36px;
+  background: var(--gray-100);
+  border: 1px solid transparent;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--gray-900);
+  outline: none;
+  transition: all 0.2s ease;
+}
+.global-search-input:focus {
+  background: #FFFFFF;
+  border-color: var(--blue-primary);
+  box-shadow: 0 0 0 3px rgba(123, 28, 110, 0.12);
+}
+
+.search-shortcut {
+  position: absolute;
+  right: 10px;
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  background: white;
+  border: 1px solid var(--border-medium);
+  border-radius: 4px;
+  padding: 2px 5px;
+  color: var(--gray-400);
+}
+
+/* ── Header Right ──────────────────────────────────────────── */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.backend-indicator-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gray-100);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.backend-indicator-pill .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.backend-indicator-pill .status-dot.online { background: #10B981; box-shadow: 0 0 6px #10B981; }
+.backend-indicator-pill .status-dot.offline { background: #E11D48; }
+.backend-indicator-pill .status-dot.checking { background: #FDC029; }
+
+.action-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--gray-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.action-icon-btn:hover {
+  background: var(--gray-100);
+  color: var(--blue-primary);
+}
+
+.user-profile-widget {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 4px;
+  background: var(--gray-100);
+  border-radius: 24px;
+  border: 1px solid var(--border-subtle);
+}
+
+.user-avatar-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--gradient);
+  color: white;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-meta-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.2;
+}
+
+.user-role-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--blue-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.logout-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+  color: #E11D48;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.logout-action-btn:hover {
+  background: #FFE4E6;
+}
+
+/* ── App Body & Sidebar ────────────────────────────────────── */

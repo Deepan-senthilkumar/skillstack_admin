@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import {
   Code2, Plus, Edit2, Trash2, ArrowLeft, Check,
   Search, Filter, Sparkles, BookOpen, Layers, AlertCircle, FileText,
-  Lock, Unlock
+  Lock, Unlock, Eye, X
 } from 'lucide-react';
-import { api } from '../api';
+import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
@@ -23,6 +23,7 @@ export default function PracticeTaskManagerTab({ user }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [viewingProblem, setViewingProblem] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
 
   const [editingProblem, setEditingProblem] = useState(null);
@@ -74,6 +75,10 @@ export default function PracticeTaskManagerTab({ user }) {
   };
 
   const handleOpenCreate = () => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Creating practice labs');
+      return;
+    }
     const defaultSub = subjects[0]?.id || '';
     const linkedTopics = topics.filter(t => !defaultSub || String(t.subject_id) === String(defaultSub));
     setEditingProblem(null);
@@ -96,6 +101,10 @@ export default function PracticeTaskManagerTab({ user }) {
   };
 
   const handleOpenEdit = (p) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Editing practice labs');
+      return;
+    }
     setEditingProblem(p);
     const topObj = topics.find(t => t.id === p.topic || t.id === p.topic?.id);
     const currentUnlocked = p.access_control ? p.access_control.is_unlocked !== false : true;
@@ -180,6 +189,10 @@ export default function PracticeTaskManagerTab({ user }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Saving practice labs');
+      return;
+    }
     if (!validateForm()) {
       toast.error('Please fill in all mandatory fields highlighted in red.');
       return;
@@ -228,6 +241,10 @@ export default function PracticeTaskManagerTab({ user }) {
   };
 
   const handleToggleAccess = async (prob) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Toggling student lab access');
+      return;
+    }
     const currentUnlocked = prob.access_control ? prob.access_control.is_unlocked !== false : true;
     const nextStatus = !currentUnlocked;
     setTogglingId(prob.id);
@@ -265,6 +282,10 @@ export default function PracticeTaskManagerTab({ user }) {
   };
 
   const handleBulkToggleAccess = async (shouldUnlock) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Bulk locking/unlocking practice tasks');
+      return;
+    }
     const actionName = shouldUnlock ? 'Unlock' : 'Lock';
     const ok = await confirm({
       title: `${actionName} All Practice Labs?`,
@@ -286,6 +307,10 @@ export default function PracticeTaskManagerTab({ user }) {
 
 
   const handleDelete = async (id, title) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Deleting practice tasks');
+      return;
+    }
     const ok = await confirm({
       title: 'Delete Practice Lab Task?',
       message: `Are you sure you want to delete practice task "${title}"?`,
@@ -552,7 +577,7 @@ export default function PracticeTaskManagerTab({ user }) {
                         <button
                           type="button"
                           onClick={autoGenerateTestCases}
-                          className="btn btn-secondary text-xs py-1 px-2.5 flex items-center gap-1 bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-700"
+                          className="btn-outline-sm"
                         >
                           <Sparkles size={13} /> Auto-Generate 5 Cases
                         </button>
@@ -574,7 +599,7 @@ export default function PracticeTaskManagerTab({ user }) {
                               ]
                             }));
                           }}
-                          className="btn btn-secondary text-xs py-1 px-2.5 flex items-center gap-1"
+                          className="btn-outline-sm"
                         >
                           <Plus size={13} /> Add Case
                         </button>
@@ -987,6 +1012,9 @@ export default function PracticeTaskManagerTab({ user }) {
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
+                          <button className="icon-btn" onClick={() => setViewingProblem(prob)} title="View Task Details">
+                            <Eye size={13} />
+                          </button>
                           <button className="icon-btn" onClick={() => handleOpenEdit(prob)} title="Edit Task">
                             <Edit2 size={13} />
                           </button>
@@ -1015,6 +1043,151 @@ export default function PracticeTaskManagerTab({ user }) {
           </div>
         )}
       </div>
+
+      {/* View Practice Task Details Modal */}
+      {viewingProblem && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(6px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            maxWidth: '650px',
+            width: '100%',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '20px',
+            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
+            overflow: 'hidden',
+            border: '1.5px solid #E2E8F0'
+          }}>
+            <div style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#F8FAFC'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Eye size={16} color="#7B1C6E" />
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Practice Task Details</span>
+              </div>
+              <button
+                onClick={() => setViewingProblem(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  padding: '3px 8px',
+                  borderRadius: '10px',
+                  background: '#F3E8FF',
+                  color: '#6B21A8'
+                }}>
+                  {viewingProblem.language ? viewingProblem.language.toUpperCase() : 'PYTHON'}
+                </span>
+                <span style={{ fontSize: '11px', color: '#64748B' }}>&bull;</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669', background: '#DCFCE7', padding: '2px 8px', borderRadius: '10px' }}>
+                  {viewingProblem.points || 10} Points
+                </span>
+              </div>
+
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
+                {viewingProblem.title}
+              </h2>
+
+              <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '12px', marginBottom: '16px', border: '1px solid #E2E8F0' }}>
+                <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#475569', display: 'block', marginBottom: '6px' }}>
+                  Problem Description & Instructions:
+                </strong>
+                <div style={{ fontSize: '13px', color: '#1E293B', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                  {viewingProblem.description}
+                </div>
+              </div>
+
+              {viewingProblem.expected_output && (
+                <div style={{ marginBottom: '16px' }}>
+                  <strong style={{ fontSize: '11.5px', textTransform: 'uppercase', color: '#475569', display: 'block', marginBottom: '4px' }}>
+                    🎯 Target Expected Output:
+                  </strong>
+                  <pre style={{
+                    background: '#0F172A',
+                    color: '#34D399',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    margin: 0,
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {viewingProblem.expected_output}
+                  </pre>
+                </div>
+              )}
+
+              {/* Test cases list if available */}
+              {viewingProblem.test_criteria && viewingProblem.test_criteria.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <strong style={{ fontSize: '11.5px', textTransform: 'uppercase', color: '#475569', display: 'block', marginBottom: '6px' }}>
+                    Automated Test Cases ({viewingProblem.test_criteria.length}):
+                  </strong>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {viewingProblem.test_criteria.map((tc, idx) => (
+                      <div key={idx} style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        background: tc.is_hidden ? '#FFFBEB' : '#F8FAFC',
+                        border: `1px solid ${tc.is_hidden ? '#FDE68A' : '#E2E8F0'}`,
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: 700, color: '#0F172A' }}>#{idx + 1} {tc.name}</span>
+                          <span style={{ fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '8px', background: tc.is_hidden ? '#FEF3C7' : '#E0E7FF', color: tc.is_hidden ? '#92400E' : '#3730A3' }}>
+                            {tc.is_hidden ? '🔒 Hidden Case' : 'Visible Sample'}
+                          </span>
+                        </div>
+                        <code style={{ fontSize: '11px', color: '#475569' }}>
+                          Expect: {tc.expected_output}
+                        </code>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: '14px 20px', borderTop: '1px solid #E2E8F0', textAlign: 'right', background: '#F8FAFC' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setViewingProblem(null)}
+                style={{ padding: '8px 20px', borderRadius: '10px' }}
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
