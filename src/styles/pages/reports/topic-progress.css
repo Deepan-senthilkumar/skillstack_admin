@@ -1,0 +1,48 @@
+/* ==========================================================================
+   Topic Progress Tracker & Submission Inspector
+   Location: src/styles/pages/reports/topic-progress.css
+   ========================================================================== */
+
+/* ============================================================
+   TOPIC PROGRESS & SUBMISSION WORKBENCH STYLES
+   ============================================================ */
+
+.topic-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.topic-checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.topic-check-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.15s ease;
+}
+.topic-check-card.completed {
+  border-left: 4px solid #10B981;
+  background: #FDFEFC;
+}
+
+.code-inspector-pane {
+  background: #0D1117;
+  color: #C9D1D9;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+

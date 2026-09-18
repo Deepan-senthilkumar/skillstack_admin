@@ -29,12 +29,27 @@ class AdminApiClient {
     localStorage.removeItem('kalari_admin_access');
     localStorage.removeItem('kalari_admin_refresh');
     localStorage.removeItem('kalari_admin_user');
+    localStorage.removeItem('skillstack_admin_is_demo');
+  }
+
+  isDemoUser(user) {
+    const u = user || this.getUser();
+    return Boolean(
+      u?.is_demo ||
+      u?.username === 'demo_admin' ||
+      u?.email === 'demo@skillstack.com' ||
+      localStorage.getItem('skillstack_admin_is_demo') === 'true'
+    );
   }
 
   getUser() {
     try {
       const u = localStorage.getItem('skillstack_admin_user') || localStorage.getItem('kalari_admin_user');
-      return u ? JSON.parse(u) : null;
+      const parsed = u ? JSON.parse(u) : null;
+      if (parsed && (parsed.username === 'demo_admin' || parsed.email === 'demo@skillstack.com')) {
+        parsed.is_demo = true;
+      }
+      return parsed;
     } catch (e) {
       console.warn('Failed to parse cached admin user', e);
       return null;
@@ -43,12 +58,37 @@ class AdminApiClient {
 
   setUser(user) {
     if (user) {
+      if (user.username === 'demo_admin' || user.email === 'demo@skillstack.com' || user.is_demo) {
+        user.is_demo = true;
+        localStorage.setItem('skillstack_admin_is_demo', 'true');
+      } else {
+        localStorage.removeItem('skillstack_admin_is_demo');
+      }
       localStorage.setItem('skillstack_admin_user', JSON.stringify(user));
       localStorage.setItem('kalari_admin_user', JSON.stringify(user));
     }
   }
 
   async request(endpoint, options = {}) {
+    const method = (options.method || 'GET').toUpperCase();
+    const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+    const isAuthEndpoint = endpoint.startsWith('/auth/login') || endpoint.startsWith('/auth/refresh');
+
+    // Hard safeguard for Demo Admin: Block all mutations
+    if (this.isDemoUser() && isMutation && !isAuthEndpoint) {
+      window.dispatchEvent(new CustomEvent('admin:demo-restriction', {
+        detail: {
+          endpoint,
+          method,
+          message: '🔒 Demo Admin Mode (Read-Only): Adding, editing, and deleting are disabled in demo mode. Only viewing is permitted.'
+        }
+      }));
+      const err = new Error('🔒 Demo Mode Restriction: You are logged in with Demo Admin access. Add, Edit, Update, and Delete operations are disabled. Only viewing is permitted.');
+      err.status = 403;
+      err.is_demo_blocked = true;
+      throw err;
+    }
+
     const url = `${this.baseUrl}${endpoint}`;
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
     const token = this.getToken();
@@ -334,7 +374,45 @@ class AdminApiClient {
   async createUser(data) { return this.request('/admin/users/', { method: 'POST', body: JSON.stringify(data) }); }
   async updateUser(id, data) { return this.request(`/admin/users/${id}/`, { method: 'PUT', body: JSON.stringify(data) }); }
   async deleteUser(id) { return this.request(`/admin/users/${id}/`, { method: 'DELETE' }); }
+
+  // 1-Click Demo Admin Login
+  async loginDemo() {
+    try {
+      return await this.login('demo_admin', 'demo123');
+    } catch (e) {
+      console.warn('Backend demo login fallback to offline demo admin', e);
+      const demoUser = {
+        id: 'demo-admin-offline',
+        username: 'demo_admin',
+        first_name: 'Demo',
+        last_name: 'Administrator',
+        display_name: 'Demo Administrator',
+        email: 'demo@skillstack.com',
+        role: 'ADMIN',
+        is_admin: true,
+        is_admin_role: true,
+        is_staff: true,
+        is_demo: true,
+      };
+      this.setUser(demoUser);
+      return demoUser;
+    }
+  }
 }
 
 export const api = new AdminApiClient();
+
+export function isDemoUser(user) {
+  return api.isDemoUser(user);
+}
+
+export function notifyDemoRestriction(actionName = 'This action') {
+  window.dispatchEvent(new CustomEvent('admin:demo-restriction', {
+    detail: {
+      actionName,
+      message: `🔒 Demo Admin Mode (Read-Only): ${actionName} is disabled to protect live records. All features and data are view-only.`
+    }
+  }));
+}
+
 

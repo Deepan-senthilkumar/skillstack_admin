@@ -1,0 +1,65 @@
+/* ==========================================================================
+   Recent Submissions Feed & Statuses
+   Location: src/styles/pages/dashboard/recent-submissions.css
+   ========================================================================== */
+
+/* ── Recent Submissions ────────────────────────────────────── */
+.recent-submissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.submission-feed-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+}
+
+.sub-feed-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sub-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--blue-primary);
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sub-feed-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lang-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--gray-200);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--gray-700);
+}
+
+.sub-status-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.sub-status-pill.passed { background: #ECFDF5; color: #059669; }
+.sub-status-pill.failed { background: #FFF1F2; color: #E11D48; }

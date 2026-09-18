@@ -4,7 +4,7 @@ import {
   Calendar, CheckCircle, AlertCircle, X, Search, Filter,
   ArrowLeft, Check, Sparkles, BookOpen, Shield
 } from 'lucide-react';
-import { api } from '../api';
+import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 
@@ -113,6 +113,10 @@ export default function BatchManagerTab({ user, onSelectBatchForProgress }) {
   };
 
   const handleOpenCreate = () => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Creating student batches');
+      return;
+    }
     setEditingBatch(null);
     setFormData({
       name: '',
@@ -131,6 +135,10 @@ export default function BatchManagerTab({ user, onSelectBatchForProgress }) {
   };
 
   const handleOpenEdit = (b) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Editing student batches');
+      return;
+    }
     setEditingBatch(b);
     setFormData({
       name: b.name,
@@ -171,6 +179,10 @@ export default function BatchManagerTab({ user, onSelectBatchForProgress }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Saving student batches');
+      return;
+    }
     if (!validateForm()) {
       toast.error('Please fill in all required fields highlighted in red.');
       return;
@@ -195,6 +207,10 @@ export default function BatchManagerTab({ user, onSelectBatchForProgress }) {
   };
 
   const handleDelete = async (id, name) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Deleting student batches');
+      return;
+    }
     const ok = await confirm({
       title: 'Delete Student Batch?',
       message: `Are you sure you want to delete or close batch "${name}"?`,

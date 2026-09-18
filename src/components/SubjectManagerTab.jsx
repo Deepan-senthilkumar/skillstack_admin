@@ -4,7 +4,7 @@ import {
   Search, Filter, Sparkles, CheckCircle2, AlertCircle, Layers,
   Clock, Calendar
 } from 'lucide-react';
-import { api } from '../api';
+import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
@@ -62,6 +62,10 @@ export default function SubjectManagerTab({ user }) {
   };
 
   const handleOpenCreate = () => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Creating new subject tracks');
+      return;
+    }
     setEditingSubject(null);
     setFormData({
       name: '',
@@ -78,6 +82,10 @@ export default function SubjectManagerTab({ user }) {
   };
 
   const handleOpenEdit = (sub) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Editing subject tracks');
+      return;
+    }
     setEditingSubject(sub);
     setFormData({
       name: sub.name,
@@ -110,6 +118,10 @@ export default function SubjectManagerTab({ user }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Saving subject tracks');
+      return;
+    }
     if (!validateForm()) {
       toast.error('Please fill in all mandatory fields highlighted in red.');
       return;
@@ -139,6 +151,10 @@ export default function SubjectManagerTab({ user }) {
   };
 
   const handleDelete = async (id, name) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Deleting subject tracks');
+      return;
+    }
     const ok = await confirm({
       title: 'Delete Subject Track?',
       message: `Are you sure you want to permanently delete "${name}"? This will remove all associated modules, topics, and exercises.`,

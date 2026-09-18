@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Shield, LayoutDashboard, Layers, CheckSquare, Calendar,
   Code2, BarChart3, BookOpen, Users, LogOut,
-  Menu, X, Sparkles, ExternalLink, FileText, HelpCircle, Award
+  Menu, X, Sparkles, ExternalLink, FileText, HelpCircle, Award, AlertTriangle
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -17,6 +17,18 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [demoToast, setDemoToast] = useState(null);
+
+  useEffect(() => {
+    const handleDemoRestriction = (e) => {
+      const msg = e.detail?.message || '🔒 Demo Mode (Read-Only): Adding, editing, and deleting are disabled in demo mode.';
+      setDemoToast(msg);
+      const timer = setTimeout(() => setDemoToast(null), 5000);
+      return () => clearTimeout(timer);
+    };
+    window.addEventListener('admin:demo-restriction', handleDemoRestriction);
+    return () => window.removeEventListener('admin:demo-restriction', handleDemoRestriction);
+  }, []);
 
   const navigationSections = [
     {
@@ -112,12 +124,17 @@ export default function AdminLayout({
         <div className="header-right">
           {/* User Profile Pill */}
           <div className="user-profile-widget">
-            <div className="user-avatar-circle">
+            <div className="user-avatar-circle" style={user?.is_demo ? { background: '#7B1C6E', color: '#FFFFFF' } : {}}>
               {(user?.first_name || user?.username || 'A')[0].toUpperCase()}
             </div>
             <div className="user-meta-block">
               <span className="user-name-label">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</span>
-              <span className="user-role-badge">{user?.is_admin ? 'SUPER ADMIN' : 'STAFF TRAINER'}</span>
+              <span
+                className="user-role-badge"
+                style={user?.is_demo ? { background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D' } : {}}
+              >
+                {user?.is_demo ? 'DEMO ADMIN (READ-ONLY)' : user?.is_admin ? 'SUPER ADMIN' : 'STAFF TRAINER'}
+              </span>
             </div>
           </div>
 
@@ -131,6 +148,94 @@ export default function AdminLayout({
           </button>
         </div>
       </header>
+
+      {/* Demo Mode Notice Banner */}
+      {user?.is_demo && (
+        <div style={{
+          background: 'linear-gradient(90deg, #7B1C6E 0%, #4A0E4E 100%)',
+          color: '#FFFFFF',
+          padding: '8px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: '12px',
+          borderBottom: '1.5px solid #FDC029',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          zIndex: 99,
+          position: 'sticky',
+          top: 0
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <span style={{
+              background: '#FDC029',
+              color: '#4A0E4E',
+              fontWeight: 900,
+              fontSize: '10px',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              letterSpacing: '0.5px'
+            }}>
+              DEMO ADMIN MODE
+            </span>
+            <span>
+              <strong>Read-Only Preview:</strong> You can view all records, tests, and student analytics. Modifying actions (<strong>Add, Edit, Update, Delete</strong>) are disabled to protect live data.
+            </span>
+          </div>
+          <span style={{ fontSize: '11px', opacity: 0.9, whiteSpace: 'nowrap', fontWeight: 600 }}>
+            🔒 View-Only Mode
+          </span>
+        </div>
+      )}
+
+      {/* Floating Demo Restriction Toast */}
+      {demoToast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 99999,
+          maxWidth: '440px',
+          backgroundColor: '#0F172A',
+          color: '#FFFFFF',
+          padding: '14px 18px',
+          borderRadius: '16px',
+          border: '1.5px solid #EF4444',
+          boxShadow: '0 12px 35px rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '12px',
+          animation: 'slideIn 0.25s ease-out'
+        }}>
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.2)',
+            color: '#F87171',
+            padding: '6px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <AlertTriangle size={18} />
+          </div>
+          <div style={{ flex: 1, fontSize: '12.5px', lineHeight: 1.5 }}>
+            <strong style={{ display: 'block', color: '#FCA5A5', marginBottom: '2px' }}>Action Disabled in Demo Mode</strong>
+            {demoToast}
+          </div>
+          <button
+            onClick={() => setDemoToast(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#94A3B8',
+              cursor: 'pointer',
+              padding: '2px'
+            }}
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
 
       <div className="admin-body-container">
         {/* Navigation Sidebar */}

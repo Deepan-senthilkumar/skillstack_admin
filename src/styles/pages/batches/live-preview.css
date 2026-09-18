@@ -1,0 +1,113 @@
+/* ==========================================================================
+   Live Preview Card Design & Sticky Sidebar
+   Location: src/styles/pages/batches/live-preview.css
+   ========================================================================== */
+
+/* ── Form 2-Column Responsive Layout ── */
+.form-layout-2col {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 370px !important;
+  gap: 24px !important;
+  align-items: start !important;
+  margin-top: 16px !important;
+}
+
+@media (max-width: 1024px) {
+  .form-layout-2col {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.form-card-main {
+  background: #ffffff !important;
+  border: 1.5px solid #f0e2ee !important;
+  border-radius: 20px !important;
+  padding: 24px 28px !important;
+  box-shadow: 0 4px 20px -4px rgba(123, 28, 110, 0.05) !important;
+}
+
+/* ── Sticky Preview Sidebar ── */
+.preview-sticky-box {
+  position: sticky !important;
+  top: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  width: 100% !important;
+}
+
+.preview-header-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: #7B1C6E !important;
+  margin-bottom: 2px !important;
+}
+
+/* ── Live Preview Card Design ── */
+.live-preview-card {
+  background: #ffffff !important;
+  border: 1.5px solid #edd5ea !important;
+  border-radius: 18px !important;
+  padding: 22px !important;
+  box-shadow: 0 10px 30px -5px rgba(123, 28, 110, 0.08) !important;
+  overflow: hidden !important;
+}
+
+.live-preview-card h3 {
+  font-family: var(--font-head) !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #1e1b4b !important;
+  line-height: 1.35 !important;
+  margin: 8px 0 12px 0 !important;
+  word-break: break-word !important;
+}
+
+.preview-specs-box {
+  background: #faf6f9 !important;
+  border: 1px solid #f0deee !important;
+  border-radius: 14px !important;
+  padding: 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-top: 10px !important;
+}
+
+.preview-spec-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 1px dashed #e8d0e5 !important;
+}
+
+.preview-spec-row:last-child {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+.preview-spec-label {
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  color: #64748b !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.preview-spec-value {
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  color: #1e1b4b !important;
+  line-height: 1.4 !important;
+  word-break: break-word !important;
+}
+

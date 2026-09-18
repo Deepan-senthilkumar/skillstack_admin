@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Global CSS Variables & Design Tokens
+   Location: src/styles/base/variables.css
+   ========================================================================== */
+
+/* ============================================================
+   SKILLSTACK — ADMIN COMMAND CENTER CSS
+   Exact Logo Palette Interface (#7B1C6E Deep Magenta & #FDC029 Gold)
+   ============================================================ */
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap');
+
+/* ── Design Tokens ──────────────────────────────────────────── */
+:root {
+  --blue-900: #260822;
+  --blue-800: #420F3B;
+  --blue-700: #5C1352;
+  --blue-600: #7B1C6E;
+  --blue-500: #7B1C6E;
+  --blue-400: #9B2D8C;
+  --blue-100: #F6E2F3;
+  --blue-50:  #FDF5FD;
+
+  --white:    #FFFFFF;
+  --gray-50:  #FDFBFD;
+  --gray-100: #F9F3F8;
+  --gray-200: #F0E2EE;
+  --gray-300: #E2CBDD;
+  --gray-400: #9E7D99;
+  --gray-500: #7A5775;
+  --gray-700: #4A2045;
+  --gray-900: #1F081C;
+
+  --success: #10B981;
+  --warning: #FDC029;
+  --error:   #E11D48;
+  --info:    #FDC029;
+
+  --gradient: linear-gradient(135deg, #7B1C6E 0%, #FDC029 100%);
+  --gradient-soft: linear-gradient(135deg, #FDF5FD 0%, #F6E2F3 100%);
+
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow-sm:  0 1px 3px rgba(123,28,110,0.08);
+  --shadow:     0 4px 12px rgba(123,28,110,0.12);
+  --shadow-md:  0 8px 24px rgba(123,28,110,0.14);
+  --shadow-lg:  0 16px 40px rgba(123,28,110,0.16);
+
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-head: 'Sora', sans-serif;
+
+  /* ── StaffDashboard Variables ─────────────────────────────── */
+  /* Backgrounds */
+  --bg-base:              #FDFBFD;
+  --bg-surface:           rgba(255, 255, 255, 0.85);
+  --bg-surface-elevated:  rgba(255, 255, 255, 0.95);
+  --bg-surface-2:         #F9F3F8;
+
+  /* Text */
+  --text-primary:         #1F081C;
+  --text-secondary:       #7A5775;
+  --text-tertiary:        #9E7D99;
+
+  /* Blues (brand primary for dashboard tabs/buttons) */
+  --blue-primary:         #7B1C6E;
+  --blue-vibrant:         #7B1C6E;
+  --blue-soft:            #F6E2F3;
+  --blue:                 #7B1C6E;
+  --accent:               #7B1C6E;
+  --blue-border:          #E2CBDD;
+
+  /* Accent Colors */
+  --amber:                #FDC029;
+  --coral:                #E11D48;
+  --emerald:              #10B981;
+
+  /* Borders */
+  --border-subtle:        #F0E2EE;
+  --border-medium:        #E2CBDD;
+  --border-strong:        #9E7D99;
+
+  /* Shadows */
+  --shadow-glass:         0 8px 32px rgba(123, 28, 110, 0.10);
+
+  /* Radius extras */
+  --radius-xs:            4px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 15px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--gray-50);
+  color: var(--gray-900);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+

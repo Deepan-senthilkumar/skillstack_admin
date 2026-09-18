@@ -5,7 +5,7 @@ import {
   FolderPlus, ArrowUpRight, Image, Upload, X, Eye, Code2,
   Copy, ImagePlus, Columns, PenTool, Table, Hash, Quote, HelpCircle
 } from 'lucide-react';
-import { api } from '../api';
+import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
@@ -33,6 +33,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [viewingTopic, setViewingTopic] = useState(null);
 
   const [editingTopic, setEditingTopic] = useState(null);
   const [formData, setFormData] = useState({
@@ -125,6 +126,10 @@ export default function TopicManagerTab({ user, onNavigate }) {
   };
 
   const handleOpenCreate = () => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Creating new topics');
+      return;
+    }
     const defaultSub = selectedSubjectFilter !== 'ALL'
       ? selectedSubjectFilter
       : (subjects[0]?.id ? String(subjects[0].id) : '');
@@ -150,6 +155,10 @@ export default function TopicManagerTab({ user, onNavigate }) {
   };
 
   const handleOpenEdit = (t) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Editing topics');
+      return;
+    }
     setEditingTopic(t);
     const modObj = modules.find(m => m.id === t.module || m.id === t.module?.id);
     const subId = modObj?.subject || modObj?.subject?.id || t.subject_id || (subjects[0]?.id ? String(subjects[0].id) : '');
@@ -184,7 +193,11 @@ export default function TopicManagerTab({ user, onNavigate }) {
   };
 
   const handleCreateQuickChapter = async (e) => {
-    if (e) e.preventDefault();
+    e.preventDefault();
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Creating chapters/modules');
+      return;
+    }
     if (!formData.subject) {
       toast.error('Please select a parent subject first.');
       return;
@@ -242,6 +255,10 @@ export default function TopicManagerTab({ user, onNavigate }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Saving topic notes');
+      return;
+    }
     if (!validateForm()) {
       toast.error('Please complete all mandatory fields.');
       return;
@@ -339,6 +356,10 @@ export default function TopicManagerTab({ user, onNavigate }) {
   };
 
   const handleDelete = async (id, title) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Deleting topic notes');
+      return;
+    }
     const ok = await confirm({
       title: 'Delete Topic & Notes?',
       message: `Are you sure you want to delete topic "${title}" and all its attached practice problems?`,
@@ -362,6 +383,10 @@ export default function TopicManagerTab({ user, onNavigate }) {
   };
 
   const handleBulkDelete = async () => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Bulk deleting topic notes');
+      return;
+    }
     if (selectedTopicIds.length === 0) return;
     const count = selectedTopicIds.length;
     const ok = await confirm({
@@ -1614,23 +1639,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                           <button
                             onClick={() => onNavigate('quiz_bank', { topicId: t.id })}
                             title={`Add / View MCQ Questions for "${t.title}"`}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '5px 11px',
-                              fontSize: '11.5px',
-                              fontWeight: 700,
-                              borderRadius: '8px',
-                              border: '1.5px solid rgba(99, 102, 241, 0.4)',
-                              background: 'rgba(99, 102, 241, 0.07)',
-                              color: '#4338CA',
-                              cursor: 'pointer',
-                              whiteSpace: 'nowrap',
-                              transition: 'all 0.15s ease',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = '#4338CA'; e.currentTarget.style.color = '#FFFFFF'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.07)'; e.currentTarget.style.color = '#4338CA'; }}
+                            className="btn-outline-sm"
                           >
                             <HelpCircle size={12} /> Add MCQs
                           </button>
@@ -1638,6 +1647,13 @@ export default function TopicManagerTab({ user, onNavigate }) {
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
+                          <button
+                            className="icon-btn"
+                            onClick={() => setViewingTopic(t)}
+                            title="View Topic Notes"
+                          >
+                            <Eye size={13} />
+                          </button>
                           <button
                             className="icon-btn"
                             onClick={() => handleOpenEdit(t)}
@@ -1673,6 +1689,96 @@ export default function TopicManagerTab({ user, onNavigate }) {
           </div>
         )}
       </div>
+
+      {/* View Topic Notes Modal */}
+      {viewingTopic && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(6px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            maxWidth: '780px',
+            width: '100%',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '20px',
+            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
+            overflow: 'hidden',
+            border: '1.5px solid #E2E8F0'
+          }}>
+            <div style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#F8FAFC'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Eye size={16} color="#7B1C6E" />
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Topic Notes & Study Material Preview</span>
+              </div>
+              <button
+                onClick={() => setViewingTopic(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+              <div style={{ marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  background: '#FDF4FF',
+                  color: '#701A75',
+                  border: '1px solid #F5D0FE',
+                  display: 'inline-block',
+                  marginBottom: '6px'
+                }}>
+                  {viewingTopic.topic_id || 'TOPIC'}
+                </span>
+                <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  {viewingTopic.title}
+                </h2>
+              </div>
+
+              {/* Notes content rendered */}
+              <div style={{ fontSize: '13.5px', color: '#1E293B', lineHeight: 1.7 }}>
+                {viewingTopic.notes_content ? (
+                  <RichContentRenderer content={viewingTopic.notes_content} />
+                ) : (
+                  <p style={{ color: '#94A3B8', fontStyle: 'italic' }}>No notes content configured for this topic yet.</p>
+                )}
+              </div>
+            </div>
+
+            <div style={{ padding: '14px 20px', borderTop: '1px solid #E2E8F0', textAlign: 'right', background: '#F8FAFC' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setViewingTopic(null)}
+                style={{ padding: '8px 20px', borderRadius: '10px' }}
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

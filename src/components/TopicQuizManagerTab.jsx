@@ -4,7 +4,7 @@ import {
   Search, Filter, Sparkles, BookOpen, Layers, AlertCircle, FileText,
   Upload, CheckCircle2, X, RefreshCw, Eye, Award
 } from 'lucide-react';
-import { api } from '../api';
+import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
@@ -23,6 +23,7 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [viewingQuestion, setViewingQuestion] = useState(null);
   const [bulkJsonText, setBulkJsonText] = useState('');
   const [bulkImporting, setBulkImporting] = useState(false);
 
@@ -76,6 +77,10 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
   };
 
   const handleOpenCreate = () => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Creating new quiz questions');
+      return;
+    }
     const defaultSub = selectedSubjectId !== 'ALL' ? selectedSubjectId : (subjects[0]?.id || '');
     const linkedTopics = topics.filter(t => !defaultSub || String(t.subject_id) === String(defaultSub));
     const defaultTop = selectedTopicId !== 'ALL' ? selectedTopicId : (linkedTopics[0]?.id || topics[0]?.id || '');
@@ -100,6 +105,10 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
   };
 
   const handleOpenEdit = (q) => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Editing quiz questions');
+      return;
+    }
     setEditingQuestion(q);
     const topObj = topics.find(t => t.id === q.topic || t.id === q.topic?.id);
     setFormData({
@@ -119,7 +128,11 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
   };
 
   const handleDelete = async (q) => {
-    const isConfirmed = await confirm({
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Deleting quiz questions');
+      return;
+    }
+    const ok = await confirm({
       title: 'Delete Question',
       message: `Are you sure you want to delete this question? This action cannot be undone.`,
       confirmText: 'Delete Question',
@@ -138,6 +151,10 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Saving quiz questions');
+      return;
+    }
     const errors = {};
     if (!formData.topic) errors.topic = 'Topic is required';
     if (!formData.question_text.trim()) errors.question_text = 'Question text is required';
@@ -185,6 +202,10 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
   };
 
   const handleBulkUpload = async () => {
+    if (isDemoUser(user)) {
+      notifyDemoRestriction('Bulk uploading quiz questions');
+      return;
+    }
     if (!formData.topic && selectedTopicId === 'ALL') {
       toast.error('Please select a topic to upload questions to.');
       return;
@@ -300,17 +321,15 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
                   setBulkJsonText('');
                   setBulkModalOpen(true);
                 }}
-                className="btn-secondary flex items-center gap-2"
-                style={{ fontSize: '13px', padding: '8px 14px' }}
+                className="btn-secondary"
               >
                 <Upload size={15} />
-                <span>Bulk Import (20+ JSON)</span>
+                <span>Bulk Import (JSON)</span>
               </button>
 
               <button
                 onClick={handleOpenCreate}
-                className="btn-primary flex items-center gap-2"
-                style={{ fontSize: '13px', padding: '8px 16px' }}
+                className="btn-primary"
               >
                 <Plus size={16} />
                 <span>Add Question</span>
@@ -319,8 +338,7 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
           ) : (
             <button
               onClick={() => setViewMode('list')}
-              className="btn-secondary flex items-center gap-2"
-              style={{ fontSize: '13px', padding: '8px 14px' }}
+              className="btn-secondary"
             >
               <ArrowLeft size={15} />
               <span>Back to Question Bank</span>
@@ -495,72 +513,79 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+            <div className="dashboard-section-card mt-4">
+              <div className="table-responsive">
+                <table className="admin-table">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
-                      <th className="p-3.5 w-14 text-center">#</th>
-                      <th className="p-3.5 w-1/4">Topic &amp; Subject</th>
-                      <th className="p-3.5 w-2/5">Question Prompt &amp; Choices</th>
-                      <th className="p-3.5 w-20 text-center">Correct</th>
-                      <th className="p-3.5 w-28 text-right">Actions</th>
+                    <tr>
+                      <th style={{ width: '50px', textAlign: 'center' }}>#</th>
+                      <th style={{ width: '25%' }}>Topic &amp; Subject</th>
+                      <th>Question Prompt &amp; Choices</th>
+                      <th style={{ width: '90px', textAlign: 'center' }}>Correct</th>
+                      <th style={{ width: '100px', textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody>
                     {paginatedQuestions.map((q, idx) => (
-                      <tr key={q.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="p-3.5 text-center font-mono text-slate-400">
+                      <tr key={q.id}>
+                        <td style={{ textAlign: 'center' }} className="font-mono text-muted text-xs">
                           {(currentPage - 1) * pageSize + idx + 1}
                         </td>
-                        <td className="p-3.5">
-                          <div className="font-bold text-slate-800">{q.topic_title || 'Topic'}</div>
-                          <div className="text-[11px] text-slate-500">{q.subject_name || q.module_name || 'Curriculum'}</div>
+                        <td>
+                          <div className="font-bold text-gray-900 dark:text-white text-sm">{q.topic_title || 'Topic'}</div>
+                          <div className="text-xs text-muted">{q.subject_name || q.module_name || 'Curriculum'}</div>
                         </td>
-                        <td className="p-3.5">
-                          <div className="font-semibold text-slate-800 mb-1.5 line-clamp-2">
+                        <td>
+                          <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs mb-1.5 line-clamp-2">
                             {q.question_text}
                           </div>
-                          <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-600">
-                            <span className={q.correct_option === 'A' ? 'font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded' : ''}>
+                          <div className="grid grid-cols-2 gap-1 text-[11px] text-gray-600 dark:text-gray-400">
+                            <span className={q.correct_option === 'A' ? 'font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded' : ''}>
                               <strong>A:</strong> {q.option_a}
                             </span>
-                            <span className={q.correct_option === 'B' ? 'font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded' : ''}>
+                            <span className={q.correct_option === 'B' ? 'font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded' : ''}>
                               <strong>B:</strong> {q.option_b}
                             </span>
-                            <span className={q.correct_option === 'C' ? 'font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded' : ''}>
+                            <span className={q.correct_option === 'C' ? 'font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded' : ''}>
                               <strong>C:</strong> {q.option_c}
                             </span>
-                            <span className={q.correct_option === 'D' ? 'font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded' : ''}>
+                            <span className={q.correct_option === 'D' ? 'font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded' : ''}>
                               <strong>D:</strong> {q.option_d}
                             </span>
                           </div>
                           {q.explanation && (
-                            <div className="mt-1 text-[10.5px] text-slate-400 italic">
+                            <div className="mt-1 text-[11px] text-muted italic">
                               💡 {q.explanation}
                             </div>
                           )}
                         </td>
-                        <td className="p-3.5 text-center">
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs">
+                        <td style={{ textAlign: 'center' }}>
+                          <span className="badge-pill success">
                             {q.correct_option}
                           </span>
                         </td>
-                        <td className="p-3.5 text-right">
+                        <td style={{ textAlign: 'right' }}>
                           <div className="flex items-center justify-end gap-1.5">
                             <button
+                              onClick={() => setViewingQuestion(q)}
+                              className="icon-btn"
+                              title="View Question Details"
+                            >
+                              <Eye size={13} />
+                            </button>
+                            <button
                               onClick={() => handleOpenEdit(q)}
-                              className="p-1.5 rounded hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
+                              className="icon-btn"
                               title="Edit Question"
                             >
-                              <Edit2 size={14} />
+                              <Edit2 size={13} />
                             </button>
                             <button
                               onClick={() => handleDelete(q)}
-                              className="p-1.5 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600"
+                              className="icon-btn danger"
                               title="Delete Question"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={13} />
                             </button>
                           </div>
                         </td>
@@ -861,6 +886,138 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
                 {bulkImporting ? <RefreshCw size={14} className="animate-spin" /> : <Upload size={14} />}
                 <span>Import Questions</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Question Details Modal */}
+      {viewingQuestion && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(6px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            maxWidth: '560px',
+            width: '100%',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '20px',
+            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
+            overflow: 'hidden',
+            border: '1.5px solid #E2E8F0'
+          }}>
+            <div style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#F8FAFC'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Eye size={16} color="#7B1C6E" />
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Quiz Question Details</span>
+              </div>
+              <button
+                onClick={() => setViewingQuestion(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <span style={{
+                  display: 'inline-block',
+                  marginBottom: '8px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  background: '#F1F5F9',
+                  color: '#475569'
+                }}>
+                  Target Question
+                </span>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', lineHeight: 1.5 }}>
+                  {viewingQuestion.question_text}
+                </h3>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '18px' }}>
+                {[
+                  { key: 'A', text: viewingQuestion.option_a },
+                  { key: 'B', text: viewingQuestion.option_b },
+                  { key: 'C', text: viewingQuestion.option_c },
+                  { key: 'D', text: viewingQuestion.option_d },
+                ].map(({ key, text }) => {
+                  const isCorrect = viewingQuestion.correct_option === key;
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: isCorrect ? '2px solid #10B981' : '1px solid #E2E8F0',
+                        background: isCorrect ? '#ECFDF5' : '#F8FAFC',
+                        color: isCorrect ? '#065F46' : '#1E293B',
+                        fontSize: '13px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <strong style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          background: isCorrect ? '#10B981' : '#E2E8F0',
+                          color: isCorrect ? '#FFFFFF' : '#64748B',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '11px'
+                        }}>
+                          {key}
+                        </strong>
+                        <span>{text}</span>
+                      </div>
+                      {isCorrect && (
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#D1FAE5', padding: '2px 8px', borderRadius: '12px' }}>
+                          CORRECT ANSWER
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {viewingQuestion.explanation && (
+                <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '12px 14px', borderRadius: '10px', fontSize: '12.5px', color: '#1E40AF', marginBottom: '18px' }}>
+                  <strong style={{ display: 'block', marginBottom: '3px' }}>💡 Instructor Explanation:</strong>
+                  {viewingQuestion.explanation}
+                </div>
+              )}
+
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setViewingQuestion(null)}
+                  style={{ padding: '8px 20px', borderRadius: '10px' }}
+                >
+                  Close Preview
+                </button>
+              </div>
             </div>
           </div>
         </div>

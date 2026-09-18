@@ -92,41 +92,46 @@ export default function App() {
       setLoading(false);
     }
 
-    // Check backend health
+    // Check backend health with waking indicator
+    let wakingTimer = setTimeout(() => {
+      setIsServerWaking(true);
+    }, 2500);
+
     const checkBackend = () => {
       api.checkHealth().then(h => {
+        clearTimeout(wakingTimer);
+        setIsServerWaking(false);
         if (h.status === 'ok') {
           setBackendOnline(true);
         } else {
           setBackendOnline(false);
           setTimeout(checkBackend, 15000);
         }
+      }).catch(() => {
+        clearTimeout(wakingTimer);
+        setIsServerWaking(false);
+        setBackendOnline(false);
+        setTimeout(checkBackend, 15000);
       });
     };
     checkBackend();
 
     window.addEventListener('admin:logout', handleLogout);
-    return () => window.removeEventListener('admin:logout', handleLogout);
+    return () => {
+      clearTimeout(wakingTimer);
+      window.removeEventListener('admin:logout', handleLogout);
+    };
   }, []);
 
+  const [isServerWaking, setIsServerWaking] = useState(false);
+
   const loadBootstrap = async () => {
-    try {
-      const [subs, curr] = await Promise.all([
-        api.getSubjects().catch(() => []),
-        api.getCurriculum('c-programming').catch(() => []),
-      ]);
-      const safeSubs = Array.isArray(subs) ? subs : (subs?.results || []);
-      const safeCurr = Array.isArray(curr) ? curr : (curr?.results || []);
-      setSubjects(safeSubs);
-      setCurriculum(safeCurr);
-    } catch (e) {
-      console.error('Bootstrap error', e);
-    }
+    // Individual tabs manage their own data loading cleanly; no redundant blocker queries
+    return Promise.resolve();
   };
 
   const handleLoginSuccess = async (loggedUser) => {
     setUser(loggedUser);
-    await loadBootstrap();
   };
 
   const handleLogout = () => {
@@ -137,7 +142,8 @@ export default function App() {
   };
 
   const handleRefresh = async () => {
-    await loadBootstrap();
+    // Triggers current active tab refresh
+    window.dispatchEvent(new CustomEvent('admin:refresh-tab'));
   };
 
   if (loading) {
@@ -156,7 +162,31 @@ export default function App() {
   }
 
   return (
-    <AdminLayout
+    <>
+      {isServerWaking && (
+        <div style={{
+          position: 'fixed',
+          top: '12px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 99999,
+          background: 'linear-gradient(135deg, #7B1C6E 0%, #A82596 100%)',
+          color: '#FFFFFF',
+          padding: '8px 18px',
+          borderRadius: '999px',
+          boxShadow: '0 8px 24px rgba(123, 28, 110, 0.35)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '12.5px',
+          fontWeight: 600,
+          pointerEvents: 'none'
+        }}>
+          <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#FDC029', animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+          ⚡ Server is waking up from standby (Render free tier)... Please wait a moment.
+        </div>
+      )}
+      <AdminLayout
       user={user}
       activePage={activePage}
       onNavigate={navigateTo}
@@ -204,5 +234,6 @@ export default function App() {
         <UserManagerTab user={user} />
       )}
     </AdminLayout>
+    </>
   );
 }

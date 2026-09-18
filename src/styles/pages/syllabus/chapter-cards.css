@@ -1,0 +1,227 @@
+/* ==========================================================================
+   Syllabus Modules & Chapter Cards
+   Location: src/styles/pages/syllabus/chapter-cards.css
+   ========================================================================== */
+
+/* ==========================================================================
+   Syllabus, Modules & Chapter Accordion Manager
+   Location: src/styles/pages/syllabus-manager.css
+   ========================================================================== */
+
+/* ── MODULE & TOPIC BLOCKS ────────────────────────────────────────── */
+.access-modules { display: flex; flex-direction: column; gap: 20px; }
+.module-block {
+  background: white;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--gray-100);
+  border-bottom: 1px solid var(--border-medium);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.module-header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.module-level-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.level-beginner  { color: #065F46; background: #D1FAE5; }
+.level-intermediate { color: #92400E; background: #FEF3C7; }
+.level-advanced  { color: #991B1B; background: #FEE2E2; }
+.module-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.module-topic-count { font-size: 0.8rem; color: var(--text-tertiary); font-weight: 500; }
+.module-header-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.module-topics { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+
+.topic-block {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.topic-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.topic-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.topic-order { font-size: 0.72rem; font-weight: 800; color: var(--amber); font-family: var(--font-mono); }
+.topic-title { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+.topic-slug { font-size: 0.7rem; color: var(--text-tertiary); font-family: var(--font-mono); background: var(--gray-200); padding: 1px 5px; border-radius: 3px; }
+.topic-actions { display: flex; align-items: center; gap: 5px; }
+
+/* ── RANK BADGES ──────────────────────────────────────────────────── */
+
+/* ── Course Detail & Modules Area ──────────────────────────── */
+.course-content-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(123, 28, 110, 0.04);
+}
+
+.course-detail-hero {
+  background: linear-gradient(135deg, #FDF5FD 0%, #FAF5F9 100%);
+  border: 1px solid #F0E2EE;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.course-hero-title {
+  font-family: var(--font-head);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  letter-spacing: -0.4px;
+}
+
+.course-hero-desc {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 4px;
+  max-width: 680px;
+}
+
+.course-specs-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #E2CBDD;
+}
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+.spec-label {
+  color: var(--gray-500);
+}
+.spec-divider {
+  width: 1px;
+  height: 14px;
+  background: #E2CBDD;
+}
+
+.modules-stack-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modern-module-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(123, 28, 110, 0.03);
+}
+
+.modern-module-header {
+  background: #FAF5F9;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.module-icon-bubble {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #F6E2F3;
+  color: var(--blue-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.module-title-text {
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.topics-list-container {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--gray-50);
+}
+
+.modern-topic-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.topic-card-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topic-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #FFFBEB;
+  color: #D97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topic-id-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--gray-400);
+  margin-left: 6px;
+}
+
+.btn-add-lab-chip {
+  background: #FAF5F9;
+  border: 1px solid #E2CBDD;
+  color: var(--blue-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-add-lab-chip:hover {
+  background: var(--blue-primary);
+  color: white;
+  border-color: var(--blue-primary);
+}
+

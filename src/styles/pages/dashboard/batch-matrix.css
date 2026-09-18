@@ -1,0 +1,77 @@
+/* ==========================================================================
+   Daily Batch Matrix Activity List
+   Location: src/styles/pages/dashboard/batch-matrix.css
+   ========================================================================== */
+
+/* ── Batch Matrix List ─────────────────────────────────────── */
+.dash-batch-matrix-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.matrix-batch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background: #FFFFFF;
+  transition: all 0.15s ease;
+}
+.matrix-batch-row.completed {
+  border-left: 4px solid #10B981;
+}
+.matrix-batch-row.pending {
+  border-left: 4px solid #FDC029;
+  background: #FFFDF5;
+}
+
+.matrix-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.course-chip {
+  background: var(--gray-100);
+  color: var(--blue-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.status-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+.status-chip.success { background: #ECFDF5; color: #059669; }
+.status-chip.warning { background: #FFFBEB; color: #D97706; }
+
+.btn-quick-log {
+  background: var(--blue-primary);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-quick-log:hover {
+  background: var(--blue-600);
+}

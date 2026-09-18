@@ -1,0 +1,106 @@
+/* ==========================================================================
+   Batch Management Cards & Grid
+   Location: src/styles/pages/batches/batch-cards.css
+   ========================================================================== */
+
+/* ============================================================
+   BATCH MANAGER & CARDS GRID STYLES
+   ============================================================ */
+
+.batches-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.batch-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(123, 28, 110, 0.04);
+  transition: all 0.2s ease;
+}
+.batch-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--blue-border);
+  box-shadow: 0 8px 24px rgba(123, 28, 110, 0.1);
+}
+
+.batch-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.batch-title {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.batch-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.batch-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--gray-700);
+}
+
+.trainer-tag-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.78rem;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.progress-track {
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--gradient);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.batch-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+

@@ -1,0 +1,259 @@
+/* ==========================================================================
+   Admin Studio Shell & Stage Layout
+   Location: src/styles/layout/layout.css
+   ========================================================================== */
+
+/* ── Admin Layout ─────────────────────────────────────────────── */
+.admin-app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Top Bar */
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 62px;
+  background: white;
+  border-bottom: 1.5px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-logo {
+  width: 38px; height: 38px;
+  background: var(--gradient);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+}
+.topbar-title {
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--blue-800);
+}
+.topbar-badge {
+  display: inline-block;
+  margin-left: 8px;
+  background: var(--blue-50);
+  color: var(--blue-700);
+  border: 1px solid var(--blue-100);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: var(--gray-500);
+}
+.backend-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.backend-status-dot.online  { background: var(--success); box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+.backend-status-dot.offline { background: var(--error); }
+.backend-status-dot.checking { background: var(--warning); animation: pulse 1.5s infinite; }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+}
+.topbar-avatar {
+  width: 32px; height: 32px;
+  background: var(--gradient);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.topbar-user-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  line-height: 1.2;
+}
+.topbar-user-role {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--blue-600);
+  font-weight: 500;
+}
+
+.topbar-btn, .topbar-logout {
+  display: flex; align-items: center; gap: 6px;
+  background: none;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--gray-700);
+}
+.topbar-btn:hover {
+  border-color: var(--blue-300);
+  color: var(--blue-700);
+  background: var(--blue-50);
+}
+.topbar-logout:hover {
+  border-color: #FECACA;
+  color: var(--error);
+  background: #FEF2F2;
+}
+
+/* Subject Strip */
+.admin-subject-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 10px 24px;
+  overflow-x: auto;
+}
+.strip-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.strip-tabs {
+  display: flex;
+  gap: 8px;
+}
+.strip-tab {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--gray-200);
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  color: var(--gray-700);
+}
+.strip-tab.active {
+  background: var(--gradient);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
+.strip-tab:hover:not(.active) {
+  border-color: var(--blue-300);
+  color: var(--blue-700);
+  background: var(--blue-50);
+}
+
+/* Admin Main Content */
+.admin-main {
+  flex: 1;
+  padding: 0;
+  overflow: auto;
+}
+
+/* ── Staff Dashboard Resets ───────────────────────────────────── */
+
+/* ── MAIN CONTENT ─────────────────────────────────────────────────── */
+.dash-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 28px 48px;
+  background: var(--gray-100);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── PAGE HEADER ──────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  background: white;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+.page-header-left { flex: 1; min-width: 0; }
+.page-breadcrumb {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+.page-title {
+  font-family: var(--font-head);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.page-sub {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ── TABLE CARD ───────────────────────────────────────────────────── */
+
+/* ── Main Stage Workspace ──────────────────────────────────── */
+.admin-main-stage {
+  flex: 1;
+  background: #FDFBFD;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.stage-content-wrapper {
+  padding: 24px 30px 48px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
