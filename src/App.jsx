@@ -14,8 +14,9 @@ import TopicProgressTab from './components/TopicProgressTab';
 import DailyTaskTrackerTab from './components/DailyTaskTrackerTab';
 import SubmissionInspectorTab from './components/SubmissionInspectorTab';
 import QuizAnalyticsTab from './components/QuizAnalyticsTab';
-import ReportsAnalyticsTab from './components/ReportsAnalyticsTab';
 import UserManagerTab from './components/UserManagerTab';
+import EnrollmentsCertificatesTab from './components/EnrollmentsCertificatesTab';
+import StudentDoubtsManagerTab from './components/StudentDoubtsManagerTab';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -32,7 +33,7 @@ export default function App() {
     const hash = window.location.hash.replace('#', '');
     const validPages = [
       'dashboard', 'subjects', 'syllabus', 'courses', 'topics', 'quiz_bank',
-      'problems', 'batches', 'progress', 'daily_task', 'submissions', 'quiz_analytics', 'reports', 'users'
+      'problems', 'certificates', 'batches', 'progress', 'daily_task', 'submissions', 'quiz_analytics', 'reports', 'users'
     ];
     if (hash && validPages.includes(hash)) {
       setActivePage(hash);
@@ -198,7 +199,7 @@ export default function App() {
         <DashboardPage user={user} onNavigate={navigateTo} />
       )}
       {(activePage === 'subjects' || activePage === 'courses') && (
-        <SubjectManagerTab user={user} />
+        <SubjectManagerTab user={user} onNavigate={navigateTo} />
       )}
       {activePage === 'syllabus' && (
         <SyllabusManagerTab user={user} onNavigate={navigateTo} />
@@ -207,10 +208,16 @@ export default function App() {
         <TopicManagerTab user={user} onNavigate={navigateTo} />
       )}
       {activePage === 'quiz_bank' && (
-        <TopicQuizManagerTab user={user} defaultTopicId={quizBankTopicId} key={quizBankTopicId || 'all'} />
+        <TopicQuizManagerTab user={user} defaultTopicId={quizBankTopicId} key={quizBankTopicId || 'all'} onNavigate={navigateTo} />
       )}
       {activePage === 'problems' && (
-        <PracticeTaskManagerTab user={user} />
+        <PracticeTaskManagerTab user={user} onNavigate={navigateTo} />
+      )}
+      {activePage === 'certificates' && (
+        <EnrollmentsCertificatesTab user={user} />
+      )}
+      {activePage === 'doubts' && (
+        <StudentDoubtsManagerTab user={user} />
       )}
       {activePage === 'batches' && (
         <BatchManagerTab user={user} onSelectBatchForProgress={handleSelectBatchForProgress} />

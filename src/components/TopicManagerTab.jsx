@@ -1474,6 +1474,14 @@ export default function TopicManagerTab({ user, onNavigate }) {
         </div>
       </div>
 
+      {/* Clean Info Strip */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <span className="badge-pill" style={{ background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', padding: '4px 12px', borderRadius: '16px', fontSize: '13px', fontWeight: 600 }}>
+          <FileText size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          {topics.length} Lecture Topics & Notes
+        </span>
+      </div>
+
       {/* Filter Bar */}
       <div className="filter-bar-unified">
         <div className="filter-search-box">

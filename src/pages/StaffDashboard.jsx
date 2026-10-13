@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   LayoutDashboard, Layers, CheckSquare, Calendar,
-  Code2, BarChart3, BookOpen, Users, LogOut
+  Code2, BarChart3, BookOpen, Users, LogOut, HelpCircle, Terminal, Award
 } from 'lucide-react';
 import OverviewTab from '../components/OverviewTab';
 import BatchManagerTab from '../components/BatchManagerTab';
@@ -10,7 +10,10 @@ import DailyTaskTrackerTab from '../components/DailyTaskTrackerTab';
 import SubmissionInspectorTab from '../components/SubmissionInspectorTab';
 import ReportsAnalyticsTab from '../components/ReportsAnalyticsTab';
 import CourseManagerTab from '../components/CourseManagerTab';
+import TopicQuizManagerTab from '../components/TopicQuizManagerTab';
+import PracticeTaskManagerTab from '../components/PracticeTaskManagerTab';
 import UserManagerTab from '../components/UserManagerTab';
+import EnrollmentsCertificatesTab from '../components/EnrollmentsCertificatesTab';
 
 export default function StaffDashboard({ user, onRefreshCurriculum }) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -23,12 +26,15 @@ export default function StaffDashboard({ user, onRefreshCurriculum }) {
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'certificates', label: 'Enrollments & Certs', icon: Award },
+    { id: 'courses', label: 'Courses & Topics', icon: BookOpen },
+    { id: 'quizzes', label: 'Topic MCQs', icon: HelpCircle },
+    { id: 'practicals', label: 'Practical Labs', icon: Terminal },
     { id: 'batches', label: 'Batches', icon: Layers },
     { id: 'progress', label: 'Topic Progress', icon: CheckSquare },
     { id: 'daily_task', label: 'Daily Session Log', icon: Calendar },
     { id: 'submissions', label: 'Code Submissions', icon: Code2 },
     { id: 'reports', label: 'Reports & Analytics', icon: BarChart3 },
-    { id: 'courses', label: 'Courses & Topics', icon: BookOpen },
     { id: 'users', label: 'User Directory', icon: Users, adminOnly: false },
   ];
 
@@ -72,6 +78,18 @@ export default function StaffDashboard({ user, onRefreshCurriculum }) {
         {activeTab === 'overview' && (
           <OverviewTab user={user} onNavigate={setActiveTab} />
         )}
+        {activeTab === 'certificates' && (
+          <EnrollmentsCertificatesTab user={user} />
+        )}
+        {activeTab === 'courses' && (
+          <CourseManagerTab user={user} />
+        )}
+        {activeTab === 'quizzes' && (
+          <TopicQuizManagerTab user={user} />
+        )}
+        {activeTab === 'practicals' && (
+          <PracticeTaskManagerTab user={user} />
+        )}
         {activeTab === 'batches' && (
           <BatchManagerTab user={user} onSelectBatchForProgress={handleSelectBatchForProgress} />
         )}
@@ -86,9 +104,6 @@ export default function StaffDashboard({ user, onRefreshCurriculum }) {
         )}
         {activeTab === 'reports' && (
           <ReportsAnalyticsTab user={user} />
-        )}
-        {activeTab === 'courses' && (
-          <CourseManagerTab user={user} />
         )}
         {activeTab === 'users' && (
           <UserManagerTab user={user} />

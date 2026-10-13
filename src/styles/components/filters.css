@@ -154,9 +154,28 @@
 .loading-state {
   padding: 48px 24px;
   text-align: center;
-  color: var(--gray-500);
-  font-size: 0.9rem;
+  color: #7B1C6E;
+  font-size: 0.95rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.loading-state::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #F0E2EE;
+  border-top-color: #7B1C6E;
+  border-radius: 50%;
+  animation: adminSpin 0.8s linear infinite;
+}
+
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
 }
 
 /* ── Unified Filter Bar ── */
@@ -271,4 +290,106 @@
   font-size: 0.88rem !important;
   max-width: 420px !important;
   line-height: 1.5 !important;
+}
+/* ── Curriculum Subnav Segment Strip ── */
+.curriculum-subnav-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 6px;
+  margin-bottom: 22px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  overflow-x: auto;
+}
+
+.curriculum-subnav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--gray-500);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.curriculum-subnav-btn:hover {
+  background: var(--gray-100);
+  color: var(--gray-900);
+}
+
+.curriculum-subnav-btn.active {
+  background: var(--blue-primary);
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(123, 28, 110, 0.25);
+}
+
+.curriculum-subnav-btn .subnav-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.curriculum-subnav-btn.active .subnav-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+/* ── Modern KPI Quick Bar ── */
+.kpi-quick-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.kpi-quick-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.kpi-quick-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #FAF5FF;
+  color: var(--blue-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-quick-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-quick-val {
+  font-family: var(--font-head);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  line-height: 1.2;
 }

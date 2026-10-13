@@ -292,4 +292,51 @@ input:checked + .slider::before { transform: translateX(22px); }
 .badge-pill.danger { background: #FFF1F2; color: #BE123C; border: 1px solid #FFE4E6; }
 .badge-pill.course-pill { background: #FAF5F9; color: #7B1C6E; font-weight: 700; border: 1px solid #E2CBDD; }
 .badge-pill.trainer-pill { background: #F0FDF4; color: #15803D; font-weight: 600; border: 1px solid #DCFCE7; }
-
+
+
+/* ── Chapter Accordion & Topics Sub-Table ── */
+.chapter-accordion-row {
+  background: #FAF5FF !important;
+  border-bottom: 1.5px solid #F3E8FF !important;
+}
+.chapter-topics-drawer {
+  padding: 16px 22px 22px !important;
+}
+.topics-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.drawer-subtable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.drawer-subtable th {
+  background: #F8FAFC !important;
+  color: #64748B !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 11px 16px !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+.drawer-subtable td {
+  padding: 12px 16px !important;
+  font-size: 0.84rem !important;
+  color: #1E293B !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  vertical-align: middle !important;
+}
+.drawer-subtable tr:last-child td {
+  border-bottom: none !important;
+}
+.drawer-subtable tr:hover td {
+  background: #FDF9FF !important;
+}

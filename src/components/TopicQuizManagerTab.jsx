@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
+  Terminal, BookOpen, Layers,
   HelpCircle, Plus, Edit2, Trash2, ArrowLeft, Check,
-  Search, Filter, Sparkles, BookOpen, Layers, AlertCircle, FileText,
+  Search, Filter, Sparkles, AlertCircle, FileText,
   Upload, CheckCircle2, X, RefreshCw, Eye, Award
 } from 'lucide-react';
 import { api, isDemoUser, notifyDemoRestriction } from '../api';
@@ -390,7 +391,15 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
 
       {viewMode === 'list' ? (
         <div className="space-y-4">
-          {/* Filter Bar */}
+          {/* Clean Info Strip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span className="badge-pill" style={{ background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A', padding: '4px 12px', borderRadius: '16px', fontSize: '13px', fontWeight: 600 }}>
+              <HelpCircle size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+              {questions.length} Knowledge MCQs in Question Bank
+            </span>
+          </div>
+
+      {/* Filter Bar */}
           <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Subject Filter */}

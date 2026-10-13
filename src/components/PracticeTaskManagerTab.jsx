@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
+  Terminal, HelpCircle, Layers, FileText,
   Code2, Plus, Edit2, Trash2, ArrowLeft, Check,
-  Search, Filter, Sparkles, BookOpen, Layers, AlertCircle, FileText,
+  Search, Filter, Sparkles, BookOpen, AlertCircle,
   Lock, Unlock, Eye, X
 } from 'lucide-react';
 import { api, isDemoUser, notifyDemoRestriction } from '../api';
@@ -10,7 +11,7 @@ import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
 import RichContentRenderer from './RichContentRenderer';
 
-export default function PracticeTaskManagerTab({ user }) {
+export default function PracticeTaskManagerTab({ user, onNavigate }) {
   const toast = useToast();
   const confirm = useConfirm();
   const [problems, setProblems] = useState([]);
@@ -869,6 +870,14 @@ export default function PracticeTaskManagerTab({ user }) {
             <Plus size={16} /> Add New Practice Lab
           </button>
         </div>
+      </div>
+
+      {/* Clean Info Strip */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <span className="badge-pill" style={{ background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', padding: '4px 12px', borderRadius: '16px', fontSize: '13px', fontWeight: 600 }}>
+          <Code2 size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          {problems.length} Practice Labs & Code Challenges
+        </span>
       </div>
 
       {/* Filter Bar */}

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
+  Terminal, HelpCircle,
   BookOpen, Plus, Edit2, Trash2, ArrowLeft, Check,
   Search, Filter, Sparkles, CheckCircle2, AlertCircle, Layers,
-  Clock, Calendar, Eye, X
+  Clock, Calendar, Eye, X, FileText
 } from 'lucide-react';
 import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -19,7 +20,7 @@ const slugify = (text) => {
     .replace(/--+/g, '-');
 };
 
-export default function SubjectManagerTab({ user }) {
+export default function SubjectManagerTab({ user, onNavigate }) {
   const toast = useToast();
   const confirm = useConfirm();
   const [subjects, setSubjects] = useState([]);
@@ -406,6 +407,14 @@ export default function SubjectManagerTab({ user }) {
             <Plus size={16} /> Add New Subject
           </button>
         </div>
+      </div>
+
+      {/* Clean Info Strip */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <span className="badge-pill" style={{ background: '#FAF5FF', color: '#7B1C6E', border: '1px solid #E9D5FF', padding: '4px 12px', borderRadius: '16px', fontSize: '13px', fontWeight: 600 }}>
+          <BookOpen size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          {subjects.length} Master Courses Available
+        </span>
       </div>
 
       {/* Search & Filter Bar */}
