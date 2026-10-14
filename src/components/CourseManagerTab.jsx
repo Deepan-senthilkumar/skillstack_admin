@@ -1018,16 +1018,20 @@ export default function CourseManagerTab({ user }) {
   return (
     <div className="tab-pane-container">
       {/* Top action header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Course & Topic Curriculum Management</h2>
-          <p className="text-muted">
-            Configure courses (e.g. C Programming, Python, Django), module hierarchies, topic notes, and practice programs with Admin expected output answer keys.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Course & Topic Curriculum Management</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Configure courses (e.g. C Programming, Python, Django), module hierarchies, topic notes, and practice programs with Admin expected output answer keys.
+            </p>
+          </div>
         </div>
-        <button className="btn-primary" onClick={handleOpenCreateCourse}>
-          <Plus size={16} /> Add New Course
-        </button>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={handleOpenCreateCourse}>
+            <Plus size={16} /> Add New Course
+          </button>
+        </div>
       </div>
 
       {/* Main Course Management 2-Column Layout */}
@@ -1061,18 +1065,18 @@ export default function CourseManagerTab({ user }) {
                       </div>
                       <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                         <button
-                          className="item-action-icon edit"
+                          className="icon-btn edit"
                           onClick={() => handleOpenEditCourse(c)}
                           title="Edit Course"
                         >
-                          <Edit2 size={12} />
+                          <Edit2 size={14} />
                         </button>
                         <button
-                          className="item-action-icon danger"
+                          className="icon-btn danger"
                           onClick={() => handleDeleteCourse(c.id, c.name)}
                           title="Delete Course"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
@@ -1174,11 +1178,11 @@ export default function CourseManagerTab({ user }) {
                                   >
                                     <Code2 size={13} /> Add Practice Lab
                                   </button>
-                                  <button className="item-action-icon edit" onClick={() => handleOpenEditTopic(top)} title="Edit Topic">
-                                    <Edit2 size={12} />
+                                  <button className="icon-btn edit" onClick={() => handleOpenEditTopic(top)} title="Edit Topic">
+                                    <Edit2 size={14} />
                                   </button>
-                                  <button className="item-action-icon danger" onClick={() => handleDeleteTopic(top.id)} title="Delete Topic">
-                                    <Trash2 size={12} />
+                                  <button className="icon-btn danger" onClick={() => handleDeleteTopic(top.id)} title="Delete Topic">
+                                    <Trash2 size={14} />
                                   </button>
                                 </div>
                               </div>
@@ -1227,11 +1231,11 @@ export default function CourseManagerTab({ user }) {
                                           )}
                                         </div>
                                         <div className="flex items-center gap-1.5 flex-shrink-0">
-                                          <button className="item-action-icon edit" onClick={() => handleOpenEditProblem(prob)} title="Edit Lab">
-                                            <Edit2 size={12} />
+                                          <button className="icon-btn edit" onClick={() => handleOpenEditProblem(prob)} title="Edit Lab">
+                                            <Edit2 size={14} />
                                           </button>
-                                          <button className="item-action-icon danger" onClick={() => handleDeleteProblem(prob.id)} title="Delete Lab">
-                                            <Trash2 size={12} />
+                                          <button className="icon-btn danger" onClick={() => handleDeleteProblem(prob.id)} title="Delete Lab">
+                                            <Trash2 size={14} />
                                           </button>
                                         </div>
                                       </div>

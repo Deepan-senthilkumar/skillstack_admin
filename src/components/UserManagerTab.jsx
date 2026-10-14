@@ -467,14 +467,16 @@ export default function UserManagerTab({ user }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>User Accounts & Permissions</h2>
-          <p className="text-muted">
-            Manage admin managers, staff trainers, and student accounts. Assign roles and configure sign-in credentials.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>User Accounts & Permissions</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Manage admin managers, staff trainers, and student accounts. Assign roles and configure sign-in credentials.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="header-actions">
           <button className="btn-secondary" onClick={() => handleOpenCreate('STAFF')}>
             <UserPlus size={16} /> Add Staff Trainer
           </button>
@@ -595,15 +597,15 @@ export default function UserManagerTab({ user }) {
                       </button>
                     </td>
                     <td>
-                      <div className="flex items-center gap-2">
-                        <button className="icon-btn" onClick={() => setViewingUser(u)} title="View user details">
-                          <Eye size={13} />
+                      <div className="flex items-center gap-1.5">
+                        <button className="icon-btn view" onClick={() => setViewingUser(u)} title="View user details">
+                          <Eye size={14} />
                         </button>
-                        <button className="icon-btn" onClick={() => handleOpenEdit(u)} title="Edit user">
-                          <Edit2 size={13} />
+                        <button className="icon-btn edit" onClick={() => handleOpenEdit(u)} title="Edit user">
+                          <Edit2 size={14} />
                         </button>
                         <button className="icon-btn danger" onClick={() => handleDeleteUser(u.id, u.display_name)} title="Delete user">
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>

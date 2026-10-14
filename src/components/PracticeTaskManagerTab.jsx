@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
+  Terminal, HelpCircle, Layers, FileText,
   Code2, Plus, Edit2, Trash2, ArrowLeft, Check,
-  Search, Filter, Sparkles, BookOpen, Layers, AlertCircle, FileText,
+  Search, Filter, Sparkles, BookOpen, AlertCircle,
   Lock, Unlock, Eye, X
 } from 'lucide-react';
 import { api, isDemoUser, notifyDemoRestriction } from '../api';
@@ -10,7 +11,7 @@ import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
 import RichContentRenderer from './RichContentRenderer';
 
-export default function PracticeTaskManagerTab({ user }) {
+export default function PracticeTaskManagerTab({ user, onNavigate }) {
   const toast = useToast();
   const confirm = useConfirm();
   const [problems, setProblems] = useState([]);
@@ -821,14 +822,16 @@ export default function PracticeTaskManagerTab({ user }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Practice Labs & Tasks Management</h2>
-          <p className="text-muted">
-            Create and maintain coding challenges, spreadsheet labs, and practical assignments with automated answer key evaluation.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Practice Labs & Tasks Management</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Create and maintain coding challenges, spreadsheet labs, and practical assignments with automated answer key evaluation.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="header-actions">
           <button
             className="btn-outline-sm"
             style={{
@@ -867,6 +870,14 @@ export default function PracticeTaskManagerTab({ user }) {
             <Plus size={16} /> Add New Practice Lab
           </button>
         </div>
+      </div>
+
+      {/* Clean Info Strip */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <span className="badge-pill" style={{ background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', padding: '4px 12px', borderRadius: '16px', fontSize: '13px', fontWeight: 600 }}>
+          <Code2 size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          {problems.length} Practice Labs & Code Challenges
+        </span>
       </div>
 
       {/* Filter Bar */}
@@ -1011,15 +1022,15 @@ export default function PracticeTaskManagerTab({ user }) {
                         <span className="points-badge font-bold">{prob.points} pts</span>
                       </td>
                       <td>
-                        <div className="flex items-center gap-2">
-                          <button className="icon-btn" onClick={() => setViewingProblem(prob)} title="View Task Details">
-                            <Eye size={13} />
+                        <div className="flex items-center gap-1.5">
+                          <button className="icon-btn view" onClick={() => setViewingProblem(prob)} title="View Task Details">
+                            <Eye size={14} />
                           </button>
-                          <button className="icon-btn" onClick={() => handleOpenEdit(prob)} title="Edit Task">
-                            <Edit2 size={13} />
+                          <button className="icon-btn edit" onClick={() => handleOpenEdit(prob)} title="Edit Task">
+                            <Edit2 size={14} />
                           </button>
                           <button className="icon-btn danger" onClick={() => handleDelete(prob.id, prob.title)} title="Delete Task">
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>

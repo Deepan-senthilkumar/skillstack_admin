@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import {
   Shield, LayoutDashboard, Layers, CheckSquare, Calendar,
   Code2, BarChart3, BookOpen, Users, LogOut,
-  Menu, X, Sparkles, ExternalLink, FileText, HelpCircle, Award, AlertTriangle
+  Menu, X, Sparkles, ExternalLink, FileText, HelpCircle, Award, AlertTriangle,
+  MessageSquare
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -38,28 +39,30 @@ export default function AdminLayout({
       ]
     },
     {
-      title: 'Academics & Curriculum',
+      title: 'Curriculum & Academics',
       items: [
-        { id: 'subjects', label: 'Master Subjects', icon: BookOpen },
+        { id: 'subjects', label: 'Master Courses', icon: BookOpen },
         { id: 'syllabus', label: 'Syllabus & Modules', icon: Layers },
-        { id: 'topics', label: 'Topics & Notes', icon: FileText },
-        { id: 'quiz_bank', label: 'Topic Question Bank', icon: HelpCircle, badge: '20+ MCQs' },
-        { id: 'problems', label: 'Practice Labs & Tasks', icon: Code2 },
-        { id: 'batches', label: 'Batches & Enrollment', icon: Users },
-        { id: 'progress', label: 'Topic Progress Tracker', icon: CheckSquare },
+        { id: 'topics', label: 'Topics & Study Notes', icon: FileText },
+        { id: 'problems', label: 'Practice Labs & Code', icon: Code2 },
+        { id: 'quiz_bank', label: 'Question Bank (MCQs)', icon: HelpCircle, badge: '66 MCQs' },
       ]
     },
     {
-      title: 'Daily Operations',
+      title: 'Batches & Operations',
       items: [
+        { id: 'doubts', label: 'Student Doubts & Q&A', icon: MessageSquare, badge: '1-on-1' },
+        { id: 'certificates', label: 'Enrollments & Certs', icon: Award },
+        { id: 'batches', label: 'Batches & Rosters', icon: Users },
+        { id: 'progress', label: 'Topic Progress Matrix', icon: CheckSquare },
         { id: 'daily_task', label: 'Daily Session & Attendance', icon: Calendar },
-        { id: 'submissions', label: 'Code Submissions & Grading', icon: Sparkles },
+        { id: 'submissions', label: 'Code Submissions & Review', icon: Sparkles },
       ]
     },
     {
-      title: 'Analytics & Administration',
+      title: 'Analytics & Admin',
       items: [
-        { id: 'quiz_analytics', label: 'Test & Quiz Analytics', icon: Award },
+        { id: 'quiz_analytics', label: 'Quiz Attempt Analytics', icon: Award },
         { id: 'reports', label: 'Reports & Performance', icon: BarChart3 },
         { id: 'users', label: 'User Directory', icon: Shield },
       ]
@@ -71,21 +74,30 @@ export default function AdminLayout({
     setMobileMenuOpen(false);
   };
 
+  const getPageCategory = (pageId) => {
+    if (pageId === 'dashboard') return 'Command Center';
+    if (['subjects', 'syllabus', 'courses', 'topics', 'problems', 'quiz_bank'].includes(pageId)) return 'Curriculum Studio';
+    if (['doubts', 'batches', 'progress', 'daily_task', 'submissions'].includes(pageId)) return 'Classroom & Operations';
+    return 'Analytics & Admin';
+  };
+
   const getPageTitle = (pageId) => {
     switch (pageId) {
       case 'dashboard': return 'Executive Operations Dashboard';
-      case 'subjects': return 'Master Subjects Catalog';
-      case 'syllabus': return 'Syllabus & Module Hierarchy Manager';
+      case 'doubts': return 'Student Doubts & 1-on-1 Clarification Desk';
+      case 'subjects': return 'Master Courses Catalog';
+      case 'syllabus': return 'Syllabus & Modules Manager';
       case 'courses': return 'Course & Curriculum Management';
-      case 'topics': return 'Topics & Study Notes Management';
-      case 'quiz_bank': return 'Topic Question Bank (20+ MCQs)';
+      case 'topics': return 'Topics & Study Notes';
+      case 'quiz_bank': return 'Topic Question Bank (MCQs)';
       case 'problems': return 'Practice Labs & Assignment Tasks';
-      case 'batches': return 'Batch Management & Student Rosters';
-      case 'progress': return 'Curriculum Completion & Topic Progress';
-      case 'daily_task': return 'Daily Session Logs & Student Attendance';
-      case 'submissions': return 'Student Code Submissions & Automated Grading';
+      case 'certificates': return 'Student Enrollments & Certificates';
+      case 'batches': return 'Batch Management & Rosters';
+      case 'progress': return 'Curriculum Completion Progress';
+      case 'daily_task': return 'Daily Session & Attendance';
+      case 'submissions': return 'Student Code Submissions & Grading';
       case 'quiz_analytics': return 'Test & Quiz Attempt Analytics';
-      case 'reports': return 'Multi-Dimensional Analytics & Performance Reports';
+      case 'reports': return 'Analytics & Performance Reports';
       case 'users': return 'User Directory & Access Control';
       default: return 'Admin Studio';
     }
@@ -118,10 +130,20 @@ export default function AdminLayout({
             </div>
           </div>
 
+          <div className="header-breadcrumbs">
+            <span className="breadcrumb-category">{getPageCategory(activePage)}</span>
+            <span className="breadcrumb-separator">/</span>
+            <span className="breadcrumb-current">{getPageTitle(activePage)}</span>
+          </div>
         </div>
 
         {/* Header Right Actions */}
         <div className="header-right">
+          <div className="header-live-chip">
+            <span className="live-pulse-dot" />
+            <span>Active Curriculum: C Programming</span>
+          </div>
+
           {/* User Profile Pill */}
           <div className="user-profile-widget">
             <div className="user-avatar-circle" style={user?.is_demo ? { background: '#7B1C6E', color: '#FFFFFF' } : {}}>
@@ -133,7 +155,7 @@ export default function AdminLayout({
                 className="user-role-badge"
                 style={user?.is_demo ? { background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D' } : {}}
               >
-                {user?.is_demo ? 'DEMO ADMIN (READ-ONLY)' : user?.is_admin ? 'SUPER ADMIN' : 'STAFF TRAINER'}
+                {user?.is_demo ? 'DEMO ADMIN' : user?.is_admin ? 'SUPER ADMIN' : 'STAFF TRAINER'}
               </span>
             </div>
           </div>
@@ -144,7 +166,7 @@ export default function AdminLayout({
             title="Sign Out"
           >
             <LogOut size={16} />
-            <span className="hide-mobile">Logout</span>
+            <span className="hide-mobile">Sign Out</span>
           </button>
         </div>
       </header>

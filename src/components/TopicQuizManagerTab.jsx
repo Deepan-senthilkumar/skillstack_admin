@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
+  Terminal, BookOpen, Layers,
   HelpCircle, Plus, Edit2, Trash2, ArrowLeft, Check,
-  Search, Filter, Sparkles, BookOpen, Layers, AlertCircle, FileText,
+  Search, Filter, Sparkles, AlertCircle, FileText,
   Upload, CheckCircle2, X, RefreshCw, Eye, Award
 } from 'lucide-react';
 import { api, isDemoUser, notifyDemoRestriction } from '../api';
@@ -298,22 +299,20 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
   return (
     <div className="admin-page-container">
       {/* Header Bar */}
-      <div className="admin-page-header flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
-              <HelpCircle size={22} />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-800">Topic Quiz Question Bank (20+ MCQs)</h1>
-              <p className="text-xs text-slate-500">
-                Manage randomized assessment questions with choices (A, B, C, D), 50% passing gate &amp; 10-min cooldown.
-              </p>
-            </div>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 flex-shrink-0" style={{ background: '#EEF2FF', border: '1px solid #C7D2FE' }}>
+            <HelpCircle size={24} />
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <h1 className="text-xl font-bold text-slate-800" style={{ margin: 0, textAlign: 'left' }}>Topic Quiz Question Bank (20+ MCQs)</h1>
+            <p className="text-xs text-slate-500" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Manage randomized assessment questions with choices (A, B, C, D), 50% passing gate &amp; 10-min cooldown.
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="header-actions">
           {viewMode === 'list' ? (
             <>
               <button
@@ -392,7 +391,15 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
 
       {viewMode === 'list' ? (
         <div className="space-y-4">
-          {/* Filter Bar */}
+          {/* Clean Info Strip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span className="badge-pill" style={{ background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A', padding: '4px 12px', borderRadius: '16px', fontSize: '13px', fontWeight: 600 }}>
+              <HelpCircle size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+              {questions.length} Knowledge MCQs in Question Bank
+            </span>
+          </div>
+
+      {/* Filter Bar */}
           <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Subject Filter */}
@@ -568,24 +575,24 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => setViewingQuestion(q)}
-                              className="icon-btn"
+                              className="icon-btn view"
                               title="View Question Details"
                             >
-                              <Eye size={13} />
+                              <Eye size={14} />
                             </button>
                             <button
                               onClick={() => handleOpenEdit(q)}
-                              className="icon-btn"
+                              className="icon-btn edit"
                               title="Edit Question"
                             >
-                              <Edit2 size={13} />
+                              <Edit2 size={14} />
                             </button>
                             <button
                               onClick={() => handleDelete(q)}
                               className="icon-btn danger"
                               title="Delete Question"
                             >
-                              <Trash2 size={13} />
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </td>

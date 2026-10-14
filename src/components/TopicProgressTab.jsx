@@ -73,12 +73,14 @@ export default function TopicProgressTab({ user, defaultBatchId }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Topic Progress Tracker</h2>
-          <p className="text-muted">
-            Track syllabus completion independently per batch. Marking topics complete is not blocked by or tied to attendance.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Topic Progress Tracker</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Track syllabus completion independently per batch. Marking topics complete is not blocked by or tied to attendance.
+            </p>
+          </div>
         </div>
       </div>
 

@@ -398,6 +398,61 @@ class AdminApiClient {
       return demoUser;
     }
   }
+
+  // Staff Enrollments & Certificates Management
+  async getStaffEnrollments() {
+    return this.request('/staff/enrollments/');
+  }
+
+  async updateStaffEnrollment(id, data) {
+    return this.request(`/staff/enrollments/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteStaffEnrollment(id) {
+    return this.request(`/staff/enrollments/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getStaffCertificates() {
+    return this.request('/staff/certificates/');
+  }
+
+  async createStaffCertificate(data) {
+    return this.request('/staff/certificates/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateStaffCertificate(id, data) {
+    return this.request(`/staff/certificates/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteStaffCertificate(id) {
+    return this.request(`/staff/certificates/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Student Doubts & Clarification Messaging
+  async getStaffDoubts(status = '') {
+    const q = status ? `?status=${status}` : '';
+    return this.request(`/staff/doubts/${q}`);
+  }
+
+  async replyStaffDoubt(id, clarification_reply) {
+    return this.request(`/staff/doubts/${id}/reply/`, {
+      method: 'POST',
+      body: JSON.stringify({ clarification_reply }),
+    });
+  }
 }
 
 export const api = new AdminApiClient();

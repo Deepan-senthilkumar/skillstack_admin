@@ -5,17 +5,18 @@
 
 /* ── Course Quick Strip ────────────────────────────────────── */
 .course-quick-strip {
-  margin-top: 20px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-subtle);
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #F0E2EE;
 }
 
 .strip-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--gray-400);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
 }
 
 .strip-chips {
@@ -28,20 +29,23 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  background: var(--gray-100);
-  border: 1px solid var(--border-subtle);
+  padding: 6px 14px;
+  background: #fdf5fc;
+  border: 1px solid #ebd3e7;
   border-radius: 20px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  color: var(--gray-700);
+  color: #7B1C6E;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .course-micro-pill:hover {
-  background: var(--blue-soft);
-  color: var(--blue-primary);
-  border-color: var(--blue-border);
+  background: #7B1C6E;
+  color: #ffffff;
+  border-color: #7B1C6E;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(123, 28, 110, 0.15);
 }
 
 /* ── Responsive Queries ────────────────────────────────────── */

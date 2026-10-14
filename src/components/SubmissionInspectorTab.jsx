@@ -108,16 +108,20 @@ export default function SubmissionInspectorTab({ user }) {
   return (
     <div className="tab-pane-container">
       {/* Header */}
-      <div className="tab-pane-header">
-        <div>
-          <h2>Code Submission & Validation Inspector</h2>
-          <p className="text-muted">
-            Live stream of student code runs. View actual output vs expected output diffs, compiler errors, runtime execution times, and attempt history.
-          </p>
+      <div className="tab-pane-header admin-page-header">
+        <div className="header-left-content">
+          <div style={{ textAlign: 'left' }}>
+            <h2 style={{ margin: 0, textAlign: 'left' }}>Code Submission & Validation Inspector</h2>
+            <p className="text-muted" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+              Live stream of student code runs. View actual output vs expected output diffs, compiler errors, runtime execution times, and attempt history.
+            </p>
+          </div>
         </div>
-        <button className="btn-outline" onClick={loadSubmissions}>
-          <RefreshCw size={15} /> Refresh Stream
-        </button>
+        <div className="header-actions">
+          <button className="btn-secondary" onClick={loadSubmissions}>
+            <RefreshCw size={14} /> Refresh Stream
+          </button>
+        </div>
       </div>
 
       {/* Filters Bar */}
@@ -252,19 +256,20 @@ export default function SubmissionInspectorTab({ user }) {
                       </span>
                     </td>
                     <td>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <button
-                          className="btn-outline-sm"
+                          className="icon-btn view"
                           onClick={() => handleOpenInspect(sub)}
+                          title="Inspect Submission"
                         >
-                          <Eye size={13} /> Inspect
+                          <Eye size={14} />
                         </button>
                         <button
                           className="icon-btn danger"
                           onClick={() => handleDelete(sub.id)}
                           title="Delete submission"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>

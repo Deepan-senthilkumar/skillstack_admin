@@ -325,14 +325,66 @@ function ImageBlock({ src, alt, caption }) {
 function renderInlineText(text) {
   if (!text) return null;
 
-  // Split by inline code: `code`
-  const codeParts = text.split(/(`[^`]+`)/g);
-  return codeParts.map((part, i) => {
+  // Master inline tokenizer regex matching:
+  // 1. Compound bold with code: **`code`** or ** `code` ** or **`code`:**
+  // 2. Standard bold: **text** or __text__
+  // 3. Inline code: `code`
+  // 4. Strikethrough: ~~text~~
+  // 5. Image: ![alt](url) or <img src="..." />
+  // 6. Link: [label](url)
+  // 7. Italic: *text* or _text_
+  // 8. Plain URL: https?://...
+  const TOKEN_REGEX = /(\*\*\s*`[^`]+`\s*:?\s*\*\*|\*\*[^\*\n]+\*\*|__[^_\n]+__|`[^`]+`|~~[^~\n]+~~|!\[[^\]]*\]\([^)]+\)|<img\s+[^>]*\/?>|\[[^\]]+\]\([^)]+\)|\*[^\*\n]+\*|_[^_\n]+_|https?:\/\/[^\s]+)/g;
+
+  const parts = text.split(TOKEN_REGEX);
+
+  return parts.map((part, idx) => {
+    if (!part) return null;
+
+    // 1. Compound bold with code: **`code`** or ** `code` **
+    const boldCodeMatch = part.match(/^\*\*\s*`([^`]+)`(\s*:?)\s*\*\*$/);
+    if (boldCodeMatch) {
+      const code = boldCodeMatch[1];
+      const colon = boldCodeMatch[2] ? boldCodeMatch[2].trim() : '';
+      return (
+        <strong key={idx} style={{ color: '#0F172A', fontWeight: 800 }}>
+          <code
+            style={{
+              background: 'rgba(123, 28, 110, 0.08)',
+              color: '#7B1C6E',
+              border: '1px solid rgba(123, 28, 110, 0.22)',
+              padding: '2px 7px',
+              borderRadius: '6px',
+              fontFamily: "'IBM Plex Mono', Menlo, Consolas, monospace",
+              fontSize: '13px',
+              fontWeight: 700,
+              margin: '0 2px'
+            }}
+          >
+            {code}
+          </code>
+          {colon}
+        </strong>
+      );
+    }
+
+    // 2. Bold: **text** or __text__
+    if ((part.startsWith('**') && part.endsWith('**') && part.length >= 4) ||
+        (part.startsWith('__') && part.endsWith('__') && part.length >= 4)) {
+      const inner = part.slice(2, -2);
+      return (
+        <strong key={idx} style={{ color: '#0F172A', fontWeight: 700 }}>
+          {renderInlineText(inner)}
+        </strong>
+      );
+    }
+
+    // 3. Inline Code: `code`
     if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
       const inlineCode = part.slice(1, -1);
       return (
         <code
-          key={i}
+          key={idx}
           style={{
             background: 'rgba(123, 28, 110, 0.08)',
             color: '#7B1C6E',
@@ -350,75 +402,72 @@ function renderInlineText(text) {
       );
     }
 
-    // Bold formatting: **bold**
-    const boldParts = part.split(/(\*\*[^*]+\*\*)/g);
-    return boldParts.map((bPart, j) => {
-      if (bPart.startsWith('**') && bPart.endsWith('**') && bPart.length >= 4) {
-        return <strong key={j} style={{ color: '#0F172A', fontWeight: 700 }}>{bPart.slice(2, -2)}</strong>;
-      }
+    // 4. Strikethrough: ~~text~~
+    if (part.startsWith('~~') && part.endsWith('~~') && part.length >= 4) {
+      const inner = part.slice(2, -2);
+      return (
+        <del key={idx} style={{ color: '#94A3B8' }}>
+          {renderInlineText(inner)}
+        </del>
+      );
+    }
 
-      // Italic formatting: *italic* or _italic_
-      const italicParts = bPart.split(/(\*[^*]+\*|_[^_]+_)/g);
-      return italicParts.map((itPart, m) => {
-        if ((itPart.startsWith('*') && itPart.endsWith('*') && itPart.length >= 3) ||
-            (itPart.startsWith('_') && itPart.endsWith('_') && itPart.length >= 3)) {
-          return <em key={m} style={{ color: '#475569', fontStyle: 'italic' }}>{itPart.slice(1, -1)}</em>;
-        }
+    // 5. Italic: *text* or _text_
+    if ((part.startsWith('*') && part.endsWith('*') && part.length >= 3) ||
+        (part.startsWith('_') && part.endsWith('_') && part.length >= 3)) {
+      const inner = part.slice(1, -1);
+      return (
+        <em key={idx} style={{ color: '#475569', fontStyle: 'italic' }}>
+          {renderInlineText(inner)}
+        </em>
+      );
+    }
 
-        // Image formatting: ![alt](url) or <img src="..." alt="..." />
-        const imageParts = itPart.split(/(!\[[^\]]*\]\([^)]+\)|<img\s+[^>]*\/?>)/gi);
-        return imageParts.map((imgPart, n) => {
-          const imgMatch = imgPart.match(/^!\[(.*?)\]\((.*?)\)$/);
-          if (imgMatch) {
-            return <ImageBlock key={n} alt={imgMatch[1]} src={imgMatch[2]} caption={imgMatch[1]} />;
-          }
-          const htmlImgMatch = imgPart.match(/^<img\s+[^>]*src=["']([^"']+)["'][^>]*\/?>/i);
-          if (htmlImgMatch) {
-            const altMatch = imgPart.match(/alt=["']([^"']*)["']/i);
-            const altText = altMatch ? altMatch[1] : '';
-            return <ImageBlock key={n} alt={altText} src={htmlImgMatch[1]} caption={altText} />;
-          }
+    // 6. Image markdown or HTML img tag
+    const imgMatch = part.match(/^!\[(.*?)\]\((.*?)\)$/);
+    if (imgMatch) {
+      return <ImageBlock key={idx} alt={imgMatch[1]} src={imgMatch[2]} caption={imgMatch[1]} />;
+    }
+    const htmlImgMatch = part.match(/^<img\s+[^>]*src=["']([^"']+)["'][^>]*\/?>/i);
+    if (htmlImgMatch) {
+      const altMatch = part.match(/alt=["']([^"']*)["']/i);
+      const altText = altMatch ? altMatch[1] : '';
+      return <ImageBlock key={idx} alt={altText} src={htmlImgMatch[1]} caption={altText} />;
+    }
 
-          // Link formatting: [label](url)
-          const linkParts = imgPart.split(/(\[[^\]]+\]\([^)]+\))/g);
-          return linkParts.map((lPart, k) => {
-            const linkMatch = lPart.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-            if (linkMatch) {
-              return (
-                <a
-                  key={k}
-                  href={linkMatch[2]}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: '#7B1C6E', textDecoration: 'underline', fontWeight: 600 }}
-                >
-                  {linkMatch[1]}
-                </a>
-              );
-            }
+    // 7. Link: [label](url)
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (linkMatch) {
+      return (
+        <a
+          key={idx}
+          href={linkMatch[2]}
+          target="_blank"
+          rel="noreferrer"
+          style={{ color: '#7B1C6E', textDecoration: 'underline', fontWeight: 600 }}
+        >
+          {renderInlineText(linkMatch[1])}
+        </a>
+      );
+    }
 
-            // Raw URLs: http(s)://...
-            const urlParts = lPart.split(/(https?:\/\/[^\s]+)/g);
-            return urlParts.map((uPart, l) => {
-              if (/^https?:\/\//.test(uPart)) {
-                return (
-                  <a
-                    key={l}
-                    href={uPart}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ color: '#7B1C6E', textDecoration: 'underline', wordBreak: 'break-all' }}
-                  >
-                    {uPart}
-                  </a>
-                );
-              }
-              return uPart;
-            });
-          });
-        });
-      });
-    });
+    // 8. Plain URL
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a
+          key={idx}
+          href={part}
+          target="_blank"
+          rel="noreferrer"
+          style={{ color: '#7B1C6E', textDecoration: 'underline', wordBreak: 'break-all' }}
+        >
+          {part}
+        </a>
+      );
+    }
+
+    // Clean up any lone stray double asterisks that may exist in legacy markdown
+    return part.replace(/^\*\*\s*$/, '').replace(/\s*\*\*$/, '');
   });
 }
 

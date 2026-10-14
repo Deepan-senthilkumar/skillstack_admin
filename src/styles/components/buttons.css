@@ -136,19 +136,23 @@
   color: #B91C1C !important;
   transform: translateY(-1px) !important;
 }
-
-.btn-danger:disabled {
+.btn-danger:disabled {
   opacity: 0.55 !important;
   cursor: not-allowed !important;
   transform: none !important;
 }
 
+/* ── Unified Action Button System (View, Edit, Delete, Reset) ──────────── */
 .icon-btn,
-.btn-icon-sm {
+.btn-icon-sm,
+.item-action-icon,
+.action-btn {
   width: 32px !important;
   height: 32px !important;
   min-width: 32px !important;
   min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
   padding: 0 !important;
   border-radius: 8px !important;
   display: inline-flex !important;
@@ -158,28 +162,176 @@
   border: 1px solid #E2E8F0 !important;
   color: #64748B !important;
   cursor: pointer !important;
-  transition: all 0.15s ease !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
   box-sizing: border-box !important;
+  outline: none !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  flex-shrink: 0 !important;
+}
+
+.icon-btn svg,
+.btn-icon-sm svg,
+.item-action-icon svg,
+.action-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  stroke-width: 2 !important;
+  transition: transform 0.15s ease, stroke 0.15s ease !important;
 }
 
 .icon-btn:hover:not(:disabled),
-.btn-icon-sm:hover:not(:disabled) {
-  background: #FAF5F9 !important;
-  color: #7B1C6E !important;
-  border-color: #7B1C6E !important;
-  transform: translateY(-1px) !important;
+.btn-icon-sm:hover:not(:disabled),
+.item-action-icon:hover:not(:disabled),
+.action-btn:hover:not(:disabled) {
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08) !important;
 }
 
+.icon-btn:active:not(:disabled),
+.btn-icon-sm:active:not(:disabled),
+.item-action-icon:active:not(:disabled),
+.action-btn:active:not(:disabled) {
+  transform: scale(0.96) !important;
+}
+
+.icon-btn:disabled,
+.btn-icon-sm:disabled,
+.item-action-icon:disabled,
+.action-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ── 1. VIEW ACTION (Sky Blue) ────────────────────────────────────────── */
+.icon-btn.view,
+.btn-action-view,
+.item-action-icon.view,
+.icon-btn:has(svg.lucide-eye),
+.btn-icon-sm:has(svg.lucide-eye),
+.item-action-icon:has(svg.lucide-eye) {
+  background: #F0F9FF !important;
+  border-color: #BAE6FD !important;
+  color: #0284C7 !important;
+}
+
+.icon-btn.view:hover:not(:disabled),
+.btn-action-view:hover:not(:disabled),
+.item-action-icon.view:hover:not(:disabled),
+.icon-btn:has(svg.lucide-eye):hover:not(:disabled),
+.btn-icon-sm:has(svg.lucide-eye):hover:not(:disabled),
+.item-action-icon:has(svg.lucide-eye):hover:not(:disabled) {
+  background: #0284C7 !important;
+  border-color: #0284C7 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.28) !important;
+}
+
+.icon-btn.view:hover:not(:disabled) svg,
+.btn-action-view:hover:not(:disabled) svg,
+.item-action-icon.view:hover:not(:disabled) svg,
+.icon-btn:has(svg.lucide-eye):hover:not(:disabled) svg,
+.btn-icon-sm:has(svg.lucide-eye):hover:not(:disabled) svg,
+.item-action-icon:has(svg.lucide-eye):hover:not(:disabled) svg {
+  stroke: #FFFFFF !important;
+}
+
+/* ── 2. EDIT ACTION (Brand Purple) ────────────────────────────────────── */
+.icon-btn.edit,
+.btn-action-edit,
+.item-action-icon.edit,
+.icon-btn:has(svg.lucide-edit-2),
+.icon-btn:has(svg.lucide-pencil),
+.btn-icon-sm:has(svg.lucide-edit-2),
+.item-action-icon:has(svg.lucide-edit-2) {
+  background: #FAF5F9 !important;
+  border-color: #E9D5E7 !important;
+  color: #7B1C6E !important;
+}
+
+.icon-btn.edit:hover:not(:disabled),
+.btn-action-edit:hover:not(:disabled),
+.item-action-icon.edit:hover:not(:disabled),
+.icon-btn:has(svg.lucide-edit-2):hover:not(:disabled),
+.icon-btn:has(svg.lucide-pencil):hover:not(:disabled),
+.btn-icon-sm:has(svg.lucide-edit-2):hover:not(:disabled),
+.item-action-icon:has(svg.lucide-edit-2):hover:not(:disabled) {
+  background: #7B1C6E !important;
+  border-color: #7B1C6E !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 3px 8px rgba(123, 28, 110, 0.28) !important;
+}
+
+.icon-btn.edit:hover:not(:disabled) svg,
+.btn-action-edit:hover:not(:disabled) svg,
+.item-action-icon.edit:hover:not(:disabled) svg,
+.icon-btn:has(svg.lucide-edit-2):hover:not(:disabled) svg,
+.icon-btn:has(svg.lucide-pencil):hover:not(:disabled) svg,
+.btn-icon-sm:has(svg.lucide-edit-2):hover:not(:disabled) svg {
+  stroke: #FFFFFF !important;
+}
+
+/* ── 3. DELETE ACTION (Rose Red) ──────────────────────────────────────── */
 .icon-btn.danger,
-.btn-icon-sm.danger {
-  color: #94A3B8 !important;
+.icon-btn.delete,
+.btn-action-delete,
+.item-action-icon.danger,
+.icon-btn:has(svg.lucide-trash-2),
+.btn-icon-sm:has(svg.lucide-trash-2),
+.item-action-icon:has(svg.lucide-trash-2) {
+  background: #FEF2F2 !important;
+  border-color: #FECACA !important;
+  color: #DC2626 !important;
 }
 
 .icon-btn.danger:hover:not(:disabled),
-.btn-icon-sm.danger:hover:not(:disabled) {
-  background: #FEF2F2 !important;
-  color: #DC2626 !important;
-  border-color: #FECACA !important;
-  transform: translateY(-1px) !important;
+.icon-btn.delete:hover:not(:disabled),
+.btn-action-delete:hover:not(:disabled),
+.item-action-icon.danger:hover:not(:disabled),
+.icon-btn:has(svg.lucide-trash-2):hover:not(:disabled),
+.btn-icon-sm:has(svg.lucide-trash-2):hover:not(:disabled),
+.item-action-icon:has(svg.lucide-trash-2):hover:not(:disabled) {
+  background: #DC2626 !important;
+  border-color: #DC2626 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.28) !important;
 }
-
+
+.icon-btn.danger:hover:not(:disabled) svg,
+.icon-btn.delete:hover:not(:disabled) svg,
+.btn-action-delete:hover:not(:disabled) svg,
+.item-action-icon.danger:hover:not(:disabled) svg,
+.icon-btn:has(svg.lucide-trash-2):hover:not(:disabled) svg,
+.btn-icon-sm:has(svg.lucide-trash-2):hover:not(:disabled) svg {
+  stroke: #FFFFFF !important;
+}
+
+/* ── 4. RESET ACTION (Emerald Green) ──────────────────────────────────── */
+.icon-btn.reset,
+.btn-action-reset,
+.icon-btn:has(svg.lucide-rotate-ccw),
+.icon-btn:has(svg.lucide-refresh-cw),
+.btn-icon-sm:has(svg.lucide-rotate-ccw) {
+  background: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+  color: #059669 !important;
+}
+
+.icon-btn.reset:hover:not(:disabled),
+.btn-action-reset:hover:not(:disabled),
+.icon-btn:has(svg.lucide-rotate-ccw):hover:not(:disabled),
+.icon-btn:has(svg.lucide-refresh-cw):hover:not(:disabled),
+.btn-icon-sm:has(svg.lucide-rotate-ccw):hover:not(:disabled) {
+  background: #059669 !important;
+  border-color: #059669 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.28) !important;
+}
+
+.icon-btn.reset:hover:not(:disabled) svg,
+.btn-action-reset:hover:not(:disabled) svg,
+.icon-btn:has(svg.lucide-rotate-ccw):hover:not(:disabled) svg,
+.icon-btn:has(svg.lucide-refresh-cw):hover:not(:disabled) svg {
+  stroke: #FFFFFF !important;
+}
