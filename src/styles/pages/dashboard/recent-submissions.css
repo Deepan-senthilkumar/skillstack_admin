@@ -26,7 +26,7 @@
   background: #ffffff;
   border-color: #E2CBDD;
   transform: translateX(2px);
-  box-shadow: 0 2px 8px rgba(123, 28, 110, 0.05);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.05);
 }
 
 .sub-feed-left {
@@ -41,7 +41,7 @@
   height: 34px;
   border-radius: 50%;
   background: #fdf5fc;
-  color: #7B1C6E;
+  color: #7C3AED;
   border: 1.5px solid #ebd3e7;
   font-weight: 800;
   font-size: 0.82rem;

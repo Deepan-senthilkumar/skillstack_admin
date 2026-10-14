@@ -23,7 +23,7 @@
   border: 1.5px solid #f0e2ee !important;
   border-radius: 20px !important;
   padding: 24px 28px !important;
-  box-shadow: 0 4px 20px -4px rgba(123, 28, 110, 0.05) !important;
+  box-shadow: 0 4px 20px -4px rgba(124, 58, 237, 0.05) !important;
 }
 
 /* ── Sticky Preview Sidebar ── */
@@ -44,7 +44,7 @@
   font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
-  color: #7B1C6E !important;
+  color: #7C3AED !important;
   margin-bottom: 2px !important;
 }
 
@@ -54,7 +54,7 @@
   border: 1.5px solid #edd5ea !important;
   border-radius: 18px !important;
   padding: 22px !important;
-  box-shadow: 0 10px 30px -5px rgba(123, 28, 110, 0.08) !important;
+  box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.08) !important;
   overflow: hidden !important;
 }
 

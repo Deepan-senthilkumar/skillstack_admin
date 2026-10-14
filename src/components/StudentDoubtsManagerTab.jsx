@@ -98,7 +98,7 @@ export default function StudentDoubtsManagerTab({ user }) {
       }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <MessageSquare size={26} color="#7B1C6E" />
+            <MessageSquare size={26} color="#7C3AED" />
             <span>Student Doubts &amp; Clarification Desk</span>
           </h1>
           <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#64748B' }}>
@@ -169,7 +169,7 @@ export default function StudentDoubtsManagerTab({ user }) {
                 fontSize: '12px',
                 fontWeight: 800,
                 cursor: 'pointer',
-                background: filterStatus === st ? '#7B1C6E' : '#F1F5F9',
+                background: filterStatus === st ? '#7C3AED' : '#F1F5F9',
                 color: filterStatus === st ? '#FFFFFF' : '#475569',
                 transition: 'all 0.2s'
               }}
@@ -252,7 +252,7 @@ export default function StudentDoubtsManagerTab({ user }) {
                       width: '38px',
                       height: '38px',
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #7B1C6E 0%, #A82596 100%)',
+                      background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
                       color: '#FFFFFF',
                       display: 'flex',
                       alignItems: 'center',
@@ -271,7 +271,7 @@ export default function StudentDoubtsManagerTab({ user }) {
                           (@{doubt.student_username})
                         </span>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#7B1C6E', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <div style={{ fontSize: '12px', color: '#7C3AED', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <BookOpen size={13} />
                         <span>{doubt.subject_name} &bull; {doubt.topic_title}</span>
                       </div>

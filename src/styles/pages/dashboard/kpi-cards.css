@@ -27,7 +27,7 @@
   border: 1.5px solid #f0e2ee !important;
   border-radius: 18px !important;
   padding: 22px 24px !important;
-  box-shadow: 0 4px 20px -4px rgba(123, 28, 110, 0.05) !important;
+  box-shadow: 0 4px 20px -4px rgba(124, 58, 237, 0.05) !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
   cursor: pointer !important;
   display: flex !important;
@@ -40,8 +40,8 @@
 
 .kpi-card:hover {
   transform: translateY(-3px) !important;
-  border-color: #7B1C6E !important;
-  box-shadow: 0 12px 28px -6px rgba(123, 28, 110, 0.15) !important;
+  border-color: #7C3AED !important;
+  box-shadow: 0 12px 28px -6px rgba(124, 58, 237, 0.15) !important;
 }
 
 .kpi-card-header {
@@ -72,7 +72,7 @@
 
 .kpi-icon-bubble.magenta {
   background: #fdf5fc !important;
-  color: #7B1C6E !important;
+  color: #7C3AED !important;
   border: 1px solid #ebd3e7 !important;
 }
 

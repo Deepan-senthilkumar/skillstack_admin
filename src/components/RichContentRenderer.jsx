@@ -177,9 +177,9 @@ function ImageBlock({ src, alt, caption }) {
         style={{
           borderRadius: '16px',
           overflow: 'hidden',
-          border: '1.5px solid rgba(123, 28, 110, 0.16)',
+          border: '1.5px solid rgba(124, 58, 237, 0.16)',
           background: '#FFFFFF',
-          boxShadow: '0 8px 30px rgba(123, 28, 110, 0.08)',
+          boxShadow: '0 8px 30px rgba(124, 58, 237, 0.08)',
           cursor: imgError ? 'default' : 'pointer',
           maxWidth: '100%',
           width: '100%',
@@ -189,13 +189,13 @@ function ImageBlock({ src, alt, caption }) {
         onMouseEnter={(e) => {
           if (!imgError) {
             e.currentTarget.style.transform = 'scale(1.01)';
-            e.currentTarget.style.boxShadow = '0 12px 36px rgba(123, 28, 110, 0.14)';
+            e.currentTarget.style.boxShadow = '0 12px 36px rgba(124, 58, 237, 0.14)';
           }
         }}
         onMouseLeave={(e) => {
           if (!imgError) {
             e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.boxShadow = '0 8px 30px rgba(123, 28, 110, 0.08)';
+            e.currentTarget.style.boxShadow = '0 8px 30px rgba(124, 58, 237, 0.08)';
           }
         }}
         title={imgError ? undefined : "Click to zoom image"}
@@ -218,12 +218,12 @@ function ImageBlock({ src, alt, caption }) {
         ) : (
           <div style={{
             padding: '28px 24px',
-            background: 'linear-gradient(135deg, rgba(123, 28, 110, 0.04) 0%, rgba(67, 56, 202, 0.04) 100%)',
-            border: '1.5px dashed rgba(123, 28, 110, 0.2)',
+            background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.04) 0%, rgba(67, 56, 202, 0.04) 100%)',
+            border: '1.5px dashed rgba(124, 58, 237, 0.2)',
             borderRadius: '16px',
             textAlign: 'center'
           }}>
-            <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(123, 28, 110, 0.08)', color: '#7B1C6E', marginBottom: '10px' }}>
+            <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(124, 58, 237, 0.08)', color: '#7C3AED', marginBottom: '10px' }}>
               <ImageIcon size={28} />
             </div>
             <div style={{ fontWeight: 800, fontSize: '14.5px', color: '#0F172A', marginBottom: '4px' }}>
@@ -247,10 +247,10 @@ function ImageBlock({ src, alt, caption }) {
                 padding: '6px 14px',
                 borderRadius: '8px',
                 background: '#FFFFFF',
-                color: '#7B1C6E',
+                color: '#7C3AED',
                 fontSize: '11.5px',
                 fontWeight: 700,
-                border: '1.5px solid rgba(123, 28, 110, 0.25)',
+                border: '1.5px solid rgba(124, 58, 237, 0.25)',
                 cursor: 'pointer',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
               }}
@@ -350,9 +350,9 @@ function renderInlineText(text) {
         <strong key={idx} style={{ color: '#0F172A', fontWeight: 800 }}>
           <code
             style={{
-              background: 'rgba(123, 28, 110, 0.08)',
-              color: '#7B1C6E',
-              border: '1px solid rgba(123, 28, 110, 0.22)',
+              background: 'rgba(124, 58, 237, 0.08)',
+              color: '#7C3AED',
+              border: '1px solid rgba(124, 58, 237, 0.22)',
               padding: '2px 7px',
               borderRadius: '6px',
               fontFamily: "'IBM Plex Mono', Menlo, Consolas, monospace",
@@ -386,9 +386,9 @@ function renderInlineText(text) {
         <code
           key={idx}
           style={{
-            background: 'rgba(123, 28, 110, 0.08)',
-            color: '#7B1C6E',
-            border: '1px solid rgba(123, 28, 110, 0.18)',
+            background: 'rgba(124, 58, 237, 0.08)',
+            color: '#7C3AED',
+            border: '1px solid rgba(124, 58, 237, 0.18)',
             padding: '2px 6px',
             borderRadius: '5px',
             fontFamily: "'IBM Plex Mono', Menlo, Consolas, monospace",
@@ -444,7 +444,7 @@ function renderInlineText(text) {
           href={linkMatch[2]}
           target="_blank"
           rel="noreferrer"
-          style={{ color: '#7B1C6E', textDecoration: 'underline', fontWeight: 600 }}
+          style={{ color: '#7C3AED', textDecoration: 'underline', fontWeight: 600 }}
         >
           {renderInlineText(linkMatch[1])}
         </a>
@@ -459,7 +459,7 @@ function renderInlineText(text) {
           href={part}
           target="_blank"
           rel="noreferrer"
-          style={{ color: '#7B1C6E', textDecoration: 'underline', wordBreak: 'break-all' }}
+          style={{ color: '#7C3AED', textDecoration: 'underline', wordBreak: 'break-all' }}
         >
           {part}
         </a>
@@ -563,8 +563,8 @@ function TableBlock({ headers = [], alignments = [], rows = [] }) {
       margin: '20px 0',
       overflowX: 'auto',
       borderRadius: '14px',
-      border: '1.5px solid rgba(123, 28, 110, 0.16)',
-      boxShadow: '0 6px 24px rgba(123, 28, 110, 0.06)',
+      border: '1.5px solid rgba(124, 58, 237, 0.16)',
+      boxShadow: '0 6px 24px rgba(124, 58, 237, 0.06)',
       background: '#FFFFFF'
     }}>
       <table style={{
@@ -578,7 +578,7 @@ function TableBlock({ headers = [], alignments = [], rows = [] }) {
           <thead>
             <tr style={{
               background: 'linear-gradient(135deg, #FDF5FD 0%, #F8FAFC 100%)',
-              borderBottom: '2px solid rgba(123, 28, 110, 0.18)'
+              borderBottom: '2px solid rgba(124, 58, 237, 0.18)'
             }}>
               {headers.map((head, idx) => (
                 <th
@@ -586,13 +586,13 @@ function TableBlock({ headers = [], alignments = [], rows = [] }) {
                   style={{
                     padding: '13px 18px',
                     fontWeight: 800,
-                    color: '#7B1C6E',
+                    color: '#7C3AED',
                     textAlign: alignments[idx] || 'left',
                     whiteSpace: 'nowrap',
                     fontSize: '12.5px',
                     letterSpacing: '0.03em',
                     textTransform: 'uppercase',
-                    borderRight: idx < headers.length - 1 ? '1px solid rgba(123, 28, 110, 0.1)' : 'none'
+                    borderRight: idx < headers.length - 1 ? '1px solid rgba(124, 58, 237, 0.1)' : 'none'
                   }}
                 >
                   {renderInlineText(head)}
@@ -844,8 +844,8 @@ export default function RichContentRenderer({ content, className = '' }) {
                 style={{
                   margin: '14px 0',
                   padding: '12px 18px',
-                  background: 'rgba(123, 28, 110, 0.05)',
-                  borderLeft: '4px solid #7B1C6E',
+                  background: 'rgba(124, 58, 237, 0.05)',
+                  borderLeft: '4px solid #7C3AED',
                   borderRadius: '0 10px 10px 0',
                   color: '#475569',
                   fontStyle: 'italic',
@@ -866,7 +866,7 @@ export default function RichContentRenderer({ content, className = '' }) {
                   color: '#0F172A',
                   margin: '22px 0 10px',
                   paddingBottom: '6px',
-                  borderBottom: '2px solid rgba(123, 28, 110, 0.15)'
+                  borderBottom: '2px solid rgba(124, 58, 237, 0.15)'
                 }}
               >
                 {renderInlineText(block.text)}
@@ -895,7 +895,7 @@ export default function RichContentRenderer({ content, className = '' }) {
                 style={{
                   fontSize: '15px',
                   fontWeight: 700,
-                  color: '#7B1C6E',
+                  color: '#7C3AED',
                   margin: '16px 0 6px',
                   display: 'flex',
                   alignItems: 'center',
@@ -907,7 +907,7 @@ export default function RichContentRenderer({ content, className = '' }) {
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: '#7B1C6E'
+                  background: '#7C3AED'
                 }} />
                 {renderInlineText(block.text)}
               </h4>
@@ -934,7 +934,7 @@ export default function RichContentRenderer({ content, className = '' }) {
                 key={idx}
                 style={{
                   border: 'none',
-                  borderTop: '1.5px solid rgba(123, 28, 110, 0.12)',
+                  borderTop: '1.5px solid rgba(124, 58, 237, 0.12)',
                   margin: '18px 0'
                 }}
               />
@@ -951,7 +951,7 @@ export default function RichContentRenderer({ content, className = '' }) {
                   margin: '6px 0'
                 }}
               >
-                <span style={{ color: '#7B1C6E', fontWeight: 800, marginTop: '2px', flexShrink: 0 }}>•</span>
+                <span style={{ color: '#7C3AED', fontWeight: 800, marginTop: '2px', flexShrink: 0 }}>•</span>
                 <span style={{ flex: 1 }}>{renderInlineText(block.text)}</span>
               </div>
             );
@@ -975,8 +975,8 @@ export default function RichContentRenderer({ content, className = '' }) {
                     minWidth: '22px',
                     height: '22px',
                     borderRadius: '6px',
-                    background: 'rgba(123, 28, 110, 0.08)',
-                    color: '#7B1C6E',
+                    background: 'rgba(124, 58, 237, 0.08)',
+                    color: '#7C3AED',
                     fontSize: '12px',
                     fontWeight: 700,
                     flexShrink: 0,

@@ -54,7 +54,7 @@ export default function PaginationControls({
       <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
         Showing <span style={{ color: '#0F172A', fontWeight: 700 }}>{startIdx}</span> to{' '}
         <span style={{ color: '#0F172A', fontWeight: 700 }}>{endIdx}</span> of{' '}
-        <span style={{ color: '#7B1C6E', fontWeight: 800 }}>{totalItems}</span> {itemName}
+        <span style={{ color: '#7C3AED', fontWeight: 800 }}>{totalItems}</span> {itemName}
       </div>
 
       {/* Right: Page Size Selector & Controls */}
@@ -133,8 +133,8 @@ export default function PaginationControls({
                     height: '32px',
                     padding: '0 6px',
                     borderRadius: '8px',
-                    border: isActive ? '1.5px solid #7B1C6E' : '1.5px solid #E2E8F0',
-                    background: isActive ? '#7B1C6E' : '#FFFFFF',
+                    border: isActive ? '1.5px solid #7C3AED' : '1.5px solid #E2E8F0',
+                    background: isActive ? '#7C3AED' : '#FFFFFF',
                     color: isActive ? '#FFFFFF' : '#0F172A',
                     fontWeight: 700,
                     fontSize: '12.5px',

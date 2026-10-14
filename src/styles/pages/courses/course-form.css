@@ -22,7 +22,7 @@
   border: 1px solid #f0e2ee;
   border-radius: 18px;
   padding: 26px;
-  box-shadow: 0 4px 20px -4px rgba(123, 28, 110, 0.06);
+  box-shadow: 0 4px 20px -4px rgba(124, 58, 237, 0.06);
 }
 
 .preview-sticky-box {
@@ -32,7 +32,7 @@
   border: 1px solid #f0e2ee;
   border-radius: 18px;
   padding: 20px;
-  box-shadow: 0 10px 30px -5px rgba(123, 28, 110, 0.08);
+  box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.08);
 }
 
 .preview-header-label {
@@ -40,7 +40,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #7B1C6E;
+  color: #7C3AED;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -89,9 +89,9 @@
 
 .quick-select-chip:hover,
 .preset-chip-btn:hover {
-  border-color: #7B1C6E !important;
+  border-color: #7C3AED !important;
   background: #fdf5fc !important;
-  color: #7B1C6E !important;
+  color: #7C3AED !important;
   transform: translateY(-1px) !important;
 }
 

@@ -510,9 +510,9 @@ export default function TopicManagerTab({ user, onNavigate }) {
                           fontSize: '11px',
                           fontWeight: 700,
                           borderRadius: '999px',
-                          border: quickChapterOpen ? '1.5px solid #7B1C6E' : '1.5px solid rgba(123,28,110,0.35)',
-                          background: quickChapterOpen ? '#7B1C6E' : 'rgba(123,28,110,0.06)',
-                          color: quickChapterOpen ? '#FFFFFF' : '#7B1C6E',
+                          border: quickChapterOpen ? '1.5px solid #7C3AED' : '1.5px solid rgba(124, 58, 237,0.35)',
+                          background: quickChapterOpen ? '#7C3AED' : 'rgba(124, 58, 237,0.06)',
+                          color: quickChapterOpen ? '#FFFFFF' : '#7C3AED',
                           cursor: 'pointer',
                           transition: 'all 0.18s ease',
                           letterSpacing: '0.01em',
@@ -681,7 +681,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                         borderRadius: '6px',
                         cursor: 'pointer',
                         background: notesViewMode === 'edit' ? '#FFFFFF' : 'transparent',
-                        color: notesViewMode === 'edit' ? '#7B1C6E' : '#64748B',
+                        color: notesViewMode === 'edit' ? '#7C3AED' : '#64748B',
                         boxShadow: notesViewMode === 'edit' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                         transition: 'all 0.15s ease'
                       }}
@@ -699,7 +699,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                         borderRadius: '6px',
                         cursor: 'pointer',
                         background: notesViewMode === 'split' ? '#FFFFFF' : 'transparent',
-                        color: notesViewMode === 'split' ? '#7B1C6E' : '#64748B',
+                        color: notesViewMode === 'split' ? '#7C3AED' : '#64748B',
                         boxShadow: notesViewMode === 'split' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                         transition: 'all 0.15s ease'
                       }}
@@ -717,7 +717,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                         borderRadius: '6px',
                         cursor: 'pointer',
                         background: notesViewMode === 'preview' ? '#FFFFFF' : 'transparent',
-                        color: notesViewMode === 'preview' ? '#7B1C6E' : '#64748B',
+                        color: notesViewMode === 'preview' ? '#7C3AED' : '#64748B',
                         boxShadow: notesViewMode === 'preview' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                         transition: 'all 0.15s ease'
                       }}
@@ -807,13 +807,13 @@ export default function TopicManagerTab({ user, onNavigate }) {
                       gap: '6px',
                       padding: '5px 12px',
                       borderRadius: '8px',
-                      background: 'linear-gradient(135deg, #7B1C6E 0%, #9D248C 100%)',
+                      background: 'linear-gradient(135deg, #7C3AED 0%, #9D248C 100%)',
                       color: '#FFFFFF',
                       fontSize: '12px',
                       fontWeight: 700,
                       border: 'none',
                       cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(123, 28, 110, 0.25)',
+                      boxShadow: '0 2px 8px rgba(124, 58, 237, 0.25)',
                       transition: 'all 0.15s ease'
                     }}
                     title="Upload image from device and insert directly at cursor"
@@ -835,10 +835,10 @@ export default function TopicManagerTab({ user, onNavigate }) {
                           padding: '5px 10px',
                           borderRadius: '8px',
                           background: '#FFFFFF',
-                          color: '#7B1C6E',
+                          color: '#7C3AED',
                           fontSize: '11.5px',
                           fontWeight: 700,
-                          border: '1.5px solid rgba(123, 28, 110, 0.25)',
+                          border: '1.5px solid rgba(124, 58, 237, 0.25)',
                           cursor: 'pointer'
                         }}
                       >
@@ -900,7 +900,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                                   background: '#F8FAFC',
                                   transition: 'all 0.15s ease'
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#7B1C6E'}
+                                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#7C3AED'}
                                 onMouseLeave={(e) => e.currentTarget.style.borderColor = '#E2E8F0'}
                               >
                                 <img src={img.image_url} alt={img.caption} style={{ width: '100%', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
@@ -1030,7 +1030,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                       padding: '16px',
                       boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.02)'
                     }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#7B1C6E', letterSpacing: '0.05em', marginBottom: '8px', borderBottom: '1px solid rgba(123,28,110,0.1)', paddingBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#7C3AED', letterSpacing: '0.05em', marginBottom: '8px', borderBottom: '1px solid rgba(124, 58, 237,0.1)', paddingBottom: '4px' }}>
                         Live Student Guide Preview
                       </div>
                       {formData.notes_content ? (
@@ -1049,7 +1049,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
               <div className="form-group mt-4" style={{ border: '1.5px dashed #CBD5E1', borderRadius: '16px', padding: '20px', background: '#FAFCFF' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Image size={17} color="#7B1C6E" />
+                    <Image size={17} color="#7C3AED" />
                     <span style={{ fontWeight: 800, fontSize: '14.5px', color: '#0F172A' }}>Topic Images Gallery ({topicImages.length})</span>
                     <span style={{ fontSize: '12px', color: '#64748B' }}>— You can insert any of these directly into your notes</span>
                   </div>
@@ -1149,7 +1149,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                                 fontSize: '11px',
                                 fontWeight: 700,
                                 borderRadius: '6px',
-                                background: 'linear-gradient(135deg, #7B1C6E 0%, #9D248C 100%)',
+                                background: 'linear-gradient(135deg, #7C3AED 0%, #9D248C 100%)',
                                 color: '#FFFFFF',
                                 border: 'none',
                                 cursor: 'pointer',
@@ -1249,11 +1249,11 @@ export default function TopicManagerTab({ user, onNavigate }) {
               </div>
 
               {/* Practical Code Examples Section */}
-              <div style={{ marginTop: '24px', borderTop: '1px solid rgba(123, 28, 110, 0.12)', paddingTop: '20px' }}>
+              <div style={{ marginTop: '24px', borderTop: '1px solid rgba(124, 58, 237, 0.12)', paddingTop: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                   <div>
                     <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Code2 size={16} color="#7B1C6E" /> Practical Code Examples ({topicExamples.length})
+                      <Code2 size={16} color="#7C3AED" /> Practical Code Examples ({topicExamples.length})
                     </h4>
                     <p className="text-xs text-muted">
                       Code snippets that appear dynamically in the student portal's <strong>Practical Code</strong> tab.
@@ -1334,7 +1334,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                   marginTop: '12px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Code2 size={16} color="#7B1C6E" />
+                    <Code2 size={16} color="#7C3AED" />
                     <span style={{ fontSize: '14px', fontWeight: 800, color: '#701A75' }}>
                       + Add New Practical Code Snippet (For Student Study Reference)
                     </span>
@@ -1381,17 +1381,17 @@ export default function TopicManagerTab({ user, onNavigate }) {
                         borderRadius: '8px',
                         fontSize: '13px',
                         fontWeight: 700,
-                        background: 'linear-gradient(135deg, #7B1C6E 0%, #A21CAF 100%)',
+                        background: 'linear-gradient(135deg, #7C3AED 0%, #A21CAF 100%)',
                         color: '#FFFFFF',
                         border: 'none',
                         cursor: addingExample ? 'wait' : 'pointer',
-                        boxShadow: '0 4px 12px rgba(123, 28, 110, 0.25)',
+                        boxShadow: '0 4px 12px rgba(124, 58, 237, 0.25)',
                         transition: 'all 0.15s ease'
                       }}
                     >
                       <Plus size={15} /> {addingExample ? 'Saving Snippet...' : '+ Add Code Snippet to Topic'}
                     </button>
-                    <span style={{ fontSize: '11.5px', color: '#86198F', fontWeight: 600 }}>
+                    <span style={{ fontSize: '11.5px', color: '#8B5CF6', fontWeight: 600 }}>
                       💡 This code will appear under the "Practical Code" tab in the student portal.
                     </span>
                   </div>
@@ -1591,7 +1591,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                       type="checkbox"
                       checked={paginatedTopics.length > 0 && paginatedTopics.every(t => selectedTopicIds.includes(t.id))}
                       onChange={() => toggleSelectAllPage(paginatedTopics)}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#7B1C6E' }}
+                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#7C3AED' }}
                       title="Select all on this page"
                     />
                   </th>
@@ -1617,7 +1617,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelectTopic(t.id)}
-                          style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#7B1C6E' }}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#7C3AED' }}
                         />
                       </td>
                       <td>
@@ -1736,7 +1736,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
               background: '#F8FAFC'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={16} color="#7B1C6E" />
+                <Eye size={16} color="#7C3AED" />
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Topic Notes & Study Material Preview</span>
               </div>
               <button

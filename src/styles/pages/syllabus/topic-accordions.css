@@ -5,7 +5,7 @@
 
 /* Hero Overview Banner — Theme Deep Magenta / Gold */
 .syllabus-hero-banner {
-  background: linear-gradient(135deg, #260822 0%, #420F3B 55%, #7B1C6E 100%);
+  background: linear-gradient(135deg, #260822 0%, #420F3B 55%, #7C3AED 100%);
   border-radius: var(--radius-xl, 18px);
   padding: 24px 28px;
   color: white;
@@ -48,7 +48,7 @@
 
 .syllabus-hero-desc {
   font-size: 0.85rem;
-  color: #F6E2F3;
+  color: #EDE9FE;
   opacity: 0.92;
   margin: 0;
   line-height: 1.4;
@@ -90,7 +90,7 @@
 
 .syllabus-hero-cta {
   padding: 10px 18px;
-  background: linear-gradient(135deg, #7B1C6E 0%, #FDC029 100%);
+  background: linear-gradient(135deg, #7C3AED 0%, #FDC029 100%);
   color: white;
   border-radius: 12px;
   font-size: 0.82rem;
@@ -100,7 +100,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 14px rgba(123, 28, 110, 0.35);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
   transition: all 0.2s;
 }
 
@@ -120,14 +120,14 @@
   background: white;
   border-radius: var(--radius-xl, 16px);
   border: 1px solid var(--gray-200, #F0E2EE);
-  box-shadow: var(--shadow-sm, 0 2px 6px rgba(123,28,110,0.04));
+  box-shadow: var(--shadow-sm, 0 2px 6px rgba(124, 58, 237,0.04));
   overflow: hidden;
   transition: all 0.2s ease;
 }
 
 .syllabus-chapter-card:hover {
-  border-color: #9B2D8C;
-  box-shadow: 0 6px 20px rgba(123, 28, 110, 0.1);
+  border-color: #A855F7;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.1);
 }
 
 .syllabus-chapter-header {
@@ -151,14 +151,14 @@
   width: 46px;
   height: 46px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #7B1C6E 0%, #9B2D8C 100%);
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
   font-weight: 900;
-  box-shadow: 0 4px 10px rgba(123, 28, 110, 0.25);
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
   flex-shrink: 0;
 }
 
@@ -192,7 +192,7 @@
 
 .syllabus-level-badge.advanced {
   background: #FDF5FD;
-  color: #7B1C6E;
+  color: #7C3AED;
   border: 1px solid #F0E2EE;
 }
 
@@ -242,20 +242,20 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 1px 2px rgba(123,28,110,0.03);
+  box-shadow: 0 1px 2px rgba(124, 58, 237,0.03);
   transition: border-color 0.15s;
 }
 
 .syllabus-topic-chip:hover {
-  border-color: #7B1C6E;
+  border-color: #7C3AED;
 }
 
 .syllabus-topic-num {
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: #F6E2F3;
-  color: #7B1C6E;
+  background: #EDE9FE;
+  color: #7C3AED;
   font-size: 0.72rem;
   font-weight: 800;
   display: flex;

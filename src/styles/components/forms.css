@@ -139,8 +139,8 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #7B1C6E !important;
-  box-shadow: 0 0 0 3.5px rgba(123, 28, 110, 0.12) !important;
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 3.5px rgba(124, 58, 237, 0.12) !important;
   background-color: #ffffff !important;
 }
 

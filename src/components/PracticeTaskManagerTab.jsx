@@ -1089,7 +1089,7 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
               background: '#F8FAFC'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={16} color="#7B1C6E" />
+                <Eye size={16} color="#7C3AED" />
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Practice Task Details</span>
               </div>
               <button

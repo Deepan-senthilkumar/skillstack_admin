@@ -398,7 +398,7 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
 
       {/* Modern Compact Metrics Strip */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '18px' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FAF5FF', color: '#7B1C6E', border: '1px solid #E9D5FF', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FAF5FF', color: '#7C3AED', border: '1px solid #E9D5FF', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
           <Layers size={14} /> {modules.length} Chapters Active
         </span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
@@ -508,7 +508,7 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
                             style={{
                               background: 'transparent',
                               border: 'none',
-                              color: isExpanded ? '#7B1C6E' : '#94A3B8',
+                              color: isExpanded ? '#7C3AED' : '#94A3B8',
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',

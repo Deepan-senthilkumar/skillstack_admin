@@ -14,7 +14,7 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  box-shadow: 2px 0 12px rgba(123,28,110,0.05);
+  box-shadow: 2px 0 12px rgba(124, 58, 237,0.05);
   flex-shrink: 0;
 }
 
@@ -305,7 +305,7 @@
 .modal-body select:focus,
 .modal-body textarea:focus {
   border-color: var(--blue-primary);
-  box-shadow: 0 0 0 3px rgba(123,28,110,0.10);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237,0.10);
   background: white;
 }
 .modal-body textarea { resize: vertical; min-height: 80px; }
@@ -491,7 +491,7 @@
   background: var(--blue-primary);
   color: #FFFFFF;
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(123, 28, 110, 0.28);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28);
 }
 .nav-link-item.active .nav-item-icon {
   color: #FFFFFF !important;
