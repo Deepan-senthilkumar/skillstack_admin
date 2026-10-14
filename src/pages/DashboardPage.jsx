@@ -6,6 +6,7 @@ import {
   Code2, UserCheck, ShieldCheck, Flame
 } from 'lucide-react';
 import { api } from '../api';
+import { ADMIN_MODULES } from '../layouts/AdminLayout';
 
 export default function DashboardPage({ user, onNavigate }) {
   const [stats, setStats] = useState({
@@ -119,18 +120,12 @@ export default function DashboardPage({ user, onNavigate }) {
               <Plus size={16} />
               <span>Log Today's Class / Lab</span>
             </button>
-            <button className="dash-action-btn secondary" onClick={() => onNavigate('batches')}>
-              <Layers size={16} />
-              <span>Manage Batches</span>
-            </button>
-            <button className="dash-action-btn outline" onClick={() => onNavigate('submissions')}>
-              <Code2 size={16} />
-              <span>Review Code</span>
-            </button>
-            <button className="dash-action-btn outline" onClick={() => onNavigate('reports')}>
-              <BarChart3 size={16} />
-              <span>View Analytics</span>
-            </button>
+            <div className="dash-hero-status-tag">
+              <span className="live-pulse-dot" style={{ background: '#10B981', display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%' }} />
+              <span style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.92)', fontWeight: 600 }}>
+                Modular Sub-modules Engine Active
+              </span>
+            </div>
           </div>
         </div>
 
@@ -218,6 +213,54 @@ export default function DashboardPage({ user, onNavigate }) {
             </span>
             <span className="kpi-footnote">Auto-grader output</span>
           </div>
+        </div>
+      </div>
+
+      {/* Main Modules & Sub-modules Directory Hub */}
+      <div className="modules-directory-hub">
+        <div className="hub-header-row">
+          <div>
+            <h2 className="hub-title">Core Operations Modules</h2>
+            <p className="hub-desc">Structured functional departments and corresponding sub-modules</p>
+          </div>
+          <span className="hub-badge-pill">4 Core Modules • 14 Sub-modules</span>
+        </div>
+
+        <div className="modules-cards-grid">
+          {ADMIN_MODULES.map((mod) => {
+            const ModIcon = mod.icon;
+            return (
+              <div key={mod.id} className="module-overview-card">
+                <div className="mod-card-header">
+                  <div className="mod-card-icon-box">
+                    <ModIcon size={20} />
+                  </div>
+                  <div>
+                    <h3 className="mod-card-title">{mod.label}</h3>
+                    <span className="mod-card-badge">{mod.badge}</span>
+                  </div>
+                </div>
+
+                <div className="mod-submodules-list">
+                  {mod.submodules.map((sub) => {
+                    const SubIcon = sub.icon;
+                    return (
+                      <button
+                        key={sub.id}
+                        className="mod-submodule-chip"
+                        onClick={() => onNavigate(sub.id)}
+                        title={sub.desc}
+                      >
+                        <SubIcon size={14} className="chip-icon" />
+                        <span className="chip-label">{sub.label}</span>
+                        {sub.badge && <span className="chip-badge">{sub.badge}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

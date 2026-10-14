@@ -6,7 +6,7 @@
 /* ── Unified Modern Button System ──────────────────────────── */
 .btn-primary,
 .btn-save-primary {
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 50%, #EC4899 100%) !important;
   color: #FFFFFF !important;
   font-size: 0.86rem !important;
   font-weight: 600 !important;

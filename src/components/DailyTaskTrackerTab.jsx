@@ -246,8 +246,8 @@ export default function DailyTaskTrackerTab({ user }) {
                           type="button"
                           className={`p-2.5 rounded-xl border font-semibold text-xs flex items-center justify-center gap-1.5 transition-all ${
                             formData.session_type === st.id
-                              ? 'border-primary bg-primary/10 text-primary font-bold shadow-sm'
-                              : 'border-border-subtle bg-white dark:bg-slate-900 text-gray-700 hover:border-gray-300'
+                              ? 'border-purple-600 bg-purple-50 text-purple-700 font-bold shadow-sm'
+                              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300'
                           }`}
                           onClick={() => setFormData({ ...formData, session_type: st.id })}
                         >
@@ -309,13 +309,13 @@ export default function DailyTaskTrackerTab({ user }) {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="form-row-2 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-border-subtle">
+                  <div className="form-row-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <div className="form-group">
                       <label>Total Enrolled in Batch</label>
                       <input
                         type="number"
                         readOnly
-                        className="bg-gray-100 dark:bg-slate-700 font-bold"
+                        className="bg-slate-100 font-bold text-slate-800"
                         value={formData.total_enrolled}
                       />
                     </div>
@@ -396,7 +396,7 @@ export default function DailyTaskTrackerTab({ user }) {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl border border-border-subtle bg-slate-50 dark:bg-slate-800/50 space-y-3">
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted">Batch:</span>
                     <span className="font-bold text-primary">{selectedBatchObj?.name || '—'}</span>
