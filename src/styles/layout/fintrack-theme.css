@@ -1,0 +1,754 @@
+/* ==========================================================================
+   FINTRACK AESTHETIC THEME FOR SKILLSTACK ADMIN
+   - Soft Warm Cream Background (#F5F3EF)
+   - 3D Tactile Rounded Cards (20-28px radius)
+   - Floating White Sidebar with Logo-Only Collapsed Hover Flyout
+   - Single-Accordion Behavior for Interlinked Curriculum Modules
+   - Standalone Important Items Directly Outside
+   ========================================================================== */
+
+:root {
+  --ft-bg: #F5F3EF;
+  --ft-card-bg: #FFFFFF;
+  --ft-primary: #5B58EB;
+  --ft-primary-hover: #4F46E5;
+  --ft-primary-gradient: linear-gradient(135deg, #5B58EB 0%, #7C3AED 100%);
+  --ft-text-main: #1E293B;
+  --ft-text-muted: #64748B;
+  --ft-text-subtle: #94A3B8;
+  --ft-border: #E8E5DF;
+  --ft-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --ft-shadow-card: 0 10px 30px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --ft-shadow-float: 0 20px 45px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --ft-shadow-pill: 0 6px 16px rgba(91, 88, 235, 0.35);
+  --ft-radius-lg: 24px;
+  --ft-radius-xl: 28px;
+}
+
+/* 1. App Shell Container */
+.fintrack-admin-root {
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--ft-bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--ft-text-main);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.fintrack-app-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+/* 2. Floating Sidebar (FinTrack Style) */
+.fintrack-sidebar {
+  height: calc(100vh - 32px);
+  margin: 16px 0 16px 16px;
+  background: var(--ft-card-bg);
+  border-radius: var(--ft-radius-xl);
+  box-shadow: var(--ft-shadow-card);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 16px;
+  z-index: 40;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, transform 0.3s ease;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Expanded full width */
+.fintrack-sidebar.expanded {
+  width: 275px;
+  min-width: 275px;
+}
+
+/* Collapsed state: Only logo visible as requested */
+.fintrack-sidebar.collapsed-logo-only {
+  width: 82px;
+  min-width: 82px;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* When collapsed sidebar is hovered over: flies out smoothly as floating overlay */
+.fintrack-sidebar.floating-overlay {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  width: 280px !important;
+  z-index: 100;
+  box-shadow: var(--ft-shadow-float);
+  border: 1px solid rgba(91, 88, 235, 0.15);
+  animation: fintrack-flyout 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fintrack-flyout {
+  0% {
+    width: 82px;
+    opacity: 0.95;
+  }
+  100% {
+    width: 280px;
+    opacity: 1;
+  }
+}
+
+/* Sidebar Brand Header */
+.fintrack-sidebar-header {
+  padding: 20px 18px 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #F1EFEA;
+}
+
+.fintrack-brand-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.fintrack-brand-logo-pill {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 14px;
+  background: var(--ft-primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(91, 88, 235, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.fintrack-brand-btn:hover .fintrack-brand-logo-pill {
+  transform: scale(1.05);
+}
+
+.fintrack-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fintrack-pro-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: #FEE2E2;
+  color: #DC2626;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.brand-subtitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ft-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sidebar-pin-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #F3F1EC;
+  border: none;
+  color: var(--ft-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-pin-btn:hover {
+  background: #E5E2DC;
+  color: #0F172A;
+}
+
+/* Collapsed indicator dot */
+.fintrack-collapsed-hint {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.collapsed-indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #CBD5E1;
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.3); background: var(--ft-primary); }
+}
+
+/* Navigation Body */
+.fintrack-nav-body {
+  flex: 1;
+  padding: 14px 12px 16px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.fintrack-nav-body::-webkit-scrollbar {
+  width: 4px;
+}
+.fintrack-nav-body::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 4px;
+}
+
+.fintrack-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Standalone Nav Item (Directly outside) */
+.fintrack-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.fintrack-nav-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fintrack-nav-item .nav-icon {
+  color: #64748B;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.fintrack-nav-item:hover {
+  background: #F8F7F4;
+  color: #0F172A;
+  transform: translateX(2px);
+}
+
+.fintrack-nav-item:hover .nav-icon {
+  color: var(--ft-primary);
+}
+
+/* Active Standalone Item (FinTrack Purple Pill) */
+.fintrack-nav-item.active {
+  background: var(--ft-primary-gradient);
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: var(--ft-shadow-pill);
+}
+
+.fintrack-nav-item.active .nav-icon {
+  color: #FFFFFF;
+}
+
+.fintrack-item-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: #EDE9FE;
+  color: #6D28D9;
+}
+
+.fintrack-item-badge.badge-active {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+/* Collapsible Module Group (Curriculum & Academics) */
+.fintrack-module-group {
+  margin: 4px 0;
+  border-radius: 14px;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.fintrack-module-group.parent-active {
+  background: rgba(91, 88, 235, 0.04);
+}
+
+.fintrack-module-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.module-trigger-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fintrack-module-trigger:hover {
+  background: #F8F7F4;
+  color: #0F172A;
+}
+
+.fintrack-module-trigger.open {
+  color: var(--ft-primary);
+}
+
+.fintrack-module-trigger.active-parent {
+  color: var(--ft-primary);
+  font-weight: 700;
+}
+
+/* Submodules Tree inside Accordion */
+.fintrack-submodules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 8px 22px;
+  padding-left: 14px;
+  border-left: 2px solid #E2E8F0;
+}
+
+.fintrack-submodule-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.fintrack-submodule-btn:hover {
+  background: #F1EFEA;
+  color: #0F172A;
+}
+
+.fintrack-submodule-btn.active {
+  background: #EDE9FE;
+  color: #5B21B6;
+  font-weight: 700;
+}
+
+.submodule-pill-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: #DDD6FE;
+  color: #5B21B6;
+}
+
+/* FinTrack 3D Promo Card in Sidebar */
+.fintrack-sidebar-promo-card {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #7C3AED 0%, #5B58EB 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 20px rgba(91, 88, 235, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.fintrack-sidebar-promo-card::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.promo-badge-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.promo-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.promo-sub {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* 3. Main Workspace Stage */
+.fintrack-main-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 24px 20px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Top Header Bar */
+.fintrack-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 16px;
+}
+
+.fintrack-header-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.03em;
+  margin: 0 0 4px 0;
+}
+
+.fintrack-header-subtitle {
+  font-size: 0.86rem;
+  color: var(--ft-text-muted);
+  margin: 0;
+}
+
+.fintrack-desktop-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--ft-border);
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--ft-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.fintrack-desktop-toggle:hover {
+  background: #F8F7F4;
+  color: var(--ft-primary);
+}
+
+.fintrack-mobile-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--ft-border);
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Header Actions Block (Search, Notification, Profile, SignOut) */
+.header-actions-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Search Pill */
+.fintrack-search-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 1px solid var(--ft-border);
+  box-shadow: var(--ft-shadow-sm);
+  width: 200px;
+}
+
+.fintrack-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.84rem;
+  color: var(--ft-text-main);
+  width: 100%;
+}
+
+.fintrack-search-input::placeholder {
+  color: #94A3B8;
+}
+
+/* Circular Notification Button */
+.fintrack-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1px solid var(--ft-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  cursor: pointer;
+  position: relative;
+  box-shadow: var(--ft-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.fintrack-icon-btn:hover {
+  background: #F8F7F4;
+  color: var(--ft-primary);
+  transform: translateY(-1px);
+}
+
+.notification-red-dot {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EF4444;
+  border: 2px solid #FFFFFF;
+}
+
+/* User Profile Pill */
+.fintrack-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  padding: 4px 12px 4px 5px;
+  border-radius: 9999px;
+  border: 1px solid var(--ft-border);
+  box-shadow: var(--ft-shadow-sm);
+}
+
+.fintrack-user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #A855F7 0%, #6366F1 100%);
+  color: #FFFFFF;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+.fintrack-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.fintrack-user-info .user-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.2;
+}
+
+.fintrack-user-info .user-role {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #6366F1;
+  text-transform: uppercase;
+}
+
+/* Logout Button */
+.fintrack-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #FEE2E2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fintrack-logout-btn:hover {
+  background: #FCA5A5;
+  color: #991B1B;
+}
+
+/* 4. Curriculum Sub-modules Ribbon (Quick horizontal switcher) */
+.fintrack-curriculum-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #FFFFFF;
+  padding: 10px 18px;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  box-shadow: var(--ft-shadow-card);
+  border: 1px solid var(--ft-border);
+  flex-wrap: wrap;
+}
+
+.ribbon-label-part {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ribbon-tabs-part {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ribbon-tab-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ribbon-tab-pill:hover {
+  background: #EDE9FE;
+  color: #5B21B6;
+  border-color: #C4B5FD;
+}
+
+.ribbon-tab-pill.active {
+  background: var(--ft-primary-gradient);
+  color: #FFFFFF;
+  border-color: transparent;
+  box-shadow: 0 3px 10px rgba(91, 88, 235, 0.3);
+}
+
+/* 5. Content Viewport Container */
+.fintrack-content-viewport {
+  flex: 1;
+  width: 100%;
+}
+
+/* Ensure inner cards and panels match FinTrack tactile 3D style */
+.fintrack-content-viewport .kpi-card,
+.fintrack-content-viewport .dashboard-card,
+.fintrack-content-viewport .panel-container,
+.fintrack-content-viewport .card {
+  border-radius: var(--ft-radius-lg) !important;
+  background: #FFFFFF !important;
+  border: 1px solid var(--ft-border) !important;
+  box-shadow: var(--ft-shadow-card) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.fintrack-content-viewport .kpi-card:hover,
+.fintrack-content-viewport .dashboard-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .fintrack-sidebar {
+    position: fixed;
+    left: -300px;
+    top: 0;
+    margin: 0;
+    height: 100vh;
+    border-radius: 0 24px 24px 0;
+    z-index: 100;
+    transition: left 0.3s ease;
+  }
+
+  .fintrack-sidebar.mobile-open {
+    left: 0;
+    width: 280px;
+  }
+
+  .fintrack-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 90;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+
+  .fintrack-search-pill {
+    width: 130px;
+  }
+}

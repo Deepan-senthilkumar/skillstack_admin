@@ -43,6 +43,55 @@ export const ADMIN_NAV_CONFIG = [
   { id: 'users', label: 'User Directory', icon: Shield, isStandalone: true },
 ];
 
+export const ADMIN_MODULES = [
+  {
+    id: 'curriculum',
+    label: 'Curriculum & Academics',
+    icon: BookOpen,
+    badge: '5 Tracks',
+    submodules: [
+      { id: 'subjects', label: 'Master Courses', icon: BookOpen, desc: 'Core subject tracks & tracks catalog' },
+      { id: 'syllabus', label: 'Syllabus & Modules', icon: Layers, desc: 'Chapter structure & module hierarchy' },
+      { id: 'topics', label: 'Topics & Study Notes', icon: FileText, desc: 'Theory notes, summaries & references' },
+      { id: 'problems', label: 'Practice Labs & Code', icon: Code2, desc: 'Coding workbench challenges & test cases' },
+      { id: 'quiz_bank', label: 'Question Bank (MCQs)', icon: HelpCircle, badge: '880 MCQs', desc: 'Topic-wise assessment pool' },
+    ]
+  },
+  {
+    id: 'operations',
+    label: 'Batch Operations & Attendance',
+    icon: Users,
+    badge: '4 Modules',
+    submodules: [
+      { id: 'daily_task', label: 'Daily Sessions', icon: Calendar, desc: 'Class attendance and daily task allocation' },
+      { id: 'batches', label: 'Batches & Rosters', icon: Users, desc: 'Cohorts, student enrollment & timetables' },
+      { id: 'submissions', label: 'Code Submissions', icon: Sparkles, desc: 'Evaluation of student lab assignments' },
+      { id: 'doubts', label: 'Student Doubts', icon: MessageSquare, badge: 'Live', desc: 'Mentor resolutions & questions' },
+    ]
+  },
+  {
+    id: 'analytics',
+    label: 'Command & Analytics',
+    icon: LayoutDashboard,
+    badge: '3 Modules',
+    submodules: [
+      { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, desc: 'Overview and system metrics' },
+      { id: 'quiz_analytics', label: 'Quiz Analytics', icon: BarChart3, desc: 'Performance distributions & accuracy' },
+      { id: 'reports', label: 'Performance Reports', icon: TrendingUp, desc: 'Batch progress and student tracking' },
+    ]
+  },
+  {
+    id: 'governance',
+    label: 'Governance & Access',
+    icon: Shield,
+    badge: '2 Modules',
+    submodules: [
+      { id: 'users', label: 'User Directory', icon: Shield, desc: 'Super admins, instructors and students' },
+      { id: 'certificates', label: 'Certificates & Enrolls', icon: Award, desc: 'Course completions & credentials' },
+    ]
+  }
+];
+
 export default function AdminLayout({
   user,
   activePage,
