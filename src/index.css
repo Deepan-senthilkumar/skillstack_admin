@@ -15,6 +15,7 @@
 @import './styles/layout/sidebar.css';
 @import './styles/layout/layout.css';
 @import './styles/layout/modular-nav.css';
+@import './styles/layout/fintrack-theme.css';
 
 /* 4. Page-Specific Sections */
 @import './styles/pages/login/splash-screen.css';

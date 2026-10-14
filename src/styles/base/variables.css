@@ -52,25 +52,25 @@
   --font-mono: 'IBM Plex Mono', SFMono-Regular, Consolas, monospace;
   --font-head: 'Sora', 'IBM Plex Sans', sans-serif;
 
-  /* ── StaffDashboard Variables ─────────────────────────────── */
+  /* ── FinTrack Warm Clean Palette ─────────────────────────────── */
   /* Backgrounds */
-  --bg-base:              #F8FAFC;
+  --bg-base:              #F5F3EF;
   --bg-surface:           #FFFFFF;
   --bg-surface-elevated:  #FFFFFF;
-  --bg-surface-2:         #F1F5F9;
+  --bg-surface-2:         #EFECE6;
 
   /* Text */
-  --text-primary:         #0F172A;
-  --text-secondary:       #475569;
-  --text-tertiary:        #64748B;
+  --text-primary:         #1E293B;
+  --text-secondary:       #64748B;
+  --text-tertiary:        #94A3B8;
 
-  /* Blues (brand primary for dashboard tabs/buttons) */
-  --blue-primary:         #7C3AED;
-  --blue-vibrant:         #8B5CF6;
-  --blue-soft:            #F5F3FF;
-  --blue:                 #7C3AED;
-  --accent:               #7C3AED;
-  --blue-border:          #DDD6FE;
+  /* FinTrack Purple Brand */
+  --blue-primary:         #5B58EB;
+  --blue-vibrant:         #6366F1;
+  --blue-soft:            #EEF2FF;
+  --blue:                 #5B58EB;
+  --accent:               #5B58EB;
+  --blue-border:          #E0E7FF;
 
   /* Accent Colors */
   --amber:                #F59E0B;
@@ -78,12 +78,14 @@
   --emerald:              #10B981;
 
   /* Borders */
-  --border-subtle:        #E2E8F0;
-  --border-medium:        #CBD5E1;
-  --border-strong:        #94A3B8;
+  --border-subtle:        #EAE7E1;
+  --border-medium:        #DDD8CE;
+  --border-strong:        #C7C0B2;
 
-  /* Shadows */
-  --shadow-glass:         0 8px 30px rgba(15, 23, 42, 0.06);
+  /* Shadows (Soft Tactile 3D) */
+  --shadow-sm:            0 2px 4px rgba(0, 0, 0, 0.02);
+  --shadow-card:          0 10px 30px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-glass:         0 16px 40px rgba(0, 0, 0, 0.06);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
