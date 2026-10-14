@@ -3,8 +3,58 @@ import {
   Shield, LayoutDashboard, Layers, CheckSquare, Calendar,
   Code2, BarChart3, BookOpen, Users, LogOut,
   Menu, X, Sparkles, ExternalLink, FileText, HelpCircle, Award, AlertTriangle,
-  MessageSquare
+  MessageSquare, ChevronDown, ChevronRight, TrendingUp, CheckCircle2
 } from 'lucide-react';
+
+export const ADMIN_MODULES = [
+  {
+    id: 'analytics_hub',
+    label: 'Command & Analytics',
+    icon: LayoutDashboard,
+    badge: 'Hub',
+    submodules: [
+      { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, badge: 'Live', desc: 'Real-time cohort & session matrix' },
+      { id: 'quiz_analytics', label: 'Quiz Analytics', icon: BarChart3, desc: 'Attempt statistics & pass rates' },
+      { id: 'reports', label: 'Performance Reports', icon: TrendingUp, desc: 'Detailed attendance & completion reports' },
+    ]
+  },
+  {
+    id: 'curriculum_engine',
+    label: 'Curriculum & Academics',
+    icon: BookOpen,
+    badge: '5 Tracks',
+    submodules: [
+      { id: 'subjects', label: 'Master Courses', icon: BookOpen, desc: 'Core subject tracks & tracks catalog' },
+      { id: 'syllabus', label: 'Syllabus & Modules', icon: Layers, desc: 'Chapter structure & module hierarchy' },
+      { id: 'topics', label: 'Topics & Study Notes', icon: FileText, desc: 'Theory notes, summaries & references' },
+      { id: 'problems', label: 'Practice Labs & Code', icon: Code2, desc: 'Coding workbench challenges & test cases' },
+      { id: 'quiz_bank', label: 'Question Bank (MCQs)', icon: HelpCircle, badge: '66 MCQs', desc: 'Topic-wise assessment pool' },
+    ]
+  },
+  {
+    id: 'classroom_operations',
+    label: 'Classroom & Batches',
+    icon: Calendar,
+    badge: 'Daily',
+    submodules: [
+      { id: 'daily_task', label: 'Daily Session & Attendance', icon: Calendar, desc: 'Log daily class topics and student presence' },
+      { id: 'batches', label: 'Batches & Rosters', icon: Users, desc: 'Morning & evening student cohort rosters' },
+      { id: 'progress', label: 'Topic Progress Matrix', icon: CheckSquare, desc: 'Per-topic batch completion status' },
+      { id: 'submissions', label: 'Code Submissions & Review', icon: Sparkles, desc: 'Student code auto-evaluation and grading' },
+      { id: 'doubts', label: 'Student Doubts & Q&A', icon: MessageSquare, badge: '1-on-1', desc: 'Live doubt clarification desk' },
+    ]
+  },
+  {
+    id: 'governance_admin',
+    label: 'Governance & Access',
+    icon: Shield,
+    badge: 'Security',
+    submodules: [
+      { id: 'certificates', label: 'Enrollments & Certs', icon: Award, desc: 'Student enrollment status and digital certificates' },
+      { id: 'users', label: 'User Directory', icon: Shield, desc: 'Staff, student accounts & permission roles' },
+    ]
+  }
+];
 
 export default function AdminLayout({
   user,
@@ -17,8 +67,34 @@ export default function AdminLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [demoToast, setDemoToast] = useState(null);
+
+  // Track accordion expand/collapse per main module
+  const [expandedModules, setExpandedModules] = useState({
+    analytics_hub: true,
+    curriculum_engine: true,
+    classroom_operations: true,
+    governance_admin: true
+  });
+
+  // Find active parent module
+  const activeModule = ADMIN_MODULES.find(mod =>
+    mod.submodules.some(sub => sub.id === activePage || (activePage === 'courses' && sub.id === 'subjects'))
+  ) || ADMIN_MODULES[0];
+
+  const activeSubmodule = activeModule?.submodules.find(
+    sub => sub.id === activePage || (activePage === 'courses' && sub.id === 'subjects')
+  );
+
+  // Ensure current active module is automatically expanded
+  useEffect(() => {
+    if (activeModule) {
+      setExpandedModules(prev => ({
+        ...prev,
+        [activeModule.id]: true
+      }));
+    }
+  }, [activePage, activeModule?.id]);
 
   useEffect(() => {
     const handleDemoRestriction = (e) => {
@@ -31,76 +107,16 @@ export default function AdminLayout({
     return () => window.removeEventListener('admin:demo-restriction', handleDemoRestriction);
   }, []);
 
-  const navigationSections = [
-    {
-      title: 'Command Center',
-      items: [
-        { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, badge: 'Live' },
-      ]
-    },
-    {
-      title: 'Curriculum & Academics',
-      items: [
-        { id: 'subjects', label: 'Master Courses', icon: BookOpen },
-        { id: 'syllabus', label: 'Syllabus & Modules', icon: Layers },
-        { id: 'topics', label: 'Topics & Study Notes', icon: FileText },
-        { id: 'problems', label: 'Practice Labs & Code', icon: Code2 },
-        { id: 'quiz_bank', label: 'Question Bank (MCQs)', icon: HelpCircle, badge: '66 MCQs' },
-      ]
-    },
-    {
-      title: 'Batches & Operations',
-      items: [
-        { id: 'doubts', label: 'Student Doubts & Q&A', icon: MessageSquare, badge: '1-on-1' },
-        { id: 'certificates', label: 'Enrollments & Certs', icon: Award },
-        { id: 'batches', label: 'Batches & Rosters', icon: Users },
-        { id: 'progress', label: 'Topic Progress Matrix', icon: CheckSquare },
-        { id: 'daily_task', label: 'Daily Session & Attendance', icon: Calendar },
-        { id: 'submissions', label: 'Code Submissions & Review', icon: Sparkles },
-      ]
-    },
-    {
-      title: 'Analytics & Admin',
-      items: [
-        { id: 'quiz_analytics', label: 'Quiz Attempt Analytics', icon: Award },
-        { id: 'reports', label: 'Reports & Performance', icon: BarChart3 },
-        { id: 'users', label: 'User Directory', icon: Shield },
-      ]
-    }
-  ];
+  const toggleModuleAccordion = (moduleId) => {
+    setExpandedModules(prev => ({
+      ...prev,
+      [moduleId]: !prev[moduleId]
+    }));
+  };
 
-  const handleNavClick = (id) => {
-    onNavigate(id);
+  const handleSubmoduleClick = (subId) => {
+    onNavigate(subId);
     setMobileMenuOpen(false);
-  };
-
-  const getPageCategory = (pageId) => {
-    if (pageId === 'dashboard') return 'Command Center';
-    if (['subjects', 'syllabus', 'courses', 'topics', 'problems', 'quiz_bank'].includes(pageId)) return 'Curriculum Studio';
-    if (['doubts', 'batches', 'progress', 'daily_task', 'submissions'].includes(pageId)) return 'Classroom & Operations';
-    return 'Analytics & Admin';
-  };
-
-  const getPageTitle = (pageId) => {
-    switch (pageId) {
-      case 'dashboard': return 'Executive Operations Dashboard';
-      case 'doubts': return 'Student Doubts & 1-on-1 Clarification Desk';
-      case 'subjects': return 'Master Courses Catalog';
-      case 'syllabus': return 'Syllabus & Modules Manager';
-      case 'courses': return 'Course & Curriculum Management';
-      case 'topics': return 'Topics & Study Notes';
-      case 'quiz_bank': return 'Topic Question Bank (MCQs)';
-      case 'problems': return 'Practice Labs & Assignment Tasks';
-      case 'certificates': return 'Student Enrollments & Certificates';
-      case 'batches': return 'Batch Management & Rosters';
-      case 'progress': return 'Curriculum Completion Progress';
-      case 'daily_task': return 'Daily Session & Attendance';
-      case 'submissions': return 'Student Code Submissions & Grading';
-      case 'quiz_analytics': return 'Test & Quiz Attempt Analytics';
-      case 'reports': return 'Analytics & Performance Reports';
-      case 'users': return 'User Directory & Access Control';
-      default: return 'Admin Studio';
-    }
   };
 
   return (
@@ -131,9 +147,9 @@ export default function AdminLayout({
           </div>
 
           <div className="header-breadcrumbs">
-            <span className="breadcrumb-category">{getPageCategory(activePage)}</span>
+            <span className="breadcrumb-category">{activeModule.label}</span>
             <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">{getPageTitle(activePage)}</span>
+            <span className="breadcrumb-current">{activeSubmodule?.label || 'Admin Studio'}</span>
           </div>
         </div>
 
@@ -146,7 +162,7 @@ export default function AdminLayout({
 
           {/* User Profile Pill */}
           <div className="user-profile-widget">
-            <div className="user-avatar-circle" style={user?.is_demo ? { background: '#7C3AED', color: '#FFFFFF' } : {}}>
+            <div className="user-avatar-circle" style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)', color: '#FFFFFF' }}>
               {(user?.first_name || user?.username || 'A')[0].toUpperCase()}
             </div>
             <div className="user-meta-block">
@@ -181,7 +197,7 @@ export default function AdminLayout({
           alignItems: 'center',
           justifyContent: 'space-between',
           fontSize: '12px',
-          borderBottom: '1.5px solid #FDC029',
+          borderBottom: '1.5px solid #DDD6FE',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
           zIndex: 99,
           position: 'sticky',
@@ -263,35 +279,73 @@ export default function AdminLayout({
         {/* Navigation Sidebar */}
         <aside className={`admin-sidebar-nav ${sidebarOpen ? 'open' : 'closed'} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           <div className="sidebar-inner-scroller">
-            {navigationSections.map((section, idx) => (
-              <div key={idx} className="nav-section-group">
-                <div className="nav-section-header">
-                  <span>{section.title}</span>
-                </div>
-                <div className="nav-items-list">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activePage === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        className={`nav-link-item ${isActive ? 'active' : ''}`}
-                        onClick={() => handleNavClick(item.id)}
-                      >
-                        <div className="nav-link-left">
-                          <Icon size={19} className="nav-item-icon" />
-                          <span className="nav-item-label">{item.label}</span>
+            <div className="sidebar-module-hierarchy">
+              {ADMIN_MODULES.map((module) => {
+                const ModuleIcon = module.icon;
+                const isExpanded = !!expandedModules[module.id];
+                const isModuleActive = activeModule?.id === module.id;
+
+                return (
+                  <div key={module.id} className={`main-module-group ${isModuleActive ? 'active-module' : ''}`}>
+                    {/* Main Module Accordion Trigger */}
+                    <button
+                      type="button"
+                      className={`main-module-trigger ${isExpanded ? 'expanded' : ''} ${isModuleActive ? 'current-parent' : ''}`}
+                      onClick={() => toggleModuleAccordion(module.id)}
+                    >
+                      <div className="module-trigger-left">
+                        <div className={`module-icon-bubble ${isModuleActive ? 'active' : ''}`}>
+                          <ModuleIcon size={17} />
                         </div>
-                        {item.badge && (
-                          <span className="nav-item-badge">{item.badge}</span>
+                        <div className="module-title-wrap">
+                          <span className="module-title-text">{module.label}</span>
+                          <span className="module-sub-count">{module.submodules.length} sub-modules</span>
+                        </div>
+                      </div>
+
+                      <div className="module-trigger-right">
+                        {isExpanded ? (
+                          <ChevronDown size={15} className="chevron-icon" />
+                        ) : (
+                          <ChevronRight size={15} className="chevron-icon" />
                         )}
-                        {isActive && <div className="active-indicator-bar" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+                      </div>
+                    </button>
+
+                    {/* Sub-modules List */}
+                    {isExpanded && (
+                      <div className="submodules-container">
+                        <div className="submodules-track">
+                          {module.submodules.map((sub) => {
+                            const SubIcon = sub.icon;
+                            const isActive = activePage === sub.id || (activePage === 'courses' && sub.id === 'subjects');
+
+                            return (
+                              <button
+                                key={sub.id}
+                                className={`submodule-item-btn ${isActive ? 'active' : ''}`}
+                                onClick={() => handleSubmoduleClick(sub.id)}
+                                title={sub.desc}
+                              >
+                                <div className="submodule-item-left">
+                                  <SubIcon size={16} className="submodule-icon" />
+                                  <span className="submodule-label">{sub.label}</span>
+                                </div>
+                                {sub.badge && (
+                                  <span className={`submodule-badge ${isActive ? 'active-badge' : ''}`}>
+                                    {sub.badge}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Sidebar Footer System Info */}
@@ -302,7 +356,7 @@ export default function AdminLayout({
                 <span className="text-xs font-bold text-white">SkillStack Tutor OS</span>
               </div>
               <p className="text-[11px] text-gray-300">
-                Active Version v2.4 • Dynamic Attendance Engine Enabled
+                Structured Modular Engine • Clean Sub-modules Active
               </p>
             </div>
           </div>
@@ -310,6 +364,44 @@ export default function AdminLayout({
 
         {/* Main Workspace Stage */}
         <main className="admin-main-stage">
+          {/* Top Sub-Module Stage Ribbon */}
+          {activeModule && (
+            <div className="stage-submodule-ribbon">
+              <div className="ribbon-inner-wrapper">
+                <div className="ribbon-meta-section">
+                  <div className="ribbon-active-pill">
+                    <activeModule.icon size={15} className="text-purple-600" />
+                    <span className="ribbon-module-name">{activeModule.label}</span>
+                  </div>
+                  <h2 className="ribbon-submodule-title">{activeSubmodule?.label || 'Overview'}</h2>
+                </div>
+
+                <div className="ribbon-submodules-tabs" role="tablist">
+                  {activeModule.submodules.map((sub) => {
+                    const SubIcon = sub.icon;
+                    const isCurrent = activePage === sub.id || (activePage === 'courses' && sub.id === 'subjects');
+
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        className={`ribbon-tab-btn ${isCurrent ? 'active' : ''}`}
+                        onClick={() => onNavigate(sub.id)}
+                        title={sub.desc}
+                      >
+                        <SubIcon size={15} />
+                        <span>{sub.label}</span>
+                        {sub.badge && (
+                          <span className="ribbon-tab-badge">{sub.badge}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="stage-content-wrapper">
             {children}
           </div>
