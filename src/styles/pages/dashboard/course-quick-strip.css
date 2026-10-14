@@ -35,17 +35,17 @@
   border-radius: 20px;
   font-size: 0.76rem;
   font-weight: 600;
-  color: #7B1C6E;
+  color: #7C3AED;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .course-micro-pill:hover {
-  background: #7B1C6E;
+  background: #7C3AED;
   color: #ffffff;
-  border-color: #7B1C6E;
+  border-color: #7C3AED;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(123, 28, 110, 0.15);
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.15);
 }
 
 /* ── Responsive Queries ────────────────────────────────────── */

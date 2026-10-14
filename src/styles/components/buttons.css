@@ -6,7 +6,7 @@
 /* ── Unified Modern Button System ──────────────────────────── */
 .btn-primary,
 .btn-save-primary {
-  background: linear-gradient(135deg, #7B1C6E 0%, #9B2D8C 100%) !important;
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
   color: #FFFFFF !important;
   font-size: 0.86rem !important;
   font-weight: 600 !important;
@@ -18,7 +18,7 @@
   justify-content: center !important;
   gap: 7px !important;
   cursor: pointer !important;
-  box-shadow: 0 3px 10px rgba(123, 28, 110, 0.22) !important;
+  box-shadow: 0 3px 10px rgba(124, 58, 237, 0.22) !important;
   transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
   white-space: nowrap !important;
   box-sizing: border-box !important;
@@ -27,7 +27,7 @@
 .btn-primary:hover:not(:disabled),
 .btn-save-primary:hover:not(:disabled) {
   transform: translateY(-1px) !important;
-  box-shadow: 0 5px 16px rgba(123, 28, 110, 0.32) !important;
+  box-shadow: 0 5px 16px rgba(124, 58, 237, 0.32) !important;
   opacity: 0.96 !important;
 }
 
@@ -99,9 +99,9 @@
 
 .btn-outline:hover:not(:disabled),
 .btn-outline-sm:hover:not(:disabled) {
-  background: #FAF5F9 !important;
-  color: #7B1C6E !important;
-  border-color: #7B1C6E !important;
+  background: #F5F3FF !important;
+  color: #7C3AED !important;
+  border-color: #7C3AED !important;
   transform: translateY(-1px) !important;
 }
 
@@ -245,9 +245,9 @@
 .icon-btn:has(svg.lucide-pencil),
 .btn-icon-sm:has(svg.lucide-edit-2),
 .item-action-icon:has(svg.lucide-edit-2) {
-  background: #FAF5F9 !important;
-  border-color: #E9D5E7 !important;
-  color: #7B1C6E !important;
+  background: #F5F3FF !important;
+  border-color: #DDD6FE !important;
+  color: #7C3AED !important;
 }
 
 .icon-btn.edit:hover:not(:disabled),
@@ -257,10 +257,10 @@
 .icon-btn:has(svg.lucide-pencil):hover:not(:disabled),
 .btn-icon-sm:has(svg.lucide-edit-2):hover:not(:disabled),
 .item-action-icon:has(svg.lucide-edit-2):hover:not(:disabled) {
-  background: #7B1C6E !important;
-  border-color: #7B1C6E !important;
+  background: #7C3AED !important;
+  border-color: #7C3AED !important;
   color: #FFFFFF !important;
-  box-shadow: 0 3px 8px rgba(123, 28, 110, 0.28) !important;
+  box-shadow: 0 3px 8px rgba(124, 58, 237, 0.28) !important;
 }
 
 .icon-btn.edit:hover:not(:disabled) svg,

@@ -251,7 +251,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
       }}>
         <div>
           <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Award size={24} color="#7B1C6E" />
+            <Award size={24} color="#7C3AED" />
             Enrollments &amp; Verified Certificates
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
@@ -287,7 +287,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
       }}>
         <div className="card" style={{ padding: '16px 20px', borderRadius: '16px' }}>
           <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Total Registrations</div>
-          <div style={{ fontSize: '26px', fontWeight: 850, color: '#7B1C6E', marginTop: '4px' }}>{totalEnrollments}</div>
+          <div style={{ fontSize: '26px', fontWeight: 850, color: '#7C3AED', marginTop: '4px' }}>{totalEnrollments}</div>
         </div>
 
         <div className="card" style={{ padding: '16px 20px', borderRadius: '16px' }}>
@@ -327,7 +327,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
               fontWeight: 700,
               border: 'none',
               cursor: 'pointer',
-              background: subTab === 'enrollments' ? '#7B1C6E' : 'transparent',
+              background: subTab === 'enrollments' ? '#7C3AED' : 'transparent',
               color: subTab === 'enrollments' ? '#FFFFFF' : '#475569'
             }}
           >
@@ -433,10 +433,10 @@ export default function EnrollmentsCertificatesTab({ user }) {
                         <td style={{ padding: '12px 16px', minWidth: '160px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>
                             <span style={{ color: '#64748B' }}>Progress</span>
-                            <span style={{ color: '#7B1C6E' }}>{pct}%</span>
+                            <span style={{ color: '#7C3AED' }}>{pct}%</span>
                           </div>
                           <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
-                            <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #7B1C6E, #FDC029)', borderRadius: '3px' }} />
+                            <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #7C3AED, #FDC029)', borderRadius: '3px' }} />
                           </div>
                         </td>
 
@@ -561,7 +561,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
                             onClick={() => setEditingCert({ ...cert })}
                             className="btn btn-ghost btn-sm"
                             title="Edit Certificate Details"
-                            style={{ color: '#7B1C6E', padding: '4px 6px' }}
+                            style={{ color: '#7C3AED', padding: '4px 6px' }}
                           >
                             <Edit3 size={15} />
                           </button>
@@ -850,7 +850,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
             padding: '36px',
             position: 'relative',
             boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
-            border: '6px double #7B1C6E'
+            border: '6px double #7C3AED'
           }}>
             <button
               onClick={() => setPreviewCert(null)}
@@ -880,8 +880,8 @@ export default function EnrollmentsCertificatesTab({ user }) {
                 gap: '8px',
                 padding: '4px 14px',
                 borderRadius: '999px',
-                background: 'rgba(123, 28, 110, 0.08)',
-                color: '#7B1C6E',
+                background: 'rgba(124, 58, 237, 0.08)',
+                color: '#7C3AED',
                 fontSize: '12px',
                 fontWeight: 800,
                 letterSpacing: '0.08em',
@@ -900,7 +900,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
               <h3 style={{
                 fontSize: '32px',
                 fontWeight: 900,
-                color: '#7B1C6E',
+                color: '#7C3AED',
                 margin: '12px 0',
                 borderBottom: '2px solid #FDC029',
                 display: 'inline-block',
@@ -931,7 +931,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
                   <div>Issued Date: <strong>{new Date(previewCert.issued_at).toLocaleDateString()}</strong></div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 800, color: '#7B1C6E' }}>Academic Board &bull; SkillStack</div>
+                  <div style={{ fontWeight: 800, color: '#7C3AED' }}>Academic Board &bull; SkillStack</div>
                   <div>Status: <span style={{ color: previewCert.is_revoked ? '#DC2626' : '#16A34A', fontWeight: 700 }}>
                     {previewCert.is_revoked ? 'Revoked' : 'Verified Official'}
                   </span></div>

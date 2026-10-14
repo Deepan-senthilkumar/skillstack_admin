@@ -22,13 +22,13 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 16px;
-  box-shadow: 0 2px 8px rgba(123, 28, 110, 0.04);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.04);
   transition: all 0.2s ease;
 }
 .batch-card:hover {
   transform: translateY(-2px);
   border-color: var(--blue-border);
-  box-shadow: 0 8px 24px rgba(123, 28, 110, 0.1);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.1);
 }
 
 .batch-card-header {

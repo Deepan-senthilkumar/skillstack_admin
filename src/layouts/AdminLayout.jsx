@@ -146,7 +146,7 @@ export default function AdminLayout({
 
           {/* User Profile Pill */}
           <div className="user-profile-widget">
-            <div className="user-avatar-circle" style={user?.is_demo ? { background: '#7B1C6E', color: '#FFFFFF' } : {}}>
+            <div className="user-avatar-circle" style={user?.is_demo ? { background: '#7C3AED', color: '#FFFFFF' } : {}}>
               {(user?.first_name || user?.username || 'A')[0].toUpperCase()}
             </div>
             <div className="user-meta-block">
@@ -174,7 +174,7 @@ export default function AdminLayout({
       {/* Demo Mode Notice Banner */}
       {user?.is_demo && (
         <div style={{
-          background: 'linear-gradient(90deg, #7B1C6E 0%, #4A0E4E 100%)',
+          background: 'linear-gradient(90deg, #7C3AED 0%, #312E81 100%)',
           color: '#FFFFFF',
           padding: '8px 20px',
           display: 'flex',
@@ -190,7 +190,7 @@ export default function AdminLayout({
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <span style={{
               background: '#FDC029',
-              color: '#4A0E4E',
+              color: '#312E81',
               fontWeight: 900,
               fontSize: '10px',
               padding: '2px 8px',

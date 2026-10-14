@@ -10,7 +10,7 @@
   border-radius: 16px !important;
   padding: 16px 18px !important;
   margin-bottom: 24px !important;
-  box-shadow: 0 2px 10px rgba(123, 28, 110, 0.04) !important;
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.04) !important;
 }
 
 .template-presets-box .preset-header-title {
@@ -18,7 +18,7 @@
   font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
-  color: #7B1C6E !important;
+  color: #7C3AED !important;
   display: flex !important;
   align-items: center !important;
   gap: 6px !important;
@@ -30,7 +30,7 @@
   align-items: center !important;
   gap: 6px !important;
   background: #ffffff !important;
-  border: 1.5px solid #e9d5e7 !important;
+  border: 1.5px solid #DDD6FE !important;
   border-radius: 9999px !important;
   padding: 7px 14px !important;
   font-size: 0.8rem !important;
@@ -42,9 +42,9 @@
 }
 
 .template-preset-pill:hover {
-  background: #7B1C6E !important;
-  border-color: #7B1C6E !important;
+  background: #7C3AED !important;
+  border-color: #7C3AED !important;
   color: #ffffff !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 4px 14px rgba(123, 28, 110, 0.28) !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28) !important;
 }

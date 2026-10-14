@@ -24,7 +24,7 @@
 
 .matrix-batch-row:hover {
   transform: translateX(3px);
-  box-shadow: 0 2px 10px rgba(123, 28, 110, 0.07);
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.07);
 }
 
 .matrix-batch-row.completed {
@@ -51,7 +51,7 @@
 
 .course-chip {
   background: #fdf5fc;
-  color: #7B1C6E;
+  color: #7C3AED;
   border: 1px solid #ebd3e7;
   font-size: 0.72rem;
   font-weight: 700;
@@ -89,7 +89,7 @@
 }
 
 .btn-quick-log {
-  background: #7B1C6E;
+  background: #7C3AED;
   color: #ffffff;
   font-size: 0.76rem;
   font-weight: 700;
@@ -102,7 +102,7 @@
 }
 
 .btn-quick-log:hover {
-  background: #5C1352;
-  box-shadow: 0 4px 12px rgba(123, 28, 110, 0.25);
+  background: #5B21B6;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
   transform: translateY(-1px);
 }

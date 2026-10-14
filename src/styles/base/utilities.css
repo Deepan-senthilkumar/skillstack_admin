@@ -50,8 +50,8 @@
 
 .btn-outline-sm:hover {
   background: #f8fafc !important;
-  border-color: #7B1C6E !important;
-  color: #7B1C6E !important;
+  border-color: #7C3AED !important;
+  color: #7C3AED !important;
 }
 
 .form-action-footer {
@@ -78,7 +78,7 @@
 
 .badge-pill.purple {
   background: #fdf5fc !important;
-  color: #7B1C6E !important;
+  color: #7C3AED !important;
   border: 1px solid #ebd3e7 !important;
 }
 
@@ -453,8 +453,8 @@
 }
 
 /* ── Color Extensions ──────────────────────────────────────── */
-.bg-primary { background-color: var(--blue-primary, #7B1C6E); }
-.bg-primary\/10 { background-color: rgba(123, 28, 110, 0.1); }
+.bg-primary { background-color: var(--blue-primary, #7C3AED); }
+.bg-primary\/10 { background-color: rgba(124, 58, 237, 0.1); }
 .bg-purple-50 { background-color: #FAF5FF; }
 .bg-gray-100 { background-color: #F3F4F6; }
 .bg-gray-200 { background-color: #E5E7EB; }
@@ -462,7 +462,7 @@
 .bg-emerald-50\/60 { background-color: rgba(236, 253, 245, 0.6); }
 .bg-white\/70 { background-color: rgba(255, 255, 255, 0.7); }
 
-.border-primary { border-color: var(--blue-primary, #7B1C6E); }
+.border-primary { border-color: var(--blue-primary, #7C3AED); }
 .border-border-subtle { border-color: var(--border-subtle, #E2CBDD); }
 .border-gray-100 { border-color: #F3F4F6; }
 .border-purple-100 { border-color: #F3E8FF; }
@@ -473,7 +473,7 @@
 .border-slate-200\/50 { border-color: rgba(226, 232, 240, 0.5); }
 .border-slate-200\/60 { border-color: rgba(226, 232, 240, 0.6); }
 
-.text-primary { color: var(--blue-primary, #7B1C6E); }
+.text-primary { color: var(--blue-primary, #7C3AED); }
 .text-muted { color: #64748B; }
 .text-danger { color: #E11D48; }
 .text-warning { color: #D97706; }

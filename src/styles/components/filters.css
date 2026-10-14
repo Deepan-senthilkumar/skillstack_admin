@@ -78,7 +78,7 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  box-shadow: 0 1px 4px rgba(123, 28, 110, 0.04);
+  box-shadow: 0 1px 4px rgba(124, 58, 237, 0.04);
 }
 
 .search-box {
@@ -112,7 +112,7 @@
 .search-box input:focus {
   background: #FFFFFF;
   border-color: var(--blue-primary);
-  box-shadow: 0 0 0 3px rgba(123, 28, 110, 0.12);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
 }
 
 .filter-select, .filter-date-input {
@@ -132,7 +132,7 @@
 .filter-select:focus, .filter-date-input:focus {
   background: #FFFFFF;
   border-color: var(--blue-primary);
-  box-shadow: 0 0 0 3px rgba(123, 28, 110, 0.12);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
 }
 
 /* ── Empty & Loading States ────────────────────────────────── */
@@ -154,7 +154,7 @@
 .loading-state {
   padding: 48px 24px;
   text-align: center;
-  color: #7B1C6E;
+  color: #7C3AED;
   font-size: 0.95rem;
   font-weight: 600;
   display: flex;
@@ -169,7 +169,7 @@
   width: 18px;
   height: 18px;
   border: 2.5px solid #F0E2EE;
-  border-top-color: #7B1C6E;
+  border-top-color: #7C3AED;
   border-radius: 50%;
   animation: adminSpin 0.8s linear infinite;
 }
@@ -188,7 +188,7 @@
   align-items: center !important;
   justify-content: space-between !important;
   gap: 16px !important;
-  box-shadow: 0 2px 8px rgba(123, 28, 110, 0.04) !important;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.04) !important;
   margin-bottom: 24px !important;
 }
 
@@ -212,9 +212,9 @@
 }
 
 .filter-search-box:focus-within {
-  border-color: #7B1C6E !important;
+  border-color: #7C3AED !important;
   background: #ffffff !important;
-  box-shadow: 0 0 0 3px rgba(123, 28, 110, 0.12) !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
 }
 
 .filter-search-box input {
@@ -247,7 +247,7 @@
 
 .filter-select-modern:focus,
 .filter-select-modern:hover {
-  border-color: #7B1C6E !important;
+  border-color: #7C3AED !important;
 }
 
 /* ── Modern Empty State Card ── */
@@ -270,7 +270,7 @@
   height: 64px !important;
   border-radius: 20px !important;
   background: #fdf5fc !important;
-  color: #7B1C6E !important;
+  color: #7C3AED !important;
   border: 1.5px solid #ebd3e7 !important;
   display: flex !important;
   align-items: center !important;
@@ -330,7 +330,7 @@
   background: var(--blue-primary);
   color: #FFFFFF;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(123, 28, 110, 0.25);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
 }
 
 .curriculum-subnav-btn .subnav-badge {

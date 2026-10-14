@@ -4,7 +4,7 @@
    ========================================================================== */
 
 .overview-welcome-card {
-  background: linear-gradient(135deg, #7B1C6E 0%, #A82596 60%, #FDC029 120%);
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 60%, #FDC029 120%);
   color: white;
   padding: 28px 32px;
   border-radius: var(--radius-lg);
@@ -68,7 +68,7 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  box-shadow: 0 1px 4px rgba(123, 28, 110, 0.04);
+  box-shadow: 0 1px 4px rgba(124, 58, 237, 0.04);
 }
 
 .reports-view-tabs {
@@ -99,9 +99,9 @@
 }
 
 .reports-view-tab.active {
-  background: #7B1C6E;
+  background: #7C3AED;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(123, 28, 110, 0.25);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
 }
 
 .reports-filter-group {
@@ -153,8 +153,8 @@
 }
 
 .filter-select:focus {
-  border-color: #7B1C6E;
-  box-shadow: 0 0 0 2px rgba(123, 28, 110, 0.12);
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
 }
 
 .filter-date-input {
@@ -169,8 +169,8 @@
 }
 
 .filter-date-input:focus {
-  border-color: #7B1C6E;
-  box-shadow: 0 0 0 2px rgba(123, 28, 110, 0.12);
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
 }
 
 /* Batches Grid */
@@ -238,8 +238,8 @@
 }
 
 .course-pill {
-  background: #F6E2F3;
-  color: #7B1C6E;
+  background: #EDE9FE;
+  color: #7C3AED;
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -308,7 +308,7 @@
 }
 
 .admin-table tbody tr:hover {
-  background: rgba(123,28,110,0.02);
+  background: rgba(124, 58, 237,0.02);
 }
 
 .badge-pill {

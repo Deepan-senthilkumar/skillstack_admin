@@ -648,7 +648,7 @@ export default function UserManagerTab({ user }) {
               background: '#F8FAFC'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={16} color="#7B1C6E" />
+                <Eye size={16} color="#7C3AED" />
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>User Account Profile</span>
               </div>
               <button
@@ -665,7 +665,7 @@ export default function UserManagerTab({ user }) {
                   width: '54px',
                   height: '54px',
                   borderRadius: '50%',
-                  backgroundColor: viewingUser.role === 'ADMIN' ? '#7B1C6E' : viewingUser.role === 'STAFF' ? '#2563EB' : '#10B981',
+                  backgroundColor: viewingUser.role === 'ADMIN' ? '#7C3AED' : viewingUser.role === 'STAFF' ? '#2563EB' : '#10B981',
                   color: '#FFFFFF',
                   fontSize: '20px',
                   fontWeight: 800,
