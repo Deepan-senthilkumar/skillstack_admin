@@ -18,6 +18,9 @@ export default function EnrollmentsCertificatesTab({ user }) {
   const [previewCert, setPreviewCert] = useState(null);
   const [editingCert, setEditingCert] = useState(null);
   const [manualCertModal, setManualCertModal] = useState(false);
+  const [studyLogModal, setStudyLogModal] = useState(null);
+  const [studentProgressList, setStudentProgressList] = useState([]);
+  const [loadingStudyLog, setLoadingStudyLog] = useState(false);
   const [manualForm, setManualForm] = useState({
     student_id: '',
     subject_id: '',
@@ -29,6 +32,33 @@ export default function EnrollmentsCertificatesTab({ user }) {
   const [subjects, setSubjects] = useState([]);
   const [studentsList, setStudentsList] = useState([]);
   const [actionMsg, setActionMsg] = useState(null);
+
+  const handleOpenStudyLog = async (enrollment) => {
+    setStudyLogModal(enrollment);
+    setLoadingStudyLog(true);
+    try {
+      const data = await api.getStudentTopicProgress(enrollment.student);
+      const list = Array.isArray(data) ? data : (data?.results || []);
+      setStudentProgressList(list);
+    } catch (e) {
+      console.error('Failed to load student study log', e);
+      setStudentProgressList([]);
+    } finally {
+      setLoadingStudyLog(false);
+    }
+  };
+
+  const handleClearCooldown = async (topicId) => {
+    if (!studyLogModal) return;
+    try {
+      await api.clearQuizCooldown(studyLogModal.student, topicId);
+      showNotification('Assessment cooldown cleared for student');
+      const data = await api.getStudentTopicProgress(studyLogModal.student);
+      setStudentProgressList(Array.isArray(data) ? data : (data?.results || []));
+    } catch (e) {
+      showNotification(e.message || 'Failed to clear cooldown', true);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -465,7 +495,29 @@ export default function EnrollmentsCertificatesTab({ user }) {
                           {item.enrolled_at ? new Date(item.enrolled_at).toLocaleDateString() : 'N/A'}
                         </td>
 
-                        <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                        <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <button
+                            onClick={() => handleOpenStudyLog(item)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '5px 11px',
+                              background: '#EEF2FF',
+                              border: '1px solid #C7D2FE',
+                              color: '#4338CA',
+                              borderRadius: '7px',
+                              fontWeight: 700,
+                              fontSize: '11.5px',
+                              cursor: 'pointer',
+                              marginRight: '8px',
+                              transition: 'all 0.15s ease'
+                            }}
+                            title="View Student Separate Study Log"
+                          >
+                            <Eye size={13} />
+                            <span>Study Log</span>
+                          </button>
                           <button
                             onClick={() => handleDeleteEnrollment(item.id)}
                             className="btn btn-ghost btn-sm"
@@ -937,6 +989,287 @@ export default function EnrollmentsCertificatesTab({ user }) {
                   </span></div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* =========================================================================
+          STUDENT SEPARATE STUDY LOG & TOPIC PROGRESS MODAL
+          ========================================================================= */}
+      {studyLogModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            maxWidth: '820px',
+            width: '100%',
+            maxHeight: '88vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.22)',
+            border: '1px solid #E2E8F0',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#F8FAFC'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
+                    {studyLogModal.student_name || studyLogModal.student_username}'s Learning Log
+                  </h3>
+                  <span style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    background: '#EEF2FF',
+                    color: '#4338CA'
+                  }}>
+                    @{studyLogModal.student_username}
+                  </span>
+                </div>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748B' }}>
+                  Course Track: <strong style={{ color: '#1E293B' }}>{studyLogModal.subject_name}</strong> • Batch: <span style={{ color: '#475569' }}>{studyLogModal.batch_name || 'Standard'}</span>
+                </p>
+              </div>
+
+              <button
+                onClick={() => setStudyLogModal(null)}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748B'
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '12px',
+              padding: '16px 24px',
+              borderBottom: '1px solid #F1F5F9',
+              background: '#FFFFFF'
+            }}>
+              <div style={{ padding: '10px 14px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #F1F5F9' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Curriculum Progress</span>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#4338CA', marginTop: '2px' }}>
+                  {Math.round(studyLogModal.progress_percentage || 0)}%
+                </div>
+              </div>
+
+              <div style={{ padding: '10px 14px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #F1F5F9' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Topics Recorded</span>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                  {studentProgressList.filter(p => p.is_completed).length} <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#64748B' }}>Mastered</span>
+                </div>
+              </div>
+
+              <div style={{ padding: '10px 14px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #F1F5F9' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Enrollment Status</span>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: studyLogModal.status === 'COMPLETED' ? '#059669' : '#2563EB', marginTop: '2px' }}>
+                  {studyLogModal.status}
+                </div>
+              </div>
+            </div>
+
+            {/* Topics Table List */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#0F172A' }}>
+                  Individual Study & Assessment Records ({studentProgressList.length})
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => handleOpenStudyLog(studyLogModal)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid #E2E8F0',
+                    background: '#FFFFFF',
+                    fontSize: '0.74rem',
+                    color: '#475569',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <RefreshCw size={12} className={loadingStudyLog ? 'animate-spin' : ''} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+
+              {loadingStudyLog ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
+                  <RefreshCw size={24} className="animate-spin text-primary" style={{ margin: '0 auto 10px' }} />
+                  <div>Loading student topic logs...</div>
+                </div>
+              ) : studentProgressList.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94A3B8' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📖</div>
+                  <div style={{ fontWeight: 700, color: '#475569' }}>No separate topic logs recorded yet</div>
+                  <p style={{ fontSize: '0.8rem', maxWidth: '420px', margin: '6px auto 0' }}>
+                    As this student logs into the learning portal, studies topics, and answers chapter MCQs, their activity history and scores will be logged here.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ border: '1px solid #E2E8F0', borderRadius: '10px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textAlign: 'left', color: '#475569' }}>
+                        <th style={{ padding: '10px 14px' }}>Topic & Module</th>
+                        <th style={{ padding: '10px 14px' }}>Status</th>
+                        <th style={{ padding: '10px 14px' }}>MCQ Performance</th>
+                        <th style={{ padding: '10px 14px' }}>Last Updated</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentProgressList.map((prog) => (
+                        <tr key={prog.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ fontWeight: 700, color: '#0F172A' }}>{prog.topic_title}</div>
+                            {prog.module_name && (
+                              <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{prog.module_name}</div>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            {prog.is_completed ? (
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                background: '#ECFDF5',
+                                color: '#059669',
+                                fontWeight: 700,
+                                fontSize: '0.74rem'
+                              }}>
+                                <CheckCircle2 size={12} /> Mastered
+                              </span>
+                            ) : (
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                background: '#FFFBEB',
+                                color: '#D97706',
+                                fontWeight: 700,
+                                fontSize: '0.74rem'
+                              }}>
+                                <Clock size={12} /> Reading / In Progress
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            {prog.attempts_count > 0 ? (
+                              <div>
+                                <strong style={{ color: prog.last_passed ? '#059669' : '#DC2626' }}>
+                                  {prog.last_score} / {prog.last_total} ({prog.last_percentage}%)
+                                </strong>
+                                <span style={{ fontSize: '0.7rem', color: '#94A3B8', marginLeft: '6px' }}>
+                                  ({prog.attempts_count} {prog.attempts_count === 1 ? 'attempt' : 'attempts'})
+                                </span>
+                              </div>
+                            ) : (
+                              <span style={{ color: '#94A3B8' }}>Study Notes Reading</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px 14px', color: '#64748B', fontSize: '0.75rem' }}>
+                            {prog.completed_at ? new Date(prog.completed_at).toLocaleDateString() : (prog.updated_at ? new Date(prog.updated_at).toLocaleDateString() : 'N/A')}
+                          </td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                            {prog.is_in_cooldown ? (
+                              <button
+                                onClick={() => handleClearCooldown(prog.topic)}
+                                style={{
+                                  padding: '3px 8px',
+                                  borderRadius: '5px',
+                                  background: '#FEE2E2',
+                                  border: '1px solid #FECACA',
+                                  color: '#DC2626',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer'
+                                }}
+                                title="Clear student re-attempt cooldown"
+                              >
+                                Clear Cooldown ({Math.round((prog.cooldown_seconds_remaining || 0) / 60)}m)
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: 600 }}>Active</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '14px 24px',
+              borderTop: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#F8FAFC'
+            }}>
+              <span style={{ fontSize: '0.78rem', color: '#64748B' }}>
+                Separate student progress synced with curriculum syllabus
+              </span>
+              <button
+                type="button"
+                onClick={() => setStudyLogModal(null)}
+                style={{
+                  padding: '7px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#334155',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

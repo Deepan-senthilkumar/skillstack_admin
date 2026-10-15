@@ -480,8 +480,30 @@ export default function SubjectManagerTab({ user, onNavigate }) {
                         {sub.topic_count || (sub.modules?.reduce((acc, m) => acc + (m.topics?.length || 0), 0)) || 0} Topics
                       </span>
                     </td>
-                    <td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
                       <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => onNavigate && onNavigate('syllabus', { subjectId: sub.id })}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            background: '#EEF2FF',
+                            border: '1px solid #C7D2FE',
+                            color: '#4338CA',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            marginRight: '4px'
+                          }}
+                          title="Manage Chapters & Modules for this Course"
+                        >
+                          <Layers size={13} />
+                          <span>Syllabus →</span>
+                        </button>
                         <button className="icon-btn view" onClick={() => setViewingSubject(sub)} title="View Subject Details">
                           <Eye size={14} />
                         </button>

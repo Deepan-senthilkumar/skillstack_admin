@@ -441,6 +441,11 @@ class AdminApiClient {
     });
   }
 
+  // Student Separate Study Log & Topic Progress Tracking
+  async getStudentTopicProgress(studentId) {
+    return this.request(`/my-topic-progress/?student_id=${studentId}`);
+  }
+
   // Student Doubts & Clarification Messaging
   async getStaffDoubts(status = '') {
     const q = status ? `?status=${status}` : '';

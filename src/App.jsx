@@ -24,6 +24,8 @@ export default function App() {
   const [activePage, setActivePage] = useState('dashboard');
   const [selectedBatchIdForProgress, setSelectedBatchIdForProgress] = useState(null);
   const [quizBankTopicId, setQuizBankTopicId] = useState(null);
+  const [activeSubjectId, setActiveSubjectId] = useState(null);
+  const [activeTopicId, setActiveTopicId] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [curriculum, setCurriculum] = useState([]);
   const [backendOnline, setBackendOnline] = useState(null);
@@ -33,7 +35,7 @@ export default function App() {
     const hash = window.location.hash.replace('#', '');
     const validPages = [
       'dashboard', 'subjects', 'syllabus', 'courses', 'topics', 'quiz_bank',
-      'problems', 'certificates', 'batches', 'progress', 'daily_task', 'submissions', 'quiz_analytics', 'reports', 'users'
+      'problems', 'certificates', 'batches', 'progress', /* 'daily_task', */ 'submissions', 'quiz_analytics', 'reports', 'users'
     ];
     if (hash && validPages.includes(hash)) {
       setActivePage(hash);
@@ -50,11 +52,20 @@ export default function App() {
   }, []);
 
   const navigateTo = (pageId, meta = {}) => {
-    if (pageId === 'quiz_bank' && meta.topicId) {
+    if (meta.subjectId) {
+      setActiveSubjectId(meta.subjectId);
+    } else if (!['syllabus', 'topics', 'problems', 'quiz_bank'].includes(pageId)) {
+      setActiveSubjectId(null);
+    }
+
+    if (meta.topicId) {
+      setActiveTopicId(meta.topicId);
       setQuizBankTopicId(meta.topicId);
-    } else if (pageId !== 'quiz_bank') {
+    } else if (!['topics', 'problems', 'quiz_bank'].includes(pageId)) {
+      setActiveTopicId(null);
       setQuizBankTopicId(null);
     }
+
     setActivePage(pageId);
     window.location.hash = pageId;
   };
@@ -202,16 +213,38 @@ export default function App() {
         <SubjectManagerTab user={user} onNavigate={navigateTo} />
       )}
       {activePage === 'syllabus' && (
-        <SyllabusManagerTab user={user} onNavigate={navigateTo} />
+        <SyllabusManagerTab
+          user={user}
+          defaultSubjectId={activeSubjectId}
+          key={`syllabus-${activeSubjectId || 'all'}`}
+          onNavigate={navigateTo}
+        />
       )}
       {activePage === 'topics' && (
-        <TopicManagerTab user={user} onNavigate={navigateTo} />
+        <TopicManagerTab
+          user={user}
+          defaultSubjectId={activeSubjectId}
+          defaultTopicId={activeTopicId}
+          key={`topics-${activeTopicId || activeSubjectId || 'all'}`}
+          onNavigate={navigateTo}
+        />
       )}
       {activePage === 'quiz_bank' && (
-        <TopicQuizManagerTab user={user} defaultTopicId={quizBankTopicId} key={quizBankTopicId || 'all'} onNavigate={navigateTo} />
+        <TopicQuizManagerTab
+          user={user}
+          defaultTopicId={quizBankTopicId || activeTopicId}
+          key={`quiz-${quizBankTopicId || activeTopicId || 'all'}`}
+          onNavigate={navigateTo}
+        />
       )}
       {activePage === 'problems' && (
-        <PracticeTaskManagerTab user={user} onNavigate={navigateTo} />
+        <PracticeTaskManagerTab
+          user={user}
+          defaultSubjectId={activeSubjectId}
+          defaultTopicId={activeTopicId}
+          key={`problems-${activeTopicId || activeSubjectId || 'all'}`}
+          onNavigate={navigateTo}
+        />
       )}
       {activePage === 'certificates' && (
         <EnrollmentsCertificatesTab user={user} />
@@ -225,9 +258,11 @@ export default function App() {
       {activePage === 'progress' && (
         <TopicProgressTab user={user} defaultBatchId={selectedBatchIdForProgress} />
       )}
+      {/* Temporarily disabled staff daily session logs as requested
       {activePage === 'daily_task' && (
         <DailyTaskTrackerTab user={user} />
       )}
+      */}
       {activePage === 'submissions' && (
         <SubmissionInspectorTab user={user} />
       )}

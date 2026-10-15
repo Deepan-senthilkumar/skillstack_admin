@@ -8,21 +8,21 @@
    ========================================================================== */
 
 :root {
-  --ft-bg: #F5F3EF;
+  --ft-bg: #F8FAFC;
   --ft-card-bg: #FFFFFF;
-  --ft-primary: #5B58EB;
-  --ft-primary-hover: #4F46E5;
-  --ft-primary-gradient: linear-gradient(135deg, #5B58EB 0%, #7C3AED 100%);
-  --ft-text-main: #1E293B;
+  --ft-primary: #4F46E5;
+  --ft-primary-hover: #4338CA;
+  --ft-primary-gradient: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+  --ft-text-main: #0F172A;
   --ft-text-muted: #64748B;
   --ft-text-subtle: #94A3B8;
-  --ft-border: #E8E5DF;
-  --ft-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --ft-shadow-card: 0 10px 30px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-  --ft-shadow-float: 0 20px 45px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
-  --ft-shadow-pill: 0 6px 16px rgba(91, 88, 235, 0.35);
-  --ft-radius-lg: 24px;
-  --ft-radius-xl: 28px;
+  --ft-border: #E2E8F0;
+  --ft-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --ft-shadow-card: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --ft-shadow-float: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+  --ft-shadow-pill: 0 2px 8px rgba(79, 70, 229, 0.18);
+  --ft-radius-lg: 16px;
+  --ft-radius-xl: 20px;
 }
 
 /* 1. App Shell Container */
@@ -67,8 +67,8 @@
 
 /* Expanded full width */
 .fintrack-sidebar.expanded {
-  width: 260px;
-  min-width: 260px;
+  width: 284px;
+  min-width: 284px;
 }
 
 /* Collapsed state: Compact icon rail */
@@ -81,11 +81,11 @@
 
 /* Sidebar Brand Header */
 .fintrack-sidebar-header {
-  padding: 20px 18px 16px 18px;
+  padding: 18px 18px 16px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #F1EFEA;
+  border-bottom: 1px solid var(--ft-border);
 }
 
 .fintrack-brand-btn {
@@ -154,7 +154,7 @@
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: #F3F1EC;
+  background: #F1F5F9;
   border: none;
   color: var(--ft-text-muted);
   display: flex;
@@ -165,7 +165,7 @@
 }
 
 .sidebar-pin-btn:hover {
-  background: #E5E2DC;
+  background: #E2E8F0;
   color: #0F172A;
 }
 
@@ -210,7 +210,7 @@
 .fintrack-nav-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 /* Standalone Nav Item (Directly outside) */
@@ -219,75 +219,86 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  border-radius: 14px;
-  border: none;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
   background: transparent;
   color: #475569;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: left;
 }
 
 .fintrack-nav-item-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
+  min-width: 0;
+  flex: 1;
 }
 
 .fintrack-nav-item .nav-icon {
   color: #64748B;
-  transition: transform 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.fintrack-nav-item .nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
 
 .fintrack-nav-item:hover {
-  background: #F8F7F4;
+  background: #F1F5F9;
   color: #0F172A;
-  transform: translateX(2px);
 }
 
 .fintrack-nav-item:hover .nav-icon {
-  color: var(--ft-primary);
+  color: #334155;
 }
 
-/* Active Standalone Item (FinTrack Purple Pill) */
+/* Active Standalone Item (Clean SaaS Slate-Indigo Accent) */
 .fintrack-nav-item.active {
-  background: var(--ft-primary-gradient);
-  color: #FFFFFF;
+  background: #EEF2FF;
+  color: #4338CA;
   font-weight: 600;
-  box-shadow: var(--ft-shadow-pill);
+  border-color: #E0E7FF;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.05);
 }
 
 .fintrack-nav-item.active .nav-icon {
-  color: #FFFFFF;
+  color: #4F46E5;
 }
 
 .fintrack-item-badge {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   padding: 2px 7px;
-  border-radius: 8px;
-  background: #EDE9FE;
-  color: #6D28D9;
+  border-radius: 6px;
+  background: #F1F5F9;
+  color: #64748B;
+  flex-shrink: 0;
 }
 
 .fintrack-item-badge.badge-active {
-  background: rgba(255, 255, 255, 0.25);
-  color: #FFFFFF;
+  background: #E0E7FF;
+  color: #4338CA;
 }
 
 /* Collapsible Module Group (Curriculum & Academics) */
 .fintrack-module-group {
-  margin: 4px 0;
-  border-radius: 14px;
+  margin: 3px 0;
+  border-radius: 10px;
   background: transparent;
-  transition: background 0.2s ease;
+  transition: background 0.15s ease;
 }
 
 .fintrack-module-group.parent-active {
-  background: rgba(91, 88, 235, 0.04);
+  background: #F8FAFC;
 }
 
 .fintrack-module-trigger {
@@ -295,44 +306,76 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  border-radius: 14px;
-  border: none;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
   background: transparent;
   color: #475569;
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.86rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .module-trigger-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
+  min-width: 0;
+  flex: 1;
+}
+
+.module-trigger-left .nav-icon {
+  color: #64748B;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.module-trigger-left .nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
 
 .fintrack-module-trigger:hover {
-  background: #F8F7F4;
+  background: #F1F5F9;
   color: #0F172A;
 }
 
+.fintrack-module-trigger:hover .nav-icon {
+  color: #334155;
+}
+
 .fintrack-module-trigger.open {
-  color: var(--ft-primary);
+  color: #0F172A;
 }
 
 .fintrack-module-trigger.active-parent {
-  color: var(--ft-primary);
-  font-weight: 700;
+  color: #4338CA;
+  font-weight: 600;
+  background: #EEF2FF;
+  border-color: #E0E7FF;
+}
+
+.fintrack-module-trigger.active-parent .nav-icon {
+  color: #4F46E5;
+}
+
+.module-trigger-right {
+  display: flex;
+  align-items: center;
+  color: #94A3B8;
+  flex-shrink: 0;
 }
 
 /* Submodules Tree inside Accordion */
 .fintrack-submodules-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin: 4px 0 8px 22px;
-  padding-left: 14px;
+  gap: 2px;
+  margin: 3px 0 6px 14px;
+  padding-left: 12px;
   border-left: 2px solid #E2E8F0;
 }
 
@@ -340,36 +383,36 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 12px;
-  border-radius: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
   border: none;
   background: transparent;
   color: #64748B;
-  font-size: 0.82rem;
+  font-size: 0.81rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   text-align: left;
 }
 
 .fintrack-submodule-btn:hover {
-  background: #F1EFEA;
+  background: #F1F5F9;
   color: #0F172A;
 }
 
 .fintrack-submodule-btn.active {
-  background: #EDE9FE;
-  color: #5B21B6;
-  font-weight: 700;
+  background: #EEF2FF;
+  color: #4338CA;
+  font-weight: 600;
 }
 
 .submodule-pill-badge {
   font-size: 0.65rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 6px;
-  background: #DDD6FE;
-  color: #5B21B6;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #E2E8F0;
+  color: #475569;
 }
 
 /* Collapsed Sidebar Clean Icon Rail */
@@ -537,7 +580,7 @@
 }
 
 .fintrack-menu-toggle-btn:hover {
-  background: #F8F7F4;
+  background: #F1F5F9;
   color: var(--ft-primary);
   border-color: rgba(91, 88, 235, 0.3);
   transform: translateY(-1px);
@@ -594,7 +637,7 @@
 }
 
 .fintrack-icon-btn:hover {
-  background: #F8F7F4;
+  background: #F1F5F9;
   color: var(--ft-primary);
   transform: translateY(-1px);
 }
