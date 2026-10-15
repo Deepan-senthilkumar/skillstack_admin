@@ -10,7 +10,7 @@ import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
 
-export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
+export default function TopicQuizManagerTab({ user, onNavigate, defaultTopicId = null }) {
   const toast = useToast();
   const confirm = useConfirm();
   const [questions, setQuestions] = useState([]);
@@ -66,8 +66,14 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
       setSubjects(safeSubs);
       setTopics(safeTopics);
 
-      if (defaultTopicId && safeTopics.some(t => String(t.id) === String(defaultTopicId) || t.topic_id === defaultTopicId)) {
-        setSelectedTopicId(String(defaultTopicId));
+      if (defaultTopicId) {
+        const found = safeTopics.find(t => String(t.id) === String(defaultTopicId) || t.topic_id === String(defaultTopicId));
+        if (found) {
+          setSelectedTopicId(String(found.id));
+          if (found.subject_id) {
+            setSelectedSubjectId(String(found.subject_id));
+          }
+        }
       }
     } catch (e) {
       console.error('Failed to load quiz manager data', e);
@@ -476,15 +482,37 @@ export default function TopicQuizManagerTab({ user, defaultTopicId = null }) {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, topic: selectedTopicId }));
-                    setBulkModalOpen(true);
-                  }}
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
-                >
-                  + Add 20 Questions
-                </button>
+                <div className="flex items-center gap-2">
+                  {onNavigate && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => onNavigate('topics', { topicId: selectedTopicId, subjectId: selectedSubjectId })}
+                        className="text-xs font-semibold text-primary hover:underline px-2 py-1 rounded bg-purple-50 border border-purple-200"
+                        title="View / edit study notes for this topic"
+                      >
+                        Notes →
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onNavigate('problems', { topicId: selectedTopicId, subjectId: selectedSubjectId })}
+                        className="text-xs font-semibold text-emerald-700 hover:underline px-2 py-1 rounded bg-emerald-50 border border-emerald-200"
+                        title="View / manage practice labs for this topic"
+                      >
+                        Labs →
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, topic: selectedTopicId }));
+                      setBulkModalOpen(true);
+                    }}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                  >
+                    + Add 20 Questions
+                  </button>
+                </div>
               </div>
             )}
           </div>

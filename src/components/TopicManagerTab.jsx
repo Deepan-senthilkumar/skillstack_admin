@@ -21,7 +21,7 @@ const slugify = (text) => {
     .replace(/--+/g, '-');
 };
 
-export default function TopicManagerTab({ user, onNavigate }) {
+export default function TopicManagerTab({ user, onNavigate, defaultTopicId = null, defaultSubjectId = null }) {
   const toast = useToast();
   const confirm = useConfirm();
   const [topics, setTopics] = useState([]);
@@ -29,7 +29,7 @@ export default function TopicManagerTab({ user, onNavigate }) {
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('ALL');
+  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState(defaultSubjectId ? String(defaultSubjectId) : 'ALL');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -117,6 +117,32 @@ export default function TopicManagerTab({ user, onNavigate }) {
       setSubjects(safeSubs);
       setModules(normalizedMods);
       setTopics(normalizedTopics);
+
+      if (defaultTopicId) {
+        const target = normalizedTopics.find(t => String(t.id) === String(defaultTopicId) || t.topic_id === String(defaultTopicId));
+        if (target) {
+          setEditingTopic(target);
+          const modObj = normalizedMods.find(m => m.id === target.module || m.id === target.module?.id);
+          const subId = modObj?.subject || modObj?.subject?.id || target.subject_id || (safeSubs[0]?.id ? String(safeSubs[0].id) : '');
+          setFormData({
+            subject: String(subId),
+            module: String(target.module || target.module?.id || ''),
+            topic_id: target.topic_id,
+            title: target.title,
+            notes_content: target.notes_content || '',
+            order: target.order || 1,
+          });
+          setFieldErrors({});
+          setTopicImages(target.images || []);
+          setImageCaption('');
+          setTopicExamples(target.examples || []);
+          setNewExampleLabel('');
+          setNewExampleCode('');
+          setViewMode('form');
+        }
+      } else if (defaultSubjectId) {
+        setSelectedSubjectFilter(String(defaultSubjectId));
+      }
     } catch (e) {
       console.error('Failed to load topic manager data', e);
       toast.error('Failed to load topics directory.');
@@ -460,16 +486,40 @@ export default function TopicManagerTab({ user, onNavigate }) {
     return (
       <div className="tab-pane-container animate-fade-in">
         <div className="tab-pane-header">
-          <div className="flex items-center gap-3">
-            <button className="btn-outline-sm" onClick={() => setViewMode('list')}>
-              <ArrowLeft size={16} /> Back to Topics Table
-            </button>
-            <div>
-              <h2>{editingTopic ? `Edit Topic: ${editingTopic.title}` : 'Create New Curriculum Topic'}</h2>
-              <p className="text-muted">
-                Add study material, theory explanations, and interactive documentation for student learning.
-              </p>
+          <div className="flex items-center justify-between w-full flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <button type="button" className="btn-outline-sm" onClick={() => setViewMode('list')}>
+                <ArrowLeft size={16} /> Back to Topics Table
+              </button>
+              <div>
+                <h2>{editingTopic ? `Edit Topic: ${editingTopic.title}` : 'Create New Curriculum Topic'}</h2>
+                <p className="text-muted">
+                  Add study material, theory explanations, and interactive documentation for student learning.
+                </p>
+              </div>
             </div>
+            {editingTopic && onNavigate && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-outline-sm"
+                  style={{ background: '#F0FDF4', borderColor: '#BBF7D0', color: '#166534', fontWeight: 600 }}
+                  onClick={() => onNavigate('problems', { topicId: editingTopic.id, subjectId: formData.subject })}
+                  title="Configure practical coding labs for this topic"
+                >
+                  <Code2 size={14} /> Practice Labs
+                </button>
+                <button
+                  type="button"
+                  className="btn-outline-sm"
+                  style={{ background: '#FAF5FF', borderColor: '#E9D5FF', color: '#6B21A8', fontWeight: 600 }}
+                  onClick={() => onNavigate('quiz_bank', { topicId: editingTopic.id })}
+                  title="Configure MCQ questions for this topic"
+                >
+                  <HelpCircle size={14} /> MCQ Question Bank
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1648,13 +1698,24 @@ export default function TopicManagerTab({ user, onNavigate }) {
                       </td>
                       <td>
                         {onNavigate && (
-                          <button
-                            onClick={() => onNavigate('quiz_bank', { topicId: t.id })}
-                            title={`Add / View MCQ Questions for "${t.title}"`}
-                            className="btn-outline-sm"
-                          >
-                            <HelpCircle size={12} /> Add MCQs
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => onNavigate('problems', { topicId: t.id, subjectId: t.subject_id })}
+                              title={`View / Add Practice Labs for "${t.title}"`}
+                              className="btn-outline-sm"
+                              style={{ padding: '3px 8px', fontSize: '11px' }}
+                            >
+                              <Code2 size={12} /> Labs
+                            </button>
+                            <button
+                              onClick={() => onNavigate('quiz_bank', { topicId: t.id })}
+                              title={`Add / View MCQ Questions for "${t.title}"`}
+                              className="btn-outline-sm"
+                              style={{ padding: '3px 8px', fontSize: '11px' }}
+                            >
+                              <HelpCircle size={12} /> MCQs
+                            </button>
+                          </div>
                         )}
                       </td>
                       <td>

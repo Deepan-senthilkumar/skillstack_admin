@@ -11,7 +11,7 @@ import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
 import RichContentRenderer from './RichContentRenderer';
 
-export default function PracticeTaskManagerTab({ user, onNavigate }) {
+export default function PracticeTaskManagerTab({ user, onNavigate, defaultSubjectId = null, defaultTopicId = null }) {
   const toast = useToast();
   const confirm = useConfirm();
   const [problems, setProblems] = useState([]);
@@ -19,7 +19,8 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [subjectFilter, setSubjectFilter] = useState('ALL');
+  const [subjectFilter, setSubjectFilter] = useState(defaultSubjectId ? String(defaultSubjectId) : 'ALL');
+  const [topicFilter, setTopicFilter] = useState(defaultTopicId ? String(defaultTopicId) : 'ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,6 +69,18 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
       setProblems(safeProbs);
       setSubjects(safeSubs);
       setTopics(safeTopics);
+
+      if (defaultTopicId) {
+        const targetTop = safeTopics.find(t => String(t.id) === String(defaultTopicId) || t.topic_id === String(defaultTopicId));
+        if (targetTop) {
+          setTopicFilter(String(targetTop.id));
+          if (targetTop.subject_id) {
+            setSubjectFilter(String(targetTop.subject_id));
+          }
+        }
+      } else if (defaultSubjectId) {
+        setSubjectFilter(String(defaultSubjectId));
+      }
     } catch (e) {
       console.error('Failed to load practice task manager data', e);
     } finally {
@@ -80,12 +93,18 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
       notifyDemoRestriction('Creating practice labs');
       return;
     }
-    const defaultSub = subjects[0]?.id || '';
+    const defaultSub = subjectFilter !== 'ALL'
+      ? subjectFilter
+      : (subjects[0]?.id || '');
     const linkedTopics = topics.filter(t => !defaultSub || String(t.subject_id) === String(defaultSub));
+    const targetTopicId = topicFilter !== 'ALL'
+      ? topicFilter
+      : (linkedTopics[0]?.id || topics[0]?.id || '');
+
     setEditingProblem(null);
     setFormData({
       subject: defaultSub,
-      topic: linkedTopics[0]?.id || topics[0]?.id || '',
+      topic: targetTopicId,
       title: '',
       description: '',
       language: 'python',
@@ -340,12 +359,13 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
     const topObj = topics.find(t => t.id === p.topic || t.id === p.topic?.id);
     const probSubId = topObj?.subject_id;
     const matchesSubject = subjectFilter === 'ALL' || String(probSubId) === String(subjectFilter);
-    return matchesSearch && matchesCategory && matchesSubject;
+    const matchesTopic = topicFilter === 'ALL' || String(p.topic || p.topic?.id) === String(topicFilter);
+    return matchesSearch && matchesCategory && matchesSubject && matchesTopic;
   });
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, subjectFilter, categoryFilter]);
+  }, [searchQuery, subjectFilter, categoryFilter, topicFilter]);
 
   const totalPages = Math.ceil(filteredProblems.length / pageSize) || 1;
   const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
@@ -357,6 +377,11 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
     return String(t.subject_id) === String(formData.subject);
   });
 
+  const availableTopicsForFilter = topics.filter(t => {
+    if (subjectFilter === 'ALL') return true;
+    return String(t.subject_id) === String(subjectFilter);
+  });
+
   // DEDICATED IN-PAGE PRACTICE TASK FORM VIEW
   if (viewMode === 'form') {
     const isOfficeTask = ['excel', 'word', 'tally', 'general'].includes(formData.language);
@@ -364,16 +389,40 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
     return (
       <div className="tab-pane-container animate-fade-in">
         <div className="tab-pane-header">
-          <div className="flex items-center gap-3">
-            <button className="btn-outline-sm" onClick={() => setViewMode('list')}>
-              <ArrowLeft size={16} /> Back to Practice Labs
-            </button>
-            <div>
-              <h2>{editingProblem ? `Edit Lab Task: ${editingProblem.title}` : 'Create New Practice Lab Task'}</h2>
-              <p className="text-muted">
-                Configure practical exercises, challenge instructions, and evaluation answer keys across all subjects.
-              </p>
+          <div className="flex items-center justify-between w-full flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <button type="button" className="btn-outline-sm" onClick={() => setViewMode('list')}>
+                <ArrowLeft size={16} /> Back to Practice Labs
+              </button>
+              <div>
+                <h2>{editingProblem ? `Edit Lab Task: ${editingProblem.title}` : 'Create New Practice Lab Task'}</h2>
+                <p className="text-muted">
+                  Configure practical exercises, challenge instructions, and evaluation answer keys across all subjects.
+                </p>
+              </div>
             </div>
+            {editingProblem && formData.topic && onNavigate && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-outline-sm"
+                  style={{ background: '#FAF5FF', borderColor: '#E9D5FF', color: '#6B21A8', fontWeight: 600 }}
+                  onClick={() => onNavigate('topics', { topicId: formData.topic, subjectId: formData.subject })}
+                  title="View / edit study notes for this topic"
+                >
+                  <FileText size={14} /> Topic Study Notes
+                </button>
+                <button
+                  type="button"
+                  className="btn-outline-sm"
+                  style={{ background: '#EFF6FF', borderColor: '#BFDBFE', color: '#1E40AF', fontWeight: 600 }}
+                  onClick={() => onNavigate('quiz_bank', { topicId: formData.topic })}
+                  title="View / add MCQ questions for this topic"
+                >
+                  <HelpCircle size={14} /> Topic MCQs
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -896,12 +945,29 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
           <Filter size={15} className="text-muted" />
           <select
             value={subjectFilter}
-            onChange={(e) => setSubjectFilter(e.target.value)}
+            onChange={(e) => {
+              setSubjectFilter(e.target.value);
+              setTopicFilter('ALL');
+            }}
             className="filter-select-modern"
           >
             <option value="ALL">All Subjects ({problems.length} Tasks)</option>
             {subjects.map(s => (
               <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-dropdown-wrap">
+          <Layers size={15} className="text-muted" />
+          <select
+            value={topicFilter}
+            onChange={(e) => setTopicFilter(e.target.value)}
+            className="filter-select-modern"
+          >
+            <option value="ALL">All Topics ({availableTopicsForFilter.length})</option>
+            {availableTopicsForFilter.map(t => (
+              <option key={t.id} value={t.id}>{t.title}</option>
             ))}
           </select>
         </div>
@@ -985,7 +1051,34 @@ export default function PracticeTaskManagerTab({ user, onNavigate }) {
                         </span>
                       </td>
                       <td>
-                        <span className="badge-pill course-pill">{topObj?.title || 'Topic'}</span>
+                        {topObj ? (
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className="badge-pill course-pill">{topObj.title}</span>
+                            {onNavigate && (
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => onNavigate('topics', { topicId: topObj.id, subjectId: topObj.subject_id })}
+                                  className="text-[11px] text-primary hover:underline font-semibold"
+                                  title="Open study notes for this topic"
+                                >
+                                  Notes →
+                                </button>
+                                <span className="text-slate-300">•</span>
+                                <button
+                                  type="button"
+                                  onClick={() => onNavigate('quiz_bank', { topicId: topObj.id })}
+                                  className="text-[11px] text-purple-600 hover:underline font-semibold"
+                                  title="Open MCQ questions for this topic"
+                                >
+                                  MCQs →
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted">Unlinked</span>
+                        )}
                       </td>
                       <td>
                         <button

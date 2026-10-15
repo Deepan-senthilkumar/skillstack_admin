@@ -15,10 +15,8 @@ import {
 export const ADMIN_NAV_CONFIG = [
   // Primary Standalone Items (Outside)
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, isStandalone: true },
-  { id: 'quiz_analytics', label: 'Quiz Analytics', icon: BarChart3, isStandalone: true },
-  { id: 'reports', label: 'Performance Reports', icon: TrendingUp, isStandalone: true },
 
-  // Single Interlinked Main Module with Sub-modules (Curriculum Management)
+  // Single Interlinked Main Module with Sub-modules (Curriculum Management - Primary Focus)
   {
     id: 'curriculum',
     label: 'Curriculum & Academics',
@@ -34,13 +32,16 @@ export const ADMIN_NAV_CONFIG = [
     ]
   },
 
-  // Operations Standalone Items (Outside)
-  { id: 'daily_task', label: 'Daily Sessions', icon: Calendar, isStandalone: true },
+  // Student Learning Progress & Academic Operations
+  { id: 'certificates', label: 'Student Enrolls & Progress', icon: Award, isStandalone: true },
   { id: 'batches', label: 'Batches & Rosters', icon: Users, isStandalone: true },
   { id: 'submissions', label: 'Code Submissions', icon: Sparkles, isStandalone: true },
   { id: 'doubts', label: 'Student Doubts', icon: MessageSquare, badge: '1-on-1', isStandalone: true },
-  { id: 'certificates', label: 'Certificates & Enrolls', icon: Award, isStandalone: true },
   { id: 'users', label: 'User Directory', icon: Shield, isStandalone: true },
+
+  // Assessment Analytics & Performance Reports (Moved to the end as requested)
+  { id: 'quiz_analytics', label: 'Quiz Analytics', icon: BarChart3, isStandalone: true },
+  { id: 'reports', label: 'Performance Reports', icon: TrendingUp, isStandalone: true },
 ];
 
 export const ADMIN_MODULES = [
@@ -61,9 +62,9 @@ export const ADMIN_MODULES = [
     id: 'operations',
     label: 'Batch Operations & Attendance',
     icon: Users,
-    badge: '4 Modules',
+    badge: '3 Modules',
     submodules: [
-      { id: 'daily_task', label: 'Daily Sessions', icon: Calendar, desc: 'Class attendance and daily task allocation' },
+      // { id: 'daily_task', label: 'Daily Sessions', icon: Calendar, desc: 'Class attendance and daily task allocation' },
       { id: 'batches', label: 'Batches & Rosters', icon: Users, desc: 'Cohorts, student enrollment & timetables' },
       { id: 'submissions', label: 'Code Submissions', icon: Sparkles, desc: 'Evaluation of student lab assignments' },
       { id: 'doubts', label: 'Student Doubts', icon: MessageSquare, badge: 'Live', desc: 'Mentor resolutions & questions' },

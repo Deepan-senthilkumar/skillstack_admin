@@ -10,7 +10,7 @@ import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import PaginationControls from './PaginationControls';
 
-export default function SyllabusManagerTab({ user, onNavigate }) {
+export default function SyllabusManagerTab({ user, onNavigate, defaultSubjectId = null }) {
   const toast = useToast();
   const confirm = useConfirm();
   const [subjects, setSubjects] = useState([]);
@@ -20,13 +20,19 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('ALL');
+  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState(defaultSubjectId ? String(defaultSubjectId) : 'ALL');
   const [levelFilter, setLevelFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [expandedModuleIds, setExpandedModuleIds] = useState(new Set());
+
+  useEffect(() => {
+    if (defaultSubjectId) {
+      setSelectedSubjectFilter(String(defaultSubjectId));
+    }
+  }, [defaultSubjectId]);
 
   const [editingModule, setEditingModule] = useState(null);
   const [formData, setFormData] = useState({
@@ -662,21 +668,29 @@ export default function SyllabusManagerTab({ user, onNavigate }) {
                                             <span className="text-xs text-muted">0 MCQs</span>
                                           )}
                                         </td>
-                                        <td style={{ textAlign: 'right' }}>
+                                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                                           <div className="flex items-center justify-end gap-1">
                                             <button
                                               className="btn-outline-sm"
-                                              onClick={() => onNavigate && onNavigate('topics')}
-                                              title="Open Topic in Editor"
-                                              style={{ fontSize: '11px', padding: '4px 8px' }}
+                                              onClick={() => onNavigate && onNavigate('topics', { topicId: top.id, subjectId: top.subject_id, moduleId: top.module })}
+                                              title="Open Topic Notes in Editor"
+                                              style={{ fontSize: '11px', padding: '3px 7px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}
                                             >
                                               Notes
                                             </button>
                                             <button
                                               className="btn-outline-sm"
+                                              onClick={() => onNavigate && onNavigate('problems', { topicId: top.id, subjectId: top.subject_id })}
+                                              title="Manage Practice Labs for this Topic"
+                                              style={{ fontSize: '11px', padding: '3px 7px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}
+                                            >
+                                              Labs
+                                            </button>
+                                            <button
+                                              className="btn-outline-sm"
                                               onClick={() => onNavigate && onNavigate('quiz_bank', { topicId: top.id })}
-                                              title="Open Quiz Bank for this Topic"
-                                              style={{ fontSize: '11px', padding: '4px 8px' }}
+                                              title="Open Question Bank (MCQs) for this Topic"
+                                              style={{ fontSize: '11px', padding: '3px 7px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}
                                             >
                                               MCQs
                                             </button>

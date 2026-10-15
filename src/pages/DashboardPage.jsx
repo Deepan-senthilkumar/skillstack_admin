@@ -353,22 +353,22 @@ export default function DashboardPage({ user, onNavigate }) {
           </div>
         </div>
 
-        {/* Metric 3: Today's Class Logs */}
-        <div className="kpi-card" onClick={() => onNavigate('daily_task')}>
+        {/* Metric 3: Study Tracks & Modules */}
+        <div className="kpi-card" onClick={() => onNavigate('curriculum')}>
           <div className="kpi-card-header">
-            <span className="kpi-card-label">Today's Class Logs</span>
+            <span className="kpi-card-label">Study Tracks & Syllabus</span>
             <div className="kpi-icon-bubble emerald">
-              <Calendar size={19} />
+              <BookOpen size={19} />
             </div>
           </div>
           <div className="kpi-metric-number">
-            {stats.todayLoggedBatches} <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#94A3B8' }}>/ {stats.todayTotalBatches}</span>
+            {stats.totalCourses} <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#94A3B8' }}>Tracks</span>
           </div>
           <div className="kpi-card-footer">
-            <span className={`kpi-pill ${stats.todayLoggedBatches === stats.todayTotalBatches ? 'success' : 'warning'}`}>
-              {stats.todayLoggedBatches === stats.todayTotalBatches ? 'Complete' : 'Pending Logs'}
+            <span className="kpi-pill success">
+              <CheckCircle2 size={12} /> Notes & Labs Active
             </span>
-            <span className="kpi-footnote">Daily tracking</span>
+            <span className="kpi-footnote">Study materials</span>
           </div>
         </div>
 
@@ -396,11 +396,11 @@ export default function DashboardPage({ user, onNavigate }) {
         <div className="dash-panel-card">
           <div className="dash-panel-header">
             <div>
-              <h2 className="dash-panel-title">Student Attendance Velocity Trend</h2>
-              <p className="dash-panel-subtitle">Rolling weekly attendance rate across all active classroom cohorts</p>
+              <h2 className="dash-panel-title">Student Learning & Attendance Velocity</h2>
+              <p className="dash-panel-subtitle">Rolling weekly engagement rate across student learning tracks</p>
             </div>
-            <button className="panel-header-btn" onClick={() => onNavigate('daily_task')}>
-              <span>Log Session</span>
+            <button className="panel-header-btn" onClick={() => onNavigate('certificates')}>
+              <span>Student Progress</span>
               <ArrowRight size={13} />
             </button>
           </div>
