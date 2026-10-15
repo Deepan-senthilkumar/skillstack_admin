@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Code2, CheckCircle2, XCircle, AlertTriangle, Clock,
-  Eye, Filter, Search, RefreshCw, X, Award, Trash2, Send
+  Eye, Filter, Search, RefreshCw, X, Award, Trash2, Send, ArrowLeft
 } from 'lucide-react';
 import { api } from '../api';
 
@@ -17,12 +17,27 @@ export default function SubmissionInspectorTab({ user }) {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Inspection Modal
+  // Inspection
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [staffFeedback, setStaffFeedback] = useState('');
   const [reviewScore, setReviewScore] = useState(10);
   const [reviewStatus, setReviewStatus] = useState('PASSED');
   const [savingReview, setSavingReview] = useState(false);
+
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (selectedSubmission) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Operations',
+          breadcrumb: `Submissions / #${selectedSubmission.id}`,
+          title: `Submission: ${selectedSubmission.student_name} (${selectedSubmission.problem_title})`
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+  }, [selectedSubmission]);
 
   useEffect(() => {
     loadFilters();
@@ -104,6 +119,162 @@ export default function SubmissionInspectorTab({ user }) {
            s.problem_title?.toLowerCase().includes(q) ||
            s.batch_name?.toLowerCase().includes(q);
   });
+
+  // Dedicated Inbuilt Inspection Page View
+  if (selectedSubmission) {
+    return (
+      <div className="tab-pane-container animate-fade-in">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => setSelectedSubmission(null)}
+            >
+              <ArrowLeft size={16} /> Back to Submissions Stream
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              Student: <strong style={{ color: '#1E293B' }}>{selectedSubmission.student_name}</strong> • Problem: <strong style={{ color: '#1E293B' }}>{selectedSubmission.problem_title}</strong> • Attempt #{selectedSubmission.attempt_number}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                const subId = selectedSubmission.id;
+                setSelectedSubmission(null);
+                handleDelete(subId);
+              }}
+            >
+              <Trash2 size={14} /> Delete Run
+            </button>
+          </div>
+        </div>
+
+        {/* Detailed Full Page Inspection Workbench */}
+        <div className="dashboard-section-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Telemetry Header */}
+          <div className="grid grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div>
+              <span className="text-xs text-muted block">Validation Status</span>
+              <span className={`badge-pill mt-1 ${selectedSubmission.is_passed ? 'success' : 'danger'}`}>
+                {selectedSubmission.is_passed ? 'PASSED / MATCH' : selectedSubmission.status}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs text-muted block">Language</span>
+              <span className="font-semibold text-sm mt-1 block uppercase">{selectedSubmission.language}</span>
+            </div>
+            <div>
+              <span className="text-xs text-muted block">Execution Time</span>
+              <span className="font-mono text-sm mt-1 block">{selectedSubmission.execution_time_ms} ms</span>
+            </div>
+            <div>
+              <span className="text-xs text-muted block">Score / Points</span>
+              <span className="font-semibold text-sm mt-1 block">{selectedSubmission.score || 0} pts</span>
+            </div>
+          </div>
+
+          {/* Submitted Code Block */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold uppercase text-muted">Submitted Source Code</label>
+              <span className="text-xs font-mono text-muted">{selectedSubmission.submitted_code?.split('\n').length} lines</span>
+            </div>
+            <div className="code-viewer-box">
+              <pre><code>{selectedSubmission.submitted_code}</code></pre>
+            </div>
+          </div>
+
+          {/* Output Comparison Grid (Actual vs Expected) */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold uppercase text-muted block mb-1">
+                Captured Actual Output (Console / stdout)
+              </label>
+              <div className={`output-console-box ${selectedSubmission.is_passed ? 'border-emerald-500' : 'border-amber-500'}`}>
+                <pre>{selectedSubmission.actual_output || '(Empty Output)'}</pre>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold uppercase text-muted block mb-1">
+                Admin Expected Output (Answer Key)
+              </label>
+              <div className="output-console-box border-primary">
+                <pre>{selectedSubmission.expected_output || '(No Answer Key Configured)'}</pre>
+              </div>
+            </div>
+          </div>
+
+          {/* Full Error Detail if Compilation or Runtime Failed */}
+          {selectedSubmission.error_detail && (
+            <div>
+              <label className="text-xs font-semibold uppercase text-danger block mb-1 flex items-center gap-1">
+                <AlertTriangle size={13} /> Compiler / Runtime Error Trace
+              </label>
+              <div className="output-console-box error-box">
+                <pre>{selectedSubmission.error_detail}</pre>
+              </div>
+            </div>
+          )}
+
+          {/* Review / Feedback Section */}
+          <form onSubmit={handleSaveReview} className="border-t border-slate-200 pt-4 mt-2">
+            <h4 className="font-semibold text-sm mb-3 flex items-center gap-1.5 text-slate-800">
+              <Award size={16} className="text-primary" /> Trainer Review & Feedback
+            </h4>
+
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <div className="form-group">
+                <label>Manual Status Override</label>
+                <select
+                  value={reviewStatus}
+                  onChange={(e) => setReviewStatus(e.target.value)}
+                >
+                  <option value="PASSED">Approve / Passed</option>
+                  <option value="FAILED">Mark Failed</option>
+                  <option value="REVISION_REQUESTED">Request Revision</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Assigned Score</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={reviewScore}
+                  onChange={(e) => setReviewScore(parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Staff Remarks to Student</label>
+              <textarea
+                rows={3}
+                placeholder="e.g. Excellent formatting! Try using a helper function next time."
+                value={staffFeedback}
+                onChange={(e) => setStaffFeedback(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button type="button" className="btn-secondary" onClick={() => setSelectedSubmission(null)}>
+                Back to Stream
+              </button>
+              <button type="submit" className="btn-primary" disabled={savingReview}>
+                <Send size={14} /> {savingReview ? 'Saving…' : 'Save Review & Publish'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="tab-pane-container">
@@ -280,149 +451,6 @@ export default function SubmissionInspectorTab({ user }) {
           </div>
         )}
       </div>
-
-      {/* Detailed Inspection Modal with Actual vs Expected Output comparison */}
-      {selectedSubmission && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog max-w-4xl">
-            <div className="modal-header">
-              <div>
-                <h3 className="flex items-center gap-2">
-                  <Code2 size={20} className="text-primary" />
-                  Submission Inspection #{selectedSubmission.id}
-                </h3>
-                <p className="text-xs text-muted mt-1">
-                  Student: <strong>{selectedSubmission.student_name}</strong> • Problem: <strong>{selectedSubmission.problem_title}</strong> • Attempt #{selectedSubmission.attempt_number}
-                </p>
-              </div>
-              <button className="icon-btn" onClick={() => setSelectedSubmission(null)}>
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="modal-body space-y-4">
-              {/* Telemetry Header */}
-              <div className="grid grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border">
-                <div>
-                  <span className="text-xs text-muted block">Validation Status</span>
-                  <span className={`badge-pill mt-1 ${selectedSubmission.is_passed ? 'success' : 'danger'}`}>
-                    {selectedSubmission.is_passed ? 'PASSED / MATCH' : selectedSubmission.status}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-muted block">Language</span>
-                  <span className="font-semibold text-sm mt-1 block uppercase">{selectedSubmission.language}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-muted block">Execution Time</span>
-                  <span className="font-mono text-sm mt-1 block">{selectedSubmission.execution_time_ms} ms</span>
-                </div>
-                <div>
-                  <span className="text-xs text-muted block">Score / Points</span>
-                  <span className="font-semibold text-sm mt-1 block">{selectedSubmission.score || 0} pts</span>
-                </div>
-              </div>
-
-              {/* Submitted Code Block */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold uppercase text-muted">Submitted Source Code</label>
-                  <span className="text-xs font-mono text-muted">{selectedSubmission.submitted_code?.split('\n').length} lines</span>
-                </div>
-                <div className="code-viewer-box">
-                  <pre><code>{selectedSubmission.submitted_code}</code></pre>
-                </div>
-              </div>
-
-              {/* Output Comparison Grid (Actual vs Expected) */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Actual Output */}
-                <div>
-                  <label className="text-xs font-semibold uppercase text-muted block mb-1">
-                    Captured Actual Output (Console / stdout)
-                  </label>
-                  <div className={`output-console-box ${selectedSubmission.is_passed ? 'border-emerald-500' : 'border-amber-500'}`}>
-                    <pre>{selectedSubmission.actual_output || '(Empty Output)'}</pre>
-                  </div>
-                </div>
-
-                {/* Expected Output */}
-                <div>
-                  <label className="text-xs font-semibold uppercase text-muted block mb-1">
-                    Admin Expected Output (Answer Key)
-                  </label>
-                  <div className="output-console-box border-primary">
-                    <pre>{selectedSubmission.expected_output || '(No Answer Key Configured)'}</pre>
-                  </div>
-                </div>
-              </div>
-
-              {/* Full Error Detail if Compilation or Runtime Failed */}
-              {selectedSubmission.error_detail && (
-                <div>
-                  <label className="text-xs font-semibold uppercase text-danger block mb-1 flex items-center gap-1">
-                    <AlertTriangle size={13} /> Compiler / Runtime Error Trace
-                  </label>
-                  <div className="output-console-box error-box">
-                    <pre>{selectedSubmission.error_detail}</pre>
-                  </div>
-                </div>
-              )}
-
-              {/* Review / Feedback Section */}
-              <form onSubmit={handleSaveReview} className="border-t pt-4 mt-4">
-                <h4 className="font-semibold text-sm mb-2 flex items-center gap-1">
-                  <Award size={15} className="text-primary" /> Trainer Review & Feedback
-                </h4>
-
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div className="form-group">
-                    <label>Manual Status Override</label>
-                    <select
-                      value={reviewStatus}
-                      onChange={(e) => setReviewStatus(e.target.value)}
-                    >
-                      <option value="PASSED">Approve / Passed</option>
-                      <option value="FAILED">Mark Failed</option>
-                      <option value="REVISION_REQUESTED">Request Revision</option>
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Assigned Score</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={reviewScore}
-                      onChange={(e) => setReviewScore(parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Staff Remarks to Student</label>
-                  <textarea
-                    rows={2}
-                    placeholder="e.g. Excellent formatting! Try using a helper function next time."
-                    value={staffFeedback}
-                    onChange={(e) => setStaffFeedback(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 mt-3">
-                  <button type="button" className="btn-secondary" onClick={() => setSelectedSubmission(null)}>
-                    Close
-                  </button>
-                  <button type="submit" className="btn-primary" disabled={savingReview}>
-                    <Send size={14} /> {savingReview ? 'Saving…' : 'Save Review'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

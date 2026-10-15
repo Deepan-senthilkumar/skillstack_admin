@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   BarChart3, Search, Filter, RefreshCw, Eye, Award,
   ShieldAlert, CheckCircle2, XCircle, Clock, AlertTriangle,
-  RotateCcw, User, BookOpen, Layers, X, Sparkles
+  RotateCcw, User, BookOpen, Layers, X, Sparkles, ArrowLeft
 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -33,9 +33,27 @@ export default function QuizAnalyticsTab({ user }) {
   const [pageSize, setPageSize] = useState(10);
   const [totalResults, setTotalResults] = useState(0);
 
-  // Inspector modal state
+  // Inspector state
   const [inspectingAttempt, setInspectingAttempt] = useState(null);
   const [resettingCooldown, setResettingCooldown] = useState(false);
+
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (inspectingAttempt) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Analytics',
+          breadcrumb: `Quiz Audit / #${inspectingAttempt.id}`,
+          title: `Quiz Audit: ${inspectingAttempt.student_name || inspectingAttempt.student_username || 'Student'}`
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+    return () => {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    };
+  }, [inspectingAttempt]);
 
   useEffect(() => {
     loadFilterMeta();
@@ -117,6 +135,194 @@ export default function QuizAnalyticsTab({ user }) {
     const s = sec % 60;
     return `${mins}m ${s}s`;
   };
+
+  // ----------------------------------------------------
+  // DEDICATED INBUILT ATTEMPT AUDIT PAGE
+  // ----------------------------------------------------
+  if (inspectingAttempt) {
+    return (
+      <div className="tab-pane-container animate-fade-in">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => setInspectingAttempt(null)}
+            >
+              <ArrowLeft size={16} /> Back to Quiz Analytics
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              Attempt #{inspectingAttempt.id} • Student: <strong style={{ color: '#1E293B' }}>{inspectingAttempt.student_name || inspectingAttempt.student_username}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {!inspectingAttempt.is_passed && (
+              <button
+                type="button"
+                onClick={() => {
+                  handleResetCooldown(
+                    inspectingAttempt.student,
+                    inspectingAttempt.topic,
+                    inspectingAttempt.student_name || inspectingAttempt.student_username
+                  );
+                }}
+                disabled={resettingCooldown}
+                className="btn-outline-sm text-amber-700 border-amber-300 hover:bg-amber-50"
+              >
+                <RotateCcw size={14} /> Clear 10-Min Cooldown
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Telemetry Summary Cards */}
+        <div className="dashboard-section-card mb-4">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+            <div className="flex items-center gap-3">
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                backgroundColor: inspectingAttempt.is_passed ? '#DCFCE7' : '#FEE2E2',
+                color: inspectingAttempt.is_passed ? '#15803D' : '#B91C1C',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Award size={24} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    {inspectingAttempt.topic_title}
+                  </h3>
+                  <span className={`badge-pill ${inspectingAttempt.is_passed ? 'success' : 'danger'}`}>
+                    {inspectingAttempt.is_passed ? 'Passed' : 'Failed'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '4px' }}>
+                  Submitted on {new Date(inspectingAttempt.created_at).toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+              <div style={{ textAlign: 'center' }}>
+                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block' }}>SCORE</span>
+                <strong style={{ fontSize: '18px', color: '#0F172A' }}>{inspectingAttempt.score} / {inspectingAttempt.total_questions}</strong>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block' }}>PERCENTAGE</span>
+                <strong style={{ fontSize: '18px', color: inspectingAttempt.is_passed ? '#10B981' : '#EF4444' }}>
+                  {inspectingAttempt.percentage}%
+                </strong>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block' }}>VIOLATIONS</span>
+                <strong style={{ fontSize: '18px', color: inspectingAttempt.security_violations > 0 ? '#DC2626' : '#10B981' }}>
+                  {inspectingAttempt.security_violations || 0}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Infractions Banner if any */}
+        {inspectingAttempt.security_violations > 0 && (
+          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 mb-4">
+            <div className="flex items-center gap-2 font-bold mb-1">
+              <ShieldAlert size={18} />
+              <span>Security Infractions Detected: {inspectingAttempt.security_violations} violation(s)</span>
+            </div>
+            <p className="text-xs text-rose-700">
+              {inspectingAttempt.violation_details || 'Multiple tab switches, minimize, or window exits recorded.'}
+            </p>
+          </div>
+        )}
+
+        {/* Questions snapshot list */}
+        <div className="dashboard-section-card">
+          <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#1E293B', marginBottom: '16px' }}>
+            Questions Presented in this Attempt ({inspectingAttempt.questions_data?.length || 0})
+          </h4>
+
+          {inspectingAttempt.questions_data && inspectingAttempt.questions_data.length > 0 ? (
+            <div className="space-y-4">
+              {inspectingAttempt.questions_data.map((q, qIdx) => {
+                const isCorrect = q.is_correct;
+                const studentAns = q.user_choice || inspectingAttempt.selected_answers?.[String(q.id)] || 'None';
+
+                return (
+                  <div
+                    key={q.id || qIdx}
+                    className={`p-4 rounded-xl border ${isCorrect ? 'border-emerald-200 bg-emerald-50/20' : 'border-rose-200 bg-rose-50/20'} space-y-3`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="font-semibold text-slate-800 text-sm">
+                        <span className="font-bold text-slate-500 mr-2">Q{qIdx + 1}.</span>
+                        {q.question_text}
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0 ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                        {isCorrect ? '✓ Correct (+1)' : '✗ Incorrect (0)'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs pt-1">
+                      {[
+                        { key: 'A', text: q.option_a },
+                        { key: 'B', text: q.option_b },
+                        { key: 'C', text: q.option_c },
+                        { key: 'D', text: q.option_d },
+                      ].map(({ key, text }) => {
+                        const isCorrectKey = q.correct_option === key;
+                        const isStudentKey = studentAns === key;
+                        let borderStyle = 'border-slate-200 bg-white text-slate-700';
+                        if (isCorrectKey) {
+                          borderStyle = 'border-emerald-500 bg-emerald-50 font-bold text-emerald-900 ring-1 ring-emerald-400';
+                        } else if (isStudentKey && !isCorrectKey) {
+                          borderStyle = 'border-rose-500 bg-rose-50 font-bold text-rose-900 ring-1 ring-rose-400';
+                        }
+
+                        return (
+                          <div key={key} className={`p-2.5 rounded-lg border ${borderStyle} flex items-center justify-between`}>
+                            <div className="flex items-center gap-2">
+                              <strong>{key}:</strong>
+                              <span>{text}</span>
+                            </div>
+                            {isCorrectKey && <span className="text-[10px] uppercase font-bold text-emerald-700">Correct Key</span>}
+                            {isStudentKey && !isCorrectKey && <span className="text-[10px] uppercase font-bold text-rose-700">Student Selected</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200/60">
+                      <div>
+                        Student Chose: <strong className={isCorrect ? 'text-emerald-700' : 'text-rose-700'}>Option {studentAns}</strong>
+                        <span className="mx-2">&bull;</span>
+                        Correct Key: <strong className="text-emerald-700">Option {q.correct_option}</strong>
+                      </div>
+                    </div>
+
+                    {q.explanation && (
+                      <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200 italic">
+                        💡 <strong>Explanation:</strong> {q.explanation}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-xl">
+              No individual question snapshot available for this attempt.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page-container space-y-5">
@@ -361,139 +567,6 @@ export default function QuizAnalyticsTab({ user }) {
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
             />
-          </div>
-        </div>
-      )}
-
-      {/* Inspect Attempt Modal */}
-      {inspectingAttempt && (
-        <div className="modal-overlay" onClick={() => setInspectingAttempt(null)}>
-          <div className="modal-content max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Award size={18} className="text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-800">
-                    Test Attempt Audit: {inspectingAttempt.student_name || inspectingAttempt.student_username}
-                  </h3>
-                </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Topic: <strong>{inspectingAttempt.topic_title}</strong> &bull; Score: <strong>{inspectingAttempt.score}/{inspectingAttempt.total_questions} ({inspectingAttempt.percentage}%)</strong>
-                </p>
-              </div>
-
-              <button
-                onClick={() => setInspectingAttempt(null)}
-                className="p-1 rounded hover:bg-slate-100 text-slate-400"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="modal-body py-4 space-y-4 max-h-[70vh] overflow-y-auto text-xs">
-              {/* Infractions Banner if any */}
-              {inspectingAttempt.security_violations > 0 && (
-                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800">
-                  <div className="flex items-center gap-2 font-bold mb-0.5">
-                    <ShieldAlert size={15} />
-                    <span>Security Infractions Detected: {inspectingAttempt.security_violations}</span>
-                  </div>
-                  <p className="text-[11px] text-rose-700">
-                    {inspectingAttempt.violation_details || 'Multiple tab switches, minimize, or window exits recorded.'}
-                  </p>
-                </div>
-              )}
-
-              {/* Questions snapshot list */}
-              {inspectingAttempt.questions_data && inspectingAttempt.questions_data.length > 0 ? (
-                <div className="space-y-3">
-                  <h4 className="font-bold text-slate-700">Questions Presented in this Attempt:</h4>
-                  {inspectingAttempt.questions_data.map((q, qIdx) => {
-                    const isCorrect = q.is_correct;
-                    const studentAns = q.user_choice || inspectingAttempt.selected_answers?.[String(q.id)] || 'None';
-
-                    return (
-                      <div
-                        key={q.id || qIdx}
-                        className={`p-3.5 rounded-xl border ${isCorrect ? 'border-emerald-200 bg-emerald-50/30' : 'border-rose-200 bg-rose-50/30'} space-y-2`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="font-semibold text-slate-800">
-                            <span className="font-bold text-slate-500 mr-1.5">Q{qIdx + 1}.</span>
-                            {q.question_text}
-                          </div>
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold flex-shrink-0 ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                            {isCorrect ? 'Correct (+1)' : 'Incorrect (0)'}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-[11.5px] pt-1">
-                          <div className={`p-2 rounded border ${q.correct_option === 'A' ? 'border-emerald-400 bg-emerald-50 font-bold text-emerald-900' : studentAns === 'A' ? 'border-rose-400 bg-rose-50 font-bold text-rose-900' : 'border-slate-200 bg-white text-slate-600'}`}>
-                            <strong>A:</strong> {q.option_a}
-                          </div>
-                          <div className={`p-2 rounded border ${q.correct_option === 'B' ? 'border-emerald-400 bg-emerald-50 font-bold text-emerald-900' : studentAns === 'B' ? 'border-rose-400 bg-rose-50 font-bold text-rose-900' : 'border-slate-200 bg-white text-slate-600'}`}>
-                            <strong>B:</strong> {q.option_b}
-                          </div>
-                          <div className={`p-2 rounded border ${q.correct_option === 'C' ? 'border-emerald-400 bg-emerald-50 font-bold text-emerald-900' : studentAns === 'C' ? 'border-rose-400 bg-rose-50 font-bold text-rose-900' : 'border-slate-200 bg-white text-slate-600'}`}>
-                            <strong>C:</strong> {q.option_c}
-                          </div>
-                          <div className={`p-2 rounded border ${q.correct_option === 'D' ? 'border-emerald-400 bg-emerald-50 font-bold text-emerald-900' : studentAns === 'D' ? 'border-rose-400 bg-rose-50 font-bold text-rose-900' : 'border-slate-200 bg-white text-slate-600'}`}>
-                            <strong>D:</strong> {q.option_d}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
-                          <div>
-                            Student Chose: <strong className={isCorrect ? 'text-emerald-700' : 'text-rose-700'}>Option {studentAns}</strong>
-                            <span className="mx-2">&bull;</span>
-                            Correct Key: <strong className="text-emerald-700">Option {q.correct_option}</strong>
-                          </div>
-                        </div>
-
-                        {q.explanation && (
-                          <div className="text-[11px] text-slate-500 bg-white/70 p-2 rounded border border-slate-200/50 italic">
-                            💡 Explanation: {q.explanation}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-lg">
-                  No individual question snapshot available for this attempt.
-                </div>
-              )}
-            </div>
-
-            <div className="modal-footer flex items-center justify-between pt-3 border-t border-slate-100">
-              <div>
-                {!inspectingAttempt.is_passed && (
-                  <button
-                    onClick={() => {
-                      handleResetCooldown(
-                        inspectingAttempt.student,
-                        inspectingAttempt.topic,
-                        inspectingAttempt.student_name || inspectingAttempt.student_username
-                      );
-                      setInspectingAttempt(null);
-                    }}
-                    disabled={resettingCooldown}
-                    className="btn-secondary text-xs flex items-center gap-1.5 text-amber-700 border-amber-300 hover:bg-amber-50"
-                  >
-                    <RotateCcw size={13} />
-                    <span>Clear 10-Min Cooldown for Student</span>
-                  </button>
-                )}
-              </div>
-
-              <button
-                onClick={() => setInspectingAttempt(null)}
-                className="btn-secondary text-xs"
-              >
-                Close Audit
-              </button>
-            </div>
           </div>
         </div>
       )}

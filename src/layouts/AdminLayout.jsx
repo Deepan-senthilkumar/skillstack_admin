@@ -126,6 +126,21 @@ export default function AdminLayout({
   const isCurriculumActive = ['subjects', 'courses', 'syllabus', 'topics', 'problems', 'quiz_bank'].includes(activePage);
   const [openModuleId, setOpenModuleId] = useState(isCurriculumActive ? 'curriculum' : null);
 
+  // Dynamic header override support (e.g., viewing a specific module)
+  const [customHeader, setCustomHeader] = useState(null);
+
+  useEffect(() => {
+    setCustomHeader(null);
+  }, [activePage]);
+
+  useEffect(() => {
+    const handleSetHeader = (e) => {
+      setCustomHeader(e.detail || null);
+    };
+    window.addEventListener('admin:set-header', handleSetHeader);
+    return () => window.removeEventListener('admin:set-header', handleSetHeader);
+  }, []);
+
   // When active page changes, ensure parent module accordion opens and closes others
   useEffect(() => {
     if (isCurriculumActive) {
@@ -377,10 +392,11 @@ export default function AdminLayout({
                   <div className="header-breadcrumb-trail">
                     <span className="trail-root">SkillStack</span>
                     <span className="trail-sep">/</span>
-                    <span className="trail-section">{isCurriculumActive ? 'Curriculum' : 'Admin'}</span>
+                    <span className="trail-section">{customHeader?.section || (isCurriculumActive ? 'Curriculum' : 'Admin')}</span>
                     <span className="trail-sep">/</span>
                     <span className="trail-current">
-                      {activePage === 'dashboard' ? 'Dashboard Overview' :
+                      {customHeader?.breadcrumb || (
+                       activePage === 'dashboard' ? 'Dashboard Overview' :
                        activePage === 'subjects' || activePage === 'courses' ? 'Master Courses' :
                        activePage === 'syllabus' ? 'Syllabus & Modules' :
                        activePage === 'topics' ? 'Topics & Study Notes' :
@@ -393,11 +409,12 @@ export default function AdminLayout({
                        activePage === 'users' ? 'User Directory' :
                        activePage === 'quiz_analytics' ? 'Quiz Analytics' :
                        activePage === 'reports' ? 'Performance Reports' :
-                       activePage}
+                       activePage)}
                     </span>
                   </div>
                   <h1 className="fintrack-header-title">
-                    {activePage === 'dashboard' ? `Welcome back, ${user?.first_name || user?.username || 'Admin'}!` :
+                    {customHeader?.title || (
+                     activePage === 'dashboard' ? `Welcome back, ${user?.first_name || user?.username || 'Admin'}!` :
                      activePage === 'subjects' || activePage === 'courses' ? 'Master Courses Catalog' :
                      activePage === 'syllabus' ? 'Syllabus & Chapter Modules' :
                      activePage === 'topics' ? 'Lecture Topics & Study Notes' :
@@ -410,7 +427,7 @@ export default function AdminLayout({
                      activePage === 'users' ? 'User Accounts & Access Directory' :
                      activePage === 'quiz_analytics' ? 'Quiz Assessment Analytics' :
                      activePage === 'reports' ? 'Academic Performance Reports' :
-                     'Management Console'}
+                     'Management Console')}
                   </h1>
                 </div>
               </div>

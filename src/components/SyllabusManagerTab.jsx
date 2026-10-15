@@ -49,6 +49,22 @@ export default function SyllabusManagerTab({ user, onNavigate, defaultSubjectId 
     loadAllData();
   }, []);
 
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (viewMode === 'detail' && viewingModule) {
+      const subObj = subjects.find(s => s.id === (typeof viewingModule.subject === 'object' ? viewingModule.subject?.id : viewingModule.subject));
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Curriculum',
+          breadcrumb: `${subObj?.name || 'Syllabus'} / Chapters`,
+          title: viewingModule.name
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+  }, [viewMode, viewingModule, subjects]);
+
   const loadAllData = async () => {
     setLoading(true);
     try {
@@ -256,43 +272,38 @@ export default function SyllabusManagerTab({ user, onNavigate, defaultSubjectId 
 
     return (
       <div className="tab-pane-container animate-fade-in">
-        <div className="tab-pane-header">
-          <div className="flex items-center justify-between w-full flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="btn-outline-sm"
-                onClick={() => {
-                  setViewMode('list');
-                  setViewingModule(null);
-                }}
-              >
-                <ArrowLeft size={16} /> Back to Chapters Table
-              </button>
-              <div>
-                <h2>{viewingModule.name}</h2>
-                <p className="text-muted">
-                  Parent Track: <strong>{subObj?.name || viewingModule.subject_name || 'Subject'}</strong> • Level: <span style={{ textTransform: 'capitalize' }}>{viewingModule.level || 'Beginner'}</span> • Sequence #{viewingModule.order || 1}
-                </p>
-              </div>
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                setViewMode('list');
+                setViewingModule(null);
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Chapters Table
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              Parent Track: <strong style={{ color: '#1E293B' }}>{subObj?.name || viewingModule.subject_name || 'Subject'}</strong> • Level: <span style={{ textTransform: 'capitalize' }}>{viewingModule.level || 'Beginner'}</span> • Sequence #{viewingModule.order || 1}
+            </span>
+          </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="btn-outline-sm"
-                onClick={() => handleOpenEdit(viewingModule)}
-              >
-                <Edit2 size={14} /> Edit Chapter
-              </button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => onNavigate && onNavigate('topics')}
-              >
-                <Plus size={16} /> Add Topic
-              </button>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => handleOpenEdit(viewingModule)}
+            >
+              <Edit2 size={14} /> Edit Chapter
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => onNavigate && onNavigate('topics')}
+            >
+              <Plus size={16} /> Add Topic
+            </button>
           </div>
         </div>
 
