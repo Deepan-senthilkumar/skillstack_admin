@@ -43,59 +43,40 @@
   position: relative;
 }
 
-/* 2. Floating Sidebar (FinTrack Style) */
+/* 2. Attached Docked Sidebar (Normal Standard Layout) */
 .fintrack-sidebar {
-  height: calc(100vh - 32px);
-  margin: 16px 0 16px 16px;
-  background: var(--ft-card-bg);
-  border-radius: var(--ft-radius-xl);
-  box-shadow: var(--ft-shadow-card);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  height: 100vh;
+  margin: 0;
+  background: #FFFFFF;
+  border-radius: 0;
+  border: none;
+  border-right: 1px solid var(--ft-border);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
   position: sticky;
-  top: 16px;
-  z-index: 40;
-  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, transform 0.3s ease;
-  overflow: hidden;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  overflow-x: hidden;
   user-select: none;
+  flex-shrink: 0;
 }
 
 /* Expanded full width */
 .fintrack-sidebar.expanded {
-  width: 275px;
-  min-width: 275px;
+  width: 260px;
+  min-width: 260px;
 }
 
-/* Collapsed state: Only logo visible as requested */
+/* Collapsed state: Compact icon rail */
+.fintrack-sidebar.collapsed,
 .fintrack-sidebar.collapsed-logo-only {
-  width: 82px;
-  min-width: 82px;
+  width: 76px;
+  min-width: 76px;
   padding: 0;
-  cursor: pointer;
-}
-
-/* When collapsed sidebar is hovered over: flies out smoothly as floating overlay */
-.fintrack-sidebar.floating-overlay {
-  position: fixed;
-  left: 16px;
-  top: 16px;
-  width: 280px !important;
-  z-index: 100;
-  box-shadow: var(--ft-shadow-float);
-  border: 1px solid rgba(91, 88, 235, 0.15);
-  animation: fintrack-flyout 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes fintrack-flyout {
-  0% {
-    width: 82px;
-    opacity: 0.95;
-  }
-  100% {
-    width: 280px;
-    opacity: 1;
-  }
 }
 
 /* Sidebar Brand Header */
@@ -389,6 +370,72 @@
   border-radius: 6px;
   background: #DDD6FE;
   color: #5B21B6;
+}
+
+/* Collapsed Sidebar Clean Icon Rail */
+.fintrack-sidebar.collapsed .fintrack-sidebar-header,
+.fintrack-sidebar.collapsed-logo-only .fintrack-sidebar-header {
+  padding: 18px 8px;
+  justify-content: center;
+}
+
+.fintrack-sidebar.collapsed .fintrack-nav-body,
+.fintrack-sidebar.collapsed-logo-only .fintrack-nav-body {
+  padding: 14px 6px;
+}
+
+.fintrack-sidebar.collapsed .fintrack-nav-item,
+.fintrack-sidebar.collapsed-logo-only .fintrack-nav-item,
+.fintrack-sidebar.collapsed .fintrack-module-trigger,
+.fintrack-sidebar.collapsed-logo-only .fintrack-module-trigger {
+  padding: 10px 0;
+  justify-content: center;
+  width: 100%;
+}
+
+.fintrack-sidebar.collapsed .fintrack-nav-item-left,
+.fintrack-sidebar.collapsed-logo-only .fintrack-nav-item-left,
+.fintrack-sidebar.collapsed .module-trigger-left,
+.fintrack-sidebar.collapsed-logo-only .module-trigger-left {
+  gap: 0;
+  justify-content: center;
+  width: 100%;
+}
+
+.fintrack-sidebar.collapsed .nav-label,
+.fintrack-sidebar.collapsed-logo-only .nav-label,
+.fintrack-sidebar.collapsed .fintrack-item-badge,
+.fintrack-sidebar.collapsed-logo-only .fintrack-item-badge,
+.fintrack-sidebar.collapsed .module-trigger-right,
+.fintrack-sidebar.collapsed-logo-only .module-trigger-right,
+.fintrack-sidebar.collapsed .fintrack-brand-text,
+.fintrack-sidebar.collapsed-logo-only .fintrack-brand-text,
+.fintrack-sidebar.collapsed .fintrack-submodules-list,
+.fintrack-sidebar.collapsed-logo-only .fintrack-submodules-list {
+  display: none !important;
+}
+
+/* Dashboard Flow Spacing (Fixes touching sections) */
+.dashboard-content-flow {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 28px !important;
+  width: 100% !important;
+}
+
+.dashboard-content-flow .dash-hero-card {
+  margin-bottom: 0 !important;
+}
+
+.dashboard-content-flow .kpi-metric-grid {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  gap: 20px !important;
+}
+
+.dashboard-content-flow .dash-sections-grid {
+  margin-top: 0 !important;
+  gap: 24px !important;
 }
 
 /* FinTrack 3D Promo Card in Sidebar */

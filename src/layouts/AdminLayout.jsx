@@ -101,15 +101,10 @@ export default function AdminLayout({
   backendOnline,
   children
 }) {
-  // Pinned state: true = full sidebar open; false = collapsed showing ONLY LOGO
+  // Pinned state: true = full sidebar open (260px); false = compact icon rail (76px)
   const [isPinned, setIsPinned] = useState(true);
-  // Hover state: when !isPinned and user hovers over logo/collapsed bar
-  const [isHovered, setIsHovered] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [demoToast, setDemoToast] = useState(null);
-
-  // Is sidebar currently expanded (either pinned or hovering)
-  const isExpanded = isPinned || isHovered;
 
   // Single open accordion tracker: only 1 collapsible module can be open at a time
   const isCurriculumActive = ['subjects', 'courses', 'syllabus', 'topics', 'problems', 'quiz_bank'].includes(activePage);
@@ -128,9 +123,8 @@ export default function AdminLayout({
 
   const handleItemClick = (pageId) => {
     onNavigate(pageId);
-    // If floating in hover mode, automatically close on item select as requested
-    if (!isPinned) {
-      setIsHovered(false);
+    if (window.innerWidth < 768) {
+      setMobileMenuOpen(false);
     }
   };
 
@@ -180,25 +174,25 @@ export default function AdminLayout({
         </div>
       )}
 
-      {/* Main Container with FinTrack Warm Porcelain Background */}
+      {/* Main Container with Normal Attached Layout */}
       <div className="fintrack-app-wrapper">
-        {/* Floating Sidebar Container */}
+        {/* Attached Left Docked Sidebar */}
         <aside
-          className={`fintrack-sidebar ${isExpanded ? 'expanded' : 'collapsed-logo-only'} ${!isPinned && isHovered ? 'floating-overlay' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}
-          onMouseEnter={() => {
-            if (!isPinned) setIsHovered(true);
-          }}
-          onMouseLeave={() => {
-            if (!isPinned) setIsHovered(false);
-          }}
+          className={`fintrack-sidebar ${isPinned ? 'expanded' : 'collapsed'} ${mobileMenuOpen ? 'mobile-open' : ''}`}
         >
           {/* Top Brand Logo Section */}
           <div className="fintrack-sidebar-header">
             <div
               className="fintrack-brand-btn"
               onClick={() => setIsPinned(prev => !prev)}
-              title={!isPinned ? "Click to lock sidebar open, or hover to preview" : "Click to collapse to Logo only"}
-              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              title={isPinned ? "Collapse sidebar" : "Expand sidebar"}
+              style={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: isPinned ? 'flex-start' : 'center',
+                width: '100%'
+              }}
             >
               <img
                 src="/skillstack.png"
@@ -214,7 +208,7 @@ export default function AdminLayout({
                   background: '#FFFFFF'
                 }}
               />
-              {isExpanded && (
+              {isPinned && (
                 <div className="fintrack-brand-text animate-fade-in" style={{ marginLeft: '10px' }}>
                   <div className="brand-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>SkillStack</span>
@@ -236,100 +230,102 @@ export default function AdminLayout({
             </div>
           </div>
 
-          {/* Collapsed Hint: When menu is closed, show only Logo as requested */}
-          {!isExpanded && (
-            <div className="fintrack-collapsed-hint" title="Hover over logo to open menu">
-              <span className="collapsed-indicator-dot" />
-            </div>
-          )}
+          {/* Full Navigation Menu (Always visible: Full text when expanded, Compact icon rail when collapsed) */}
+          <div className="fintrack-nav-body animate-fade-in">
+            <nav className="fintrack-nav-list">
+              {ADMIN_NAV_CONFIG.map((item) => {
+                const ItemIcon = item.icon;
 
-          {/* Full Navigation Menu (Visible when isExpanded) */}
-          {isExpanded && (
-            <div className="fintrack-nav-body animate-fade-in">
-              <nav className="fintrack-nav-list">
-                {ADMIN_NAV_CONFIG.map((item) => {
-                  const ItemIcon = item.icon;
+                // 1. Standalone Menu Items (Important items directly outside)
+                if (item.isStandalone) {
+                  const isActive = activePage === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={`fintrack-nav-item ${isActive ? 'active' : ''}`}
+                      onClick={() => handleItemClick(item.id)}
+                      title={item.label}
+                    >
+                      <div className="fintrack-nav-item-left">
+                        <ItemIcon size={18} className="nav-icon" />
+                        {isPinned && <span className="nav-label">{item.label}</span>}
+                      </div>
+                      {isPinned && item.badge && (
+                        <span className={`fintrack-item-badge ${isActive ? 'badge-active' : ''}`}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                }
 
-                  // 1. Standalone Menu Items (Important items directly outside)
-                  if (item.isStandalone) {
-                    const isActive = activePage === item.id;
-                    return (
+                // 2. Interlinked Main Module with Sub-modules (Curriculum & Academics)
+                if (item.isCollapsible) {
+                  const isOpen = openModuleId === item.id;
+                  const isParentActive = isCurriculumActive;
+
+                  return (
+                    <div key={item.id} className={`fintrack-module-group ${isParentActive ? 'parent-active' : ''}`}>
                       <button
-                        key={item.id}
                         type="button"
-                        className={`fintrack-nav-item ${isActive ? 'active' : ''}`}
-                        onClick={() => handleItemClick(item.id)}
+                        className={`fintrack-module-trigger ${isOpen ? 'open' : ''} ${isParentActive ? 'active-parent' : ''}`}
+                        onClick={() => {
+                          if (!isPinned) {
+                            setIsPinned(true);
+                            setOpenModuleId(item.id);
+                          } else {
+                            toggleAccordion(item.id);
+                          }
+                        }}
+                        title={item.label}
                       >
-                        <div className="fintrack-nav-item-left">
+                        <div className="module-trigger-left">
                           <ItemIcon size={18} className="nav-icon" />
-                          <span className="nav-label">{item.label}</span>
+                          {isPinned && <span className="nav-label">{item.label}</span>}
                         </div>
-                        {item.badge && (
-                          <span className={`fintrack-item-badge ${isActive ? 'badge-active' : ''}`}>
-                            {item.badge}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  }
-
-                  // 2. Interlinked Main Module with Sub-modules (Curriculum & Academics)
-                  if (item.isCollapsible) {
-                    const isOpen = openModuleId === item.id;
-                    const isParentActive = isCurriculumActive;
-
-                    return (
-                      <div key={item.id} className={`fintrack-module-group ${isParentActive ? 'parent-active' : ''}`}>
-                        <button
-                          type="button"
-                          className={`fintrack-module-trigger ${isOpen ? 'open' : ''} ${isParentActive ? 'active-parent' : ''}`}
-                          onClick={() => toggleAccordion(item.id)}
-                        >
-                          <div className="module-trigger-left">
-                            <ItemIcon size={18} className="nav-icon" />
-                            <span className="nav-label">{item.label}</span>
-                          </div>
+                        {isPinned && (
                           <div className="module-trigger-right">
                             {isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
                           </div>
-                        </button>
-
-                        {/* Collapsible Sub-modules List */}
-                        {isOpen && (
-                          <div className="fintrack-submodules-list animate-slide-down">
-                            {item.submodules.map((sub) => {
-                              const SubIcon = sub.icon;
-                              const isSubActive = activePage === sub.id || (activePage === 'courses' && sub.id === 'subjects');
-
-                              return (
-                                <button
-                                  key={sub.id}
-                                  type="button"
-                                  className={`fintrack-submodule-btn ${isSubActive ? 'active' : ''}`}
-                                  onClick={() => handleItemClick(sub.id)}
-                                  title={sub.desc}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <SubIcon size={15} />
-                                    <span>{sub.label}</span>
-                                  </div>
-                                  {sub.badge && (
-                                    <span className="submodule-pill-badge">{sub.badge}</span>
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
                         )}
-                      </div>
-                    );
-                  }
+                      </button>
 
-                  return null;
-                })}
-              </nav>
-            </div>
-          )}
+                      {/* Collapsible Sub-modules List */}
+                      {isPinned && isOpen && (
+                        <div className="fintrack-submodules-list animate-slide-down">
+                          {item.submodules.map((sub) => {
+                            const SubIcon = sub.icon;
+                            const isSubActive = activePage === sub.id || (activePage === 'courses' && sub.id === 'subjects');
+
+                            return (
+                              <button
+                                key={sub.id}
+                                type="button"
+                                className={`fintrack-submodule-btn ${isSubActive ? 'active' : ''}`}
+                                onClick={() => handleItemClick(sub.id)}
+                                title={sub.desc}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <SubIcon size={15} />
+                                  <span>{sub.label}</span>
+                                </div>
+                                {sub.badge && (
+                                  <span className="submodule-pill-badge">{sub.badge}</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return null;
+              })}
+            </nav>
+          </div>
         </aside>
 
         {/* Main Workspace Stage */}
