@@ -26,13 +26,13 @@ export default function StaffDashboard({ user, onRefreshCurriculum }) {
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'certificates', label: 'Enrollments & Certs', icon: Award },
+    { id: 'certificates', label: 'Student Course Progress', icon: Award },
     { id: 'courses', label: 'Courses & Topics', icon: BookOpen },
     { id: 'quizzes', label: 'Topic MCQs', icon: HelpCircle },
     { id: 'practicals', label: 'Practical Labs', icon: Terminal },
-    { id: 'batches', label: 'Batches', icon: Layers },
+    // { id: 'batches', label: 'Batches', icon: Layers },
     { id: 'progress', label: 'Topic Progress', icon: CheckSquare },
-    { id: 'daily_task', label: 'Daily Session Log', icon: Calendar },
+    // { id: 'daily_task', label: 'Daily Session Log', icon: Calendar },
     { id: 'submissions', label: 'Code Submissions', icon: Code2 },
     { id: 'reports', label: 'Reports & Analytics', icon: BarChart3 },
     { id: 'users', label: 'User Directory', icon: Users, adminOnly: false },
@@ -90,15 +90,15 @@ export default function StaffDashboard({ user, onRefreshCurriculum }) {
         {activeTab === 'practicals' && (
           <PracticeTaskManagerTab user={user} />
         )}
-        {activeTab === 'batches' && (
+        {/* {activeTab === 'batches' && (
           <BatchManagerTab user={user} onSelectBatchForProgress={handleSelectBatchForProgress} />
-        )}
+        )} */}
         {activeTab === 'progress' && (
           <TopicProgressTab user={user} defaultBatchId={selectedBatchIdForProgress} />
         )}
-        {activeTab === 'daily_task' && (
+        {/* {activeTab === 'daily_task' && (
           <DailyTaskTrackerTab user={user} />
-        )}
+        )} */}
         {activeTab === 'submissions' && (
           <SubmissionInspectorTab user={user} />
         )}

@@ -41,8 +41,8 @@ export const ADMIN_NAV_GROUPS = [
   {
     group: 'STUDENTS & OPERATIONS',
     items: [
-      { id: 'certificates', label: 'Student Enrolls & Progress', icon: Award, isStandalone: true },
-      { id: 'batches', label: 'Batches & Rosters', icon: Users, isStandalone: true },
+      { id: 'certificates', label: 'Student Course Progress', icon: Award, isStandalone: true },
+      // { id: 'batches', label: 'Batches & Rosters', icon: Users, isStandalone: true },
       { id: 'submissions', label: 'Code Submissions', icon: Sparkles, isStandalone: true },
       { id: 'doubts', label: 'Student Doubts', icon: MessageSquare, badge: '1-on-1', isStandalone: true },
       { id: 'users', label: 'User Directory', icon: Shield, isStandalone: true },
@@ -75,12 +75,12 @@ export const ADMIN_MODULES = [
   },
   {
     id: 'operations',
-    label: 'Batch Operations & Attendance',
+    label: 'Student Operations & Support',
     icon: Users,
-    badge: '3 Modules',
+    badge: '2 Modules',
     submodules: [
       // { id: 'daily_task', label: 'Daily Sessions', icon: Calendar, desc: 'Class attendance and daily task allocation' },
-      { id: 'batches', label: 'Batches & Rosters', icon: Users, desc: 'Cohorts, student enrollment & timetables' },
+      // { id: 'batches', label: 'Batches & Rosters', icon: Users, desc: 'Cohorts, student enrollment & timetables' },
       { id: 'submissions', label: 'Code Submissions', icon: Sparkles, desc: 'Evaluation of student lab assignments' },
       { id: 'doubts', label: 'Student Doubts', icon: MessageSquare, badge: 'Live', desc: 'Mentor resolutions & questions' },
     ]
@@ -93,7 +93,7 @@ export const ADMIN_MODULES = [
     submodules: [
       { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, desc: 'Overview and system metrics' },
       { id: 'quiz_analytics', label: 'Quiz Analytics', icon: BarChart3, desc: 'Performance distributions & accuracy' },
-      { id: 'reports', label: 'Performance Reports', icon: TrendingUp, desc: 'Batch progress and student tracking' },
+      { id: 'reports', label: 'Performance Reports', icon: TrendingUp, desc: 'Course progress and student tracking' },
     ]
   },
   {
@@ -103,7 +103,7 @@ export const ADMIN_MODULES = [
     badge: '2 Modules',
     submodules: [
       { id: 'users', label: 'User Directory', icon: Shield, desc: 'Super admins, instructors and students' },
-      { id: 'certificates', label: 'Certificates & Enrolls', icon: Award, desc: 'Course completions & credentials' },
+      { id: 'certificates', label: 'Student Course Progress', icon: Award, desc: 'Course enrollments & individual progress' },
     ]
   }
 ];
@@ -402,8 +402,7 @@ export default function AdminLayout({
                        activePage === 'topics' ? 'Topics & Study Notes' :
                        activePage === 'problems' ? 'Practice Labs & Code' :
                        activePage === 'quiz_bank' ? 'Question Bank (MCQs)' :
-                       activePage === 'certificates' ? 'Student Enrolls & Certificates' :
-                       activePage === 'batches' ? 'Batches & Rosters' :
+                       activePage === 'certificates' ? 'Student Course Progress' :
                        activePage === 'submissions' ? 'Code Submissions' :
                        activePage === 'doubts' ? 'Student Doubts (1-on-1)' :
                        activePage === 'users' ? 'User Directory' :
@@ -420,8 +419,7 @@ export default function AdminLayout({
                      activePage === 'topics' ? 'Lecture Topics & Study Notes' :
                      activePage === 'problems' ? 'Practice Labs & Workbench Challenges' :
                      activePage === 'quiz_bank' ? 'Multiple Choice Question Bank' :
-                     activePage === 'certificates' ? 'Student Enrollments & Certificates' :
-                     activePage === 'batches' ? 'Student Batches & Class Rosters' :
+                     activePage === 'certificates' ? 'Student Course Progress & Records' :
                      activePage === 'submissions' ? 'Practical Lab Code Submissions' :
                      activePage === 'doubts' ? 'Student 1-on-1 Doubts Resolution' :
                      activePage === 'users' ? 'User Accounts & Access Directory' :

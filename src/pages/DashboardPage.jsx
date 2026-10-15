@@ -152,11 +152,11 @@ export default function DashboardPage({ user, onNavigate }) {
   const syntaxStrokeDash = (syntaxErrCount / Math.max(1, totalSubsCount)) * donutCircumference;
   const runtimeStrokeDash = (runtimeErrCount / Math.max(1, totalSubsCount)) * donutCircumference;
 
-  // Cohort Velocity Data (derived from batches or matrix)
+  // Course Learning Progress Data
   const cohortProgress = [
     {
       name: 'Django Full Stack Web Mastery',
-      cohort: 'Cohort 2026',
+      cohort: 'Full Stack',
       progress: 78,
       status: 'On Track',
       color: '#4F46E5',
@@ -165,7 +165,7 @@ export default function DashboardPage({ user, onNavigate }) {
     },
     {
       name: 'C Programming & Memory Architecture',
-      cohort: 'Foundations Core',
+      cohort: 'Core Foundations',
       progress: 92,
       status: 'Ahead',
       color: '#10B981',
@@ -174,7 +174,7 @@ export default function DashboardPage({ user, onNavigate }) {
     },
     {
       name: 'Python Data Structures & Algorithms',
-      cohort: 'Cohort Alpha',
+      cohort: 'Algorithms',
       progress: 64,
       status: 'In Progress',
       color: '#F59E0B',
@@ -183,7 +183,7 @@ export default function DashboardPage({ user, onNavigate }) {
     },
     {
       name: 'Full Stack React & Modern Frontend',
-      cohort: 'Cohort Beta',
+      cohort: 'Frontend Track',
       progress: 45,
       status: 'Review Needed',
       color: '#6366F1',
@@ -316,23 +316,23 @@ export default function DashboardPage({ user, onNavigate }) {
 
       {/* 4 KPI Metric Cards Grid */}
       <div className="kpi-metric-grid">
-        {/* Metric 1: Active Batches */}
-        <div className="kpi-card" onClick={() => onNavigate('batches')}>
+        {/* Metric 1: Active Courses */}
+        <div className="kpi-card" onClick={() => onNavigate('subjects')}>
           <div className="kpi-card-header">
-            <span className="kpi-card-label">Active Batches</span>
+            <span className="kpi-card-label">Active Courses</span>
             <div className="kpi-icon-bubble magenta">
-              <Layers size={19} />
+              <BookOpen size={19} />
             </div>
           </div>
           <div className="kpi-metric-number">
-            {stats.activeBatches}
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#94A3B8' }}>/ {stats.totalBatches}</span>
+            {stats.totalCourses}
+            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#94A3B8' }}> Tracks</span>
           </div>
           <div className="kpi-card-footer">
             <span className="kpi-pill success">
-              <TrendingUp size={12} /> 100% Active
+              <TrendingUp size={12} /> Live Tracks
             </span>
-            <span className="kpi-footnote">Cohorts Running</span>
+            <span className="kpi-footnote">Active Enrollment</span>
           </div>
         </div>
 
@@ -681,15 +681,15 @@ export default function DashboardPage({ user, onNavigate }) {
 
       {/* Row 2 Statistics Charts: Cohort Syllabus Progress Velocity + Quiz Score Distribution */}
       <div className="dash-sections-grid">
-        {/* Chart 3: Batch Curriculum Velocity & Module Completion */}
+        {/* Chart 3: Course Curriculum Velocity & Module Completion */}
         <div className="dash-panel-card">
           <div className="dash-panel-header">
             <div>
-              <h2 className="dash-panel-title">Cohort Syllabus Coverage & Velocity</h2>
-              <p className="dash-panel-subtitle">Module completion status and pacing across active cohorts</p>
+              <h2 className="dash-panel-title">Course Syllabus Coverage & Mastery</h2>
+              <p className="dash-panel-subtitle">Module completion status and pacing across active courses</p>
             </div>
-            <button className="panel-header-btn" onClick={() => onNavigate('curriculum')}>
-              <span>Curriculum</span>
+            <button className="panel-header-btn" onClick={() => onNavigate('certificates')}>
+              <span>Student Progress</span>
               <ArrowRight size={13} />
             </button>
           </div>

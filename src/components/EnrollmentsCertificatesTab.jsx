@@ -13,6 +13,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState('ALL');
 
   // Modals & dedicated views
   const [previewCert, setPreviewCert] = useState(null);
@@ -256,8 +257,9 @@ export default function EnrollmentsCertificatesTab({ user }) {
       (e.subject_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (e.student_username || '').toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchSearch) return false;
-    if (statusFilter === 'ALL') return true;
-    return e.status === statusFilter;
+    const matchStatus = statusFilter === 'ALL' || e.status === statusFilter;
+    const matchCourse = selectedCourseFilter === 'ALL' || String(e.subject) === String(selectedCourseFilter) || e.subject_name === selectedCourseFilter;
+    return matchStatus && matchCourse;
   });
 
   // Filter Certificates
@@ -287,10 +289,10 @@ export default function EnrollmentsCertificatesTab({ user }) {
               className="btn-outline-sm"
               onClick={() => setStudyLogModal(null)}
             >
-              <ArrowLeft size={16} /> Back to Enrollments
+              <ArrowLeft size={16} /> Back to Student Course Progress
             </button>
             <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
-              Course Track: <strong style={{ color: '#1E293B' }}>{studyLogModal.subject_name}</strong> • Batch: <span style={{ color: '#475569' }}>{studyLogModal.batch_name || 'Standard'}</span>
+              Course Track: <strong style={{ color: '#1E293B' }}>{studyLogModal.subject_name}</strong> • Student ID: <strong style={{ color: '#1E293B' }}>#{studyLogModal.student}</strong>
             </span>
           </div>
 
@@ -656,35 +658,98 @@ export default function EnrollmentsCertificatesTab({ user }) {
         </div>
       </div>
 
-      {/* METRIC CARDS */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
-        <div className="card" style={{ padding: '16px 20px', borderRadius: '16px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Total Registrations</div>
-          <div style={{ fontSize: '26px', fontWeight: 850, color: '#7C3AED', marginTop: '4px' }}>{totalEnrollments}</div>
-        </div>
+      {/* =========================================================================
+          COURSE-WISE STUDENT ENROLLMENT & PROGRESS DISTRIBUTION
+          ========================================================================= */}
+      {subTab === 'enrollments' && (
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Course Enrollment Breakdown &bull; Student Counts
+            </span>
+            {selectedCourseFilter !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => setSelectedCourseFilter('ALL')}
+                style={{ fontSize: '11.5px', color: '#7C3AED', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Clear Filter (Show All Courses)
+              </button>
+            )}
+          </div>
 
-        <div className="card" style={{ padding: '16px 20px', borderRadius: '16px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Active Learning</div>
-          <div style={{ fontSize: '26px', fontWeight: 850, color: '#2563EB', marginTop: '4px' }}>{activeCount}</div>
-        </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '12px'
+          }}>
+            {/* All Courses Card */}
+            <div
+              onClick={() => setSelectedCourseFilter('ALL')}
+              style={{
+                padding: '14px 18px',
+                borderRadius: '14px',
+                border: selectedCourseFilter === 'ALL' ? '2px solid #7C3AED' : '1px solid #E2E8F0',
+                background: selectedCourseFilter === 'ALL' ? '#F5F3FF' : '#FFFFFF',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>All Courses Combined</div>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: '#7C3AED', marginTop: '2px' }}>
+                {totalEnrollments} <span style={{ fontSize: '12px', fontWeight: 500, color: '#64748B' }}>Students Enrolled</span>
+              </div>
+              <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
+                {activeCount} Active &bull; {completedCount} Completed
+              </div>
+            </div>
 
-        <div className="card" style={{ padding: '16px 20px', borderRadius: '16px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Tracks Completed</div>
-          <div style={{ fontSize: '26px', fontWeight: 850, color: '#059669', marginTop: '4px' }}>{completedCount}</div>
-        </div>
+            {/* Individual Course Cards */}
+            {subjects.map(sub => {
+              const subEnrollments = enrollments.filter(e => String(e.subject) === String(sub.id) || e.subject_name === sub.name);
+              const isSelected = String(selectedCourseFilter) === String(sub.id);
+              const avgProg = subEnrollments.length > 0
+                ? Math.round(subEnrollments.reduce((acc, curr) => acc + (curr.progress_percentage || 0), 0) / subEnrollments.length)
+                : 0;
 
-        <div className="card" style={{ padding: '16px 20px', borderRadius: '16px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Issued Certificates</div>
-          <div style={{ fontSize: '26px', fontWeight: 850, color: '#7E22CE', marginTop: '4px' }}>{totalCerts}</div>
+              return (
+                <div
+                  key={sub.id}
+                  onClick={() => setSelectedCourseFilter(isSelected ? 'ALL' : sub.id)}
+                  style={{
+                    padding: '14px 18px',
+                    borderRadius: '14px',
+                    border: isSelected ? '2px solid #7C3AED' : '1px solid #E2E8F0',
+                    background: isSelected ? '#F5F3FF' : '#FFFFFF',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? '#7C3AED' : '#475569', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {sub.name}
+                  </div>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                    {subEnrollments.length} <span style={{ fontSize: '12px', fontWeight: 500, color: '#64748B' }}>Students</span>
+                  </div>
+                  <div style={{ marginTop: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', fontWeight: 600, color: '#64748B', marginBottom: '3px' }}>
+                      <span>Avg Completion</span>
+                      <strong style={{ color: avgProg >= 75 ? '#059669' : avgProg >= 40 ? '#D97706' : '#64748B' }}>{avgProg}%</strong>
+                    </div>
+                    <div style={{ width: '100%', height: '5px', background: '#E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${avgProg}%`, height: '100%', background: '#7C3AED', borderRadius: '3px' }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* NAVIGATION TABS */}
+      {/* NAVIGATION TABS & FILTERS */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -709,7 +774,7 @@ export default function EnrollmentsCertificatesTab({ user }) {
               color: subTab === 'enrollments' ? '#FFFFFF' : '#475569'
             }}
           >
-            Course Enrollments ({enrollments.length})
+            Course Enrollments ({filteredEnrollments.length})
           </button>
 
           <button
@@ -729,13 +794,13 @@ export default function EnrollmentsCertificatesTab({ user }) {
           </button>
         </div>
 
-        {/* Search input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ position: 'relative', width: '260px' }}>
+        {/* Search & Filters */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', width: '220px' }}>
             <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94A3B8' }} />
             <input
               type="text"
-              placeholder="Search student or course..."
+              placeholder="Search student name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="form-control"
@@ -744,23 +809,42 @@ export default function EnrollmentsCertificatesTab({ user }) {
           </div>
 
           {subTab === 'enrollments' && (
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="form-control"
-              style={{ fontSize: '12px', height: '34px', width: '130px', borderRadius: '8px' }}
-            >
-              <option value="ALL">All Status</option>
-              <option value="ACTIVE">Active</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="DROPPED">Dropped</option>
-            </select>
+            <>
+              <select
+                value={selectedCourseFilter}
+                onChange={(e) => setSelectedCourseFilter(e.target.value)}
+                className="form-control"
+                style={{ fontSize: '12px', height: '34px', width: '180px', borderRadius: '8px' }}
+              >
+                <option value="ALL">All Courses ({enrollments.length})</option>
+                {subjects.map(s => {
+                  const count = enrollments.filter(e => String(e.subject) === String(s.id) || e.subject_name === s.name).length;
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="form-control"
+                style={{ fontSize: '12px', height: '34px', width: '120px', borderRadius: '8px' }}
+              >
+                <option value="ALL">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="DROPPED">Dropped</option>
+              </select>
+            </>
           )}
         </div>
       </div>
 
       {/* =========================================================================
-          VIEW 1: ENROLLMENTS TABLE
+          VIEW 1: ENROLLMENTS TABLE (NO BATCHES)
           ========================================================================= */}
       {subTab === 'enrollments' && (
         <div className="card" style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid #E2E8F0' }}>
@@ -768,9 +852,8 @@ export default function EnrollmentsCertificatesTab({ user }) {
             <table className="table" style={{ margin: 0, width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0', textAlign: 'left', color: '#475569' }}>
-                  <th style={{ padding: '12px 16px' }}>Student</th>
-                  <th style={{ padding: '12px 16px' }}>Course / Subject</th>
-                  <th style={{ padding: '12px 16px' }}>Cohort Batch</th>
+                  <th style={{ padding: '12px 16px' }}>Student Profile</th>
+                  <th style={{ padding: '12px 16px' }}>Enrolled Course</th>
                   <th style={{ padding: '12px 16px' }}>Curriculum Progress</th>
                   <th style={{ padding: '12px 16px' }}>Status</th>
                   <th style={{ padding: '12px 16px' }}>Enrolled Date</th>
@@ -780,8 +863,8 @@ export default function EnrollmentsCertificatesTab({ user }) {
               <tbody>
                 {filteredEnrollments.length === 0 ? (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', padding: '36px', color: '#94A3B8' }}>
-                      No course enrollment records found.
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '36px', color: '#94A3B8' }}>
+                      No student enrollment records found for selected filter.
                     </td>
                   </tr>
                 ) : (
@@ -790,31 +873,55 @@ export default function EnrollmentsCertificatesTab({ user }) {
                     return (
                       <tr key={item.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                         <td style={{ padding: '12px 16px' }}>
-                          <div style={{ fontWeight: 700, color: '#0F172A' }}>
-                            {item.student_name || item.student_username || 'Student'}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '50%',
+                              background: '#EEF2FF',
+                              color: '#4338CA',
+                              fontWeight: 800,
+                              fontSize: '13px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}>
+                              {(item.student_name || item.student_username || 'S')[0].toUpperCase()}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 700, color: '#0F172A' }}>
+                                {item.student_name || item.student_username || 'Student'}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#64748B' }}>
+                                @{item.student_username}
+                              </div>
+                            </div>
                           </div>
-                          <div style={{ fontSize: '11px', color: '#64748B' }}>
-                            @{item.student_username}
-                          </div>
-                        </td>
-
-                        <td style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
-                          {item.subject_name || `Subject #${item.subject}`}
                         </td>
 
                         <td style={{ padding: '12px 16px' }}>
-                          <span style={{ fontSize: '11.5px', background: '#F1F5F9', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
-                            {item.batch_name || 'Standard Cohort'}
+                          <span style={{
+                            display: 'inline-block',
+                            fontWeight: 700,
+                            color: '#4338CA',
+                            background: '#EEF2FF',
+                            padding: '3px 10px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            border: '1px solid #C7D2FE'
+                          }}>
+                            {item.subject_name || `Subject #${item.subject}`}
                           </span>
                         </td>
 
-                        <td style={{ padding: '12px 16px', minWidth: '160px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>
+                        <td style={{ padding: '12px 16px', minWidth: '170px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', fontWeight: 700, marginBottom: '4px' }}>
                             <span style={{ color: '#64748B' }}>Progress</span>
                             <span style={{ color: '#7C3AED' }}>{pct}%</span>
                           </div>
                           <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
-                            <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #7C3AED, #FDC029)', borderRadius: '3px' }} />
+                            <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #7C3AED, #10B981)', borderRadius: '3px' }} />
                           </div>
                         </td>
 

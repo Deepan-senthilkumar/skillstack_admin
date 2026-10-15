@@ -252,12 +252,14 @@ export default function App() {
       {activePage === 'doubts' && (
         <StudentDoubtsManagerTab user={user} />
       )}
+      {/* Temporarily disabled batch system as requested
       {activePage === 'batches' && (
         <BatchManagerTab user={user} onSelectBatchForProgress={handleSelectBatchForProgress} />
       )}
       {activePage === 'progress' && (
         <TopicProgressTab user={user} defaultBatchId={selectedBatchIdForProgress} />
       )}
+      */}
       {/* Temporarily disabled staff daily session logs as requested
       {activePage === 'daily_task' && (
         <DailyTaskTrackerTab user={user} />
