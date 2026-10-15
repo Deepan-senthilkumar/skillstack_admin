@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import {
   Layers, Plus, Edit2, Trash2, ArrowLeft, Check,
   Search, Filter, Sparkles, BookOpen, FileText,
-  AlertCircle, ChevronDown, ChevronRight, Terminal, HelpCircle,
-  ExternalLink, RotateCcw, Award, CheckCircle2
+  AlertCircle, Terminal, HelpCircle, Eye,
+  ExternalLink, RotateCcw, Award, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import { api, isDemoUser, notifyDemoRestriction } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -23,10 +23,10 @@ export default function SyllabusManagerTab({ user, onNavigate, defaultSubjectId 
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState(defaultSubjectId ? String(defaultSubjectId) : 'ALL');
   const [levelFilter, setLevelFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'form' | 'detail'
+  const [viewingModule, setViewingModule] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [expandedModuleIds, setExpandedModuleIds] = useState(new Set());
 
   useEffect(() => {
     if (defaultSubjectId) {
@@ -242,6 +242,203 @@ export default function SyllabusManagerTab({ user, onNavigate, defaultSubjectId 
   const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
   const startIndex = (safeCurrentPage - 1) * pageSize;
   const paginatedModules = filteredModules.slice(startIndex, startIndex + pageSize);
+
+  // ----------------------------------------------------
+  // DEDICATED CHAPTER & TOPICS DETAIL VIEW PAGE
+  // ----------------------------------------------------
+  if (viewMode === 'detail' && viewingModule) {
+    const modSubId = typeof viewingModule.subject === 'object' ? viewingModule.subject?.id : viewingModule.subject;
+    const subObj = subjects.find(s => s.id === modSubId);
+    const modTopics = topics.filter(t => {
+      const tModId = typeof t.module === 'object' ? t.module?.id : t.module;
+      return String(tModId) === String(viewingModule.id);
+    }).sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    return (
+      <div className="tab-pane-container animate-fade-in">
+        <div className="tab-pane-header">
+          <div className="flex items-center justify-between w-full flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="btn-outline-sm"
+                onClick={() => {
+                  setViewMode('list');
+                  setViewingModule(null);
+                }}
+              >
+                <ArrowLeft size={16} /> Back to Chapters Table
+              </button>
+              <div>
+                <h2>{viewingModule.name}</h2>
+                <p className="text-muted">
+                  Parent Track: <strong>{subObj?.name || viewingModule.subject_name || 'Subject'}</strong> • Level: <span style={{ textTransform: 'capitalize' }}>{viewingModule.level || 'Beginner'}</span> • Sequence #{viewingModule.order || 1}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="btn-outline-sm"
+                onClick={() => handleOpenEdit(viewingModule)}
+              >
+                <Edit2 size={14} /> Edit Chapter
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => onNavigate && onNavigate('topics')}
+              >
+                <Plus size={16} /> Add Topic
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Clean Metric Badges */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0', flexWrap: 'wrap' }}>
+          <span className="badge-pill" style={{ background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
+            <FileText size={14} style={{ display: 'inline', marginRight: '6px' }} />
+            {modTopics.length} Lecture Topics & Notes
+          </span>
+          <span className="badge-pill" style={{ background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
+            <Terminal size={14} style={{ display: 'inline', marginRight: '6px' }} />
+            {modTopics.filter(t => problems.some(p => p.topic === t.id || p.topic?.id === t.id)).length} Practice Labs Assigned
+          </span>
+          <span className="badge-pill" style={{ background: '#FAF5FF', color: '#7C3AED', border: '1px solid #E9D5FF', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
+            <Award size={14} style={{ display: 'inline', marginRight: '6px' }} />
+            {quizzes.filter(q => modTopics.some(t => t.id === q.topic || t.id === q.topic?.id)).length} Assessment MCQs Pool
+          </span>
+        </div>
+
+        {/* Topics Table Card */}
+        <div className="dashboard-section-card">
+          <div className="section-card-header">
+            <div>
+              <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                <Layers size={16} className="text-primary" />
+                Lesson Modules & Practice Workbench ({modTopics.length})
+              </h3>
+              <p className="text-muted text-xs">All lecture study materials, interactive code labs, and question banks in this chapter.</p>
+            </div>
+          </div>
+
+          {modTopics.length === 0 ? (
+            <div style={{
+              background: '#FFFFFF',
+              border: '1.5px dashed #CBD5E1',
+              borderRadius: '12px',
+              padding: '36px 20px',
+              textAlign: 'center',
+              color: '#64748B',
+              margin: '16px'
+            }}>
+              <FileText size={32} className="mx-auto text-slate-300 mb-2" />
+              <h4 style={{ margin: '0 0 6px 0', color: '#1E293B', fontWeight: 700 }}>No Topics Created Yet</h4>
+              <p style={{ margin: 0, fontSize: '13px' }}>Click &quot;Add Topic&quot; to build study material and coding challenges for this chapter.</p>
+              <button
+                type="button"
+                className="btn-primary mt-3"
+                onClick={() => onNavigate && onNavigate('topics')}
+              >
+                <Plus size={15} /> Add First Topic
+              </button>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '60px' }}>Seq #</th>
+                    <th>Topic Title</th>
+                    <th>Theory & Notes</th>
+                    <th>Practice Lab (Code)</th>
+                    <th>Knowledge MCQs</th>
+                    <th style={{ width: '180px', textAlign: 'right' }}>Direct Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {modTopics.map((top) => {
+                    const topProblem = problems.find(p => p.topic === top.id || p.topic?.id === top.id);
+                    const topQuizzes = quizzes.filter(q => q.topic === top.id || q.topic?.id === top.id);
+
+                    return (
+                      <tr key={top.id}>
+                        <td>
+                          <span className="font-bold text-xs font-mono text-gray-700">
+                            #{top.order || 1}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="font-semibold text-gray-900">{top.title}</div>
+                          <span className="text-[11px] font-mono text-muted">{top.topic_id}</span>
+                        </td>
+                        <td>
+                          <span className="text-xs text-gray-600">
+                            {top.notes_content ? `${top.notes_content.length} chars markdown` : 'No notes'}
+                          </span>
+                        </td>
+                        <td>
+                          {topProblem ? (
+                            <span className="badge-pill success text-xs">
+                              <Terminal size={11} /> {topProblem.title} ({topProblem.points || 100} pts)
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted">No lab assigned</span>
+                          )}
+                        </td>
+                        <td>
+                          {topQuizzes.length > 0 ? (
+                            <span className="badge-pill warning text-xs">
+                              <Award size={11} /> {topQuizzes.length} Questions
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted">0 MCQs</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              className="btn-outline-sm"
+                              onClick={() => onNavigate && onNavigate('topics', { topicId: top.id, subjectId: top.subject_id, moduleId: top.module })}
+                              title="Open Topic Notes in Editor"
+                              style={{ fontSize: '11.5px', padding: '3px 8px' }}
+                            >
+                              Notes
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-outline-sm"
+                              onClick={() => onNavigate && onNavigate('problems', { topicId: top.id, subjectId: top.subject_id })}
+                              title="Manage Practice Labs for this Topic"
+                              style={{ fontSize: '11.5px', padding: '3px 8px' }}
+                            >
+                              Labs
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-outline-sm"
+                              onClick={() => onNavigate && onNavigate('quiz_bank', { topicId: top.id })}
+                              title="Open Question Bank (MCQs) for this Topic"
+                              style={{ fontSize: '11.5px', padding: '3px 8px' }}
+                            >
+                              MCQs
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // ----------------------------------------------------
   // FORM VIEW
@@ -485,13 +682,12 @@ export default function SyllabusManagerTab({ user, onNavigate, defaultSubjectId 
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th style={{ width: '45px', textAlign: 'center' }}></th>
                   <th style={{ width: '75px' }}>Seq #</th>
                   <th>Chapter / Module Title</th>
                   <th>Parent Subject</th>
                   <th>Difficulty</th>
                   <th>Topics & Content</th>
-                  <th style={{ width: '150px', textAlign: 'right' }}>Actions</th>
+                  <th style={{ width: '130px', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -502,210 +698,81 @@ export default function SyllabusManagerTab({ user, onNavigate, defaultSubjectId 
                     const tModId = typeof t.module === 'object' ? t.module?.id : t.module;
                     return String(tModId) === String(mod.id);
                   });
-                  const isExpanded = expandedModuleIds.has(mod.id);
 
                   return (
-                    <>
-                      <tr key={mod.id} style={{ background: isExpanded ? '#FAF5FF' : undefined }}>
-                        <td style={{ textAlign: 'center' }}>
+                    <tr key={mod.id}>
+                      <td>
+                        <span className="badge-pill purple font-bold">
+                          #{mod.order || 1}
+                        </span>
+                      </td>
+                      <td>
+                        <div
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            setViewingModule(mod);
+                            setViewMode('detail');
+                          }}
+                        >
+                          <div className="font-bold text-sm text-gray-900 hover:text-primary transition-colors">{mod.name}</div>
+                          <span className="text-xs text-muted">ID: {mod.id} • Click to view topics</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="font-semibold text-sm text-gray-800">
+                          {subObj?.name || mod.subject_name || 'Unassigned'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge-pill ${
+                          mod.level === 'beginner' ? 'info' : mod.level === 'intermediate' ? 'warning' : 'purple'
+                        }`}>
+                          {mod.level ? (mod.level.charAt(0).toUpperCase() + mod.level.slice(1)) : 'Beginner'}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setViewingModule(mod);
+                            setViewMode('detail');
+                          }}
+                          className="badge-pill info font-semibold"
+                          style={{ cursor: 'pointer', border: '1px solid #BFDBFE' }}
+                          title="Click to view full topics list in a new page"
+                        >
+                          {modTopics.length} {modTopics.length === 1 ? 'Topic' : 'Topics'} (View All)
+                        </button>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
-                            type="button"
-                            onClick={() => toggleExpandModule(mod.id)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: isExpanded ? '#7C3AED' : '#94A3B8',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              padding: '4px'
+                            className="icon-btn view"
+                            onClick={() => {
+                              setViewingModule(mod);
+                              setViewMode('detail');
                             }}
-                            title={isExpanded ? 'Collapse Topics' : 'Expand Topics'}
+                            title="View Chapter Topics & Practice Labs"
                           >
-                            {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                            <Eye size={14} />
                           </button>
-                        </td>
-                        <td>
-                          <span className="badge-pill purple font-bold">
-                            #{mod.order || 1}
-                          </span>
-                        </td>
-                        <td>
-                          <div>
-                            <div className="font-bold text-sm text-gray-900">{mod.name}</div>
-                            <span className="text-xs text-muted">ID: {mod.id} • Click arrow to view topics</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="font-semibold text-sm text-gray-800">
-                            {subObj?.name || mod.subject_name || 'Unassigned'}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`badge-pill ${
-                            mod.level === 'beginner' ? 'info' : mod.level === 'intermediate' ? 'warning' : 'purple'
-                          }`}>
-                            {mod.level ? (mod.level.charAt(0).toUpperCase() + mod.level.slice(1)) : 'Beginner'}
-                          </span>
-                        </td>
-                        <td>
                           <button
-                            type="button"
-                            onClick={() => toggleExpandModule(mod.id)}
-                            className="badge-pill info font-semibold"
-                            style={{ cursor: 'pointer', border: '1px solid #BFDBFE' }}
+                            className="icon-btn edit"
+                            onClick={() => handleOpenEdit(mod)}
+                            title="Edit Chapter"
                           >
-                            {modTopics.length} {modTopics.length === 1 ? 'Topic' : 'Topics'} ({isExpanded ? 'Hide' : 'Show Details'})
+                            <Edit2 size={14} />
                           </button>
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              className="btn-outline-sm"
-                              onClick={() => onNavigate && onNavigate('topics')}
-                              title="Add or Manage Topics"
-                            >
-                              <Plus size={12} /> Topic
-                            </button>
-                            <button
-                              className="icon-btn edit"
-                              onClick={() => handleOpenEdit(mod)}
-                              title="Edit Chapter"
-                            >
-                              <Edit2 size={14} />
-                            </button>
-                            <button
-                              className="icon-btn danger"
-                              onClick={() => handleDelete(mod.id, mod.name)}
-                              title="Delete Chapter"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Expandable Topics Subtable Drawer */}
-                      {isExpanded && (
-                        <tr key={`drawer-${mod.id}`} className="chapter-accordion-row">
-                          <td colSpan={7} className="chapter-topics-drawer">
-                            <div className="topics-drawer-header">
-                              <div className="flex items-center gap-2">
-                                <FileText size={16} className="text-primary" />
-                                <span className="font-bold text-sm text-gray-900">
-                                  Topics in &ldquo;{mod.name}&rdquo; ({modTopics.length})
-                                </span>
-                              </div>
-                              <button
-                                className="btn-outline-sm"
-                                onClick={() => onNavigate && onNavigate('topics')}
-                              >
-                                <Plus size={12} /> Add Topic to this Chapter
-                              </button>
-                            </div>
-
-                            {modTopics.length === 0 ? (
-                              <div style={{
-                                background: '#FFFFFF',
-                                border: '1px dashed #CBD5E1',
-                                borderRadius: '10px',
-                                padding: '18px',
-                                textAlign: 'center',
-                                fontSize: '13px',
-                                color: '#64748B'
-                              }}>
-                                No topics created in this chapter yet. Click &quot;Add Topic&quot; to build lesson material.
-                              </div>
-                            ) : (
-                              <table className="drawer-subtable">
-                                <thead>
-                                  <tr>
-                                    <th style={{ width: '60px' }}>Order</th>
-                                    <th>Topic Title</th>
-                                    <th>Theory & Notes</th>
-                                    <th>Practice Lab (Code)</th>
-                                    <th>Knowledge MCQs</th>
-                                    <th style={{ width: '130px', textAlign: 'right' }}>Quick Actions</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {modTopics.sort((a, b) => (a.order || 0) - (b.order || 0)).map((top) => {
-                                    const topProblem = problems.find(p => p.topic === top.id || p.topic?.id === top.id);
-                                    const topQuizzes = quizzes.filter(q => q.topic === top.id || q.topic?.id === top.id);
-
-                                    return (
-                                      <tr key={top.id}>
-                                        <td>
-                                          <span className="font-bold text-xs font-mono text-gray-700">
-                                            #{top.order || 1}
-                                          </span>
-                                        </td>
-                                        <td>
-                                          <div className="font-semibold text-gray-900">{top.title}</div>
-                                          <span className="text-[11px] font-mono text-muted">{top.topic_id}</span>
-                                        </td>
-                                        <td>
-                                          <span className="text-xs text-gray-600">
-                                            {top.notes_content ? `${top.notes_content.length} chars markdown` : 'No notes'}
-                                          </span>
-                                        </td>
-                                        <td>
-                                          {topProblem ? (
-                                            <span className="badge-pill success text-xs">
-                                              <Terminal size={11} /> {topProblem.title} ({topProblem.points || 100} pts)
-                                            </span>
-                                          ) : (
-                                            <span className="text-xs text-muted">No lab assigned</span>
-                                          )}
-                                        </td>
-                                        <td>
-                                          {topQuizzes.length > 0 ? (
-                                            <span className="badge-pill warning text-xs">
-                                              <Award size={11} /> {topQuizzes.length} Questions
-                                            </span>
-                                          ) : (
-                                            <span className="text-xs text-muted">0 MCQs</span>
-                                          )}
-                                        </td>
-                                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                                          <div className="flex items-center justify-end gap-1">
-                                            <button
-                                              className="btn-outline-sm"
-                                              onClick={() => onNavigate && onNavigate('topics', { topicId: top.id, subjectId: top.subject_id, moduleId: top.module })}
-                                              title="Open Topic Notes in Editor"
-                                              style={{ fontSize: '11px', padding: '3px 7px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}
-                                            >
-                                              Notes
-                                            </button>
-                                            <button
-                                              className="btn-outline-sm"
-                                              onClick={() => onNavigate && onNavigate('problems', { topicId: top.id, subjectId: top.subject_id })}
-                                              title="Manage Practice Labs for this Topic"
-                                              style={{ fontSize: '11px', padding: '3px 7px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}
-                                            >
-                                              Labs
-                                            </button>
-                                            <button
-                                              className="btn-outline-sm"
-                                              onClick={() => onNavigate && onNavigate('quiz_bank', { topicId: top.id })}
-                                              title="Open Question Bank (MCQs) for this Topic"
-                                              style={{ fontSize: '11px', padding: '3px 7px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}
-                                            >
-                                              MCQs
-                                            </button>
-                                          </div>
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
-                            )}
-                          </td>
-                        </tr>
-                      )}
-                    </>
+                          <button
+                            className="icon-btn danger"
+                            onClick={() => handleDelete(mod.id, mod.name)}
+                            title="Delete Chapter"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>

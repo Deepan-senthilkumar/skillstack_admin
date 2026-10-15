@@ -12,37 +12,52 @@ import {
 // 2. Interlinked content grouped under a single collapsible module (Curriculum & Academics: Subjects, Syllabus, Topics, Labs, MCQs)
 // 3. Strict single accordion: opening one module closes any other.
 
-export const ADMIN_NAV_CONFIG = [
-  // Primary Standalone Items (Outside)
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, isStandalone: true },
-
-  // Single Interlinked Main Module with Sub-modules (Curriculum Management - Primary Focus)
+export const ADMIN_NAV_GROUPS = [
   {
-    id: 'curriculum',
-    label: 'Curriculum & Academics',
-    icon: BookOpen,
-    isCollapsible: true,
-    badge: '5 Tracks',
-    submodules: [
-      { id: 'subjects', label: 'Master Courses', icon: BookOpen, desc: 'Core subject tracks & tracks catalog' },
-      { id: 'syllabus', label: 'Syllabus & Modules', icon: Layers, desc: 'Chapter structure & module hierarchy' },
-      { id: 'topics', label: 'Topics & Study Notes', icon: FileText, desc: 'Theory notes, summaries & references' },
-      { id: 'problems', label: 'Practice Labs & Code', icon: Code2, desc: 'Coding workbench challenges & test cases' },
-      { id: 'quiz_bank', label: 'Question Bank (MCQs)', icon: HelpCircle, badge: '880 MCQs', desc: 'Topic-wise assessment pool' },
+    group: 'MAIN',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, isStandalone: true }
     ]
   },
-
-  // Student Learning Progress & Academic Operations
-  { id: 'certificates', label: 'Student Enrolls & Progress', icon: Award, isStandalone: true },
-  { id: 'batches', label: 'Batches & Rosters', icon: Users, isStandalone: true },
-  { id: 'submissions', label: 'Code Submissions', icon: Sparkles, isStandalone: true },
-  { id: 'doubts', label: 'Student Doubts', icon: MessageSquare, badge: '1-on-1', isStandalone: true },
-  { id: 'users', label: 'User Directory', icon: Shield, isStandalone: true },
-
-  // Assessment Analytics & Performance Reports (Moved to the end as requested)
-  { id: 'quiz_analytics', label: 'Quiz Analytics', icon: BarChart3, isStandalone: true },
-  { id: 'reports', label: 'Performance Reports', icon: TrendingUp, isStandalone: true },
+  {
+    group: 'ACADEMICS & CURRICULUM',
+    items: [
+      {
+        id: 'curriculum',
+        label: 'Curriculum & Tracks',
+        icon: BookOpen,
+        isCollapsible: true,
+        badge: '5 Tracks',
+        submodules: [
+          { id: 'subjects', label: 'Master Courses', icon: BookOpen, desc: 'Core subject tracks & tracks catalog' },
+          { id: 'syllabus', label: 'Syllabus & Modules', icon: Layers, desc: 'Chapter structure & module hierarchy' },
+          { id: 'topics', label: 'Topics & Study Notes', icon: FileText, desc: 'Theory notes, summaries & references' },
+          { id: 'problems', label: 'Practice Labs & Code', icon: Code2, desc: 'Coding workbench challenges & test cases' },
+          { id: 'quiz_bank', label: 'Question Bank (MCQs)', icon: HelpCircle, badge: '880 MCQs', desc: 'Topic-wise assessment pool' },
+        ]
+      }
+    ]
+  },
+  {
+    group: 'STUDENTS & OPERATIONS',
+    items: [
+      { id: 'certificates', label: 'Student Enrolls & Progress', icon: Award, isStandalone: true },
+      { id: 'batches', label: 'Batches & Rosters', icon: Users, isStandalone: true },
+      { id: 'submissions', label: 'Code Submissions', icon: Sparkles, isStandalone: true },
+      { id: 'doubts', label: 'Student Doubts', icon: MessageSquare, badge: '1-on-1', isStandalone: true },
+      { id: 'users', label: 'User Directory', icon: Shield, isStandalone: true },
+    ]
+  },
+  {
+    group: 'ANALYTICS & REPORTS',
+    items: [
+      { id: 'quiz_analytics', label: 'Quiz Analytics', icon: BarChart3, isStandalone: true },
+      { id: 'reports', label: 'Performance Reports', icon: TrendingUp, isStandalone: true },
+    ]
+  }
 ];
+
+export const ADMIN_NAV_CONFIG = ADMIN_NAV_GROUPS.flatMap(g => g.items);
 
 export const ADMIN_MODULES = [
   {
@@ -139,11 +154,6 @@ export default function AdminLayout({
     return () => window.removeEventListener('admin:demo-restricted', handleDemoRestriction);
   }, []);
 
-  const curriculumModule = ADMIN_NAV_CONFIG.find(m => m.id === 'curriculum');
-  const activeSubmodule = curriculumModule?.submodules.find(
-    s => s.id === activePage || (activePage === 'courses' && s.id === 'subjects')
-  );
-
   return (
     <div className="fintrack-admin-root">
       {/* Demo Mode Notice Banner */}
@@ -232,106 +242,120 @@ export default function AdminLayout({
           </div>
 
           {/* Full Navigation Menu (Always visible: Full text when expanded, Compact icon rail when collapsed) */}
+          {/* Full Navigation Menu (Categorized Sections with Modern Spacing) */}
           <div className="fintrack-nav-body animate-fade-in">
             <nav className="fintrack-nav-list">
-              {ADMIN_NAV_CONFIG.map((item) => {
-                const ItemIcon = item.icon;
+              {ADMIN_NAV_GROUPS.map((grp, gIdx) => (
+                <div key={grp.group || gIdx} className="nav-group-section">
+                  {isPinned ? (
+                    <div className="nav-group-title">{grp.group}</div>
+                  ) : (
+                    gIdx > 0 && <div className="nav-group-divider" />
+                  )}
+                  {grp.items.map((item) => {
+                    const ItemIcon = item.icon;
 
-                // 1. Standalone Menu Items (Important items directly outside)
-                if (item.isStandalone) {
-                  const isActive = activePage === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={`fintrack-nav-item ${isActive ? 'active' : ''}`}
-                      onClick={() => handleItemClick(item.id)}
-                      title={item.label}
-                    >
-                      <div className="fintrack-nav-item-left">
-                        <ItemIcon size={18} className="nav-icon" />
-                        {isPinned && <span className="nav-label">{item.label}</span>}
-                      </div>
-                      {isPinned && item.badge && (
-                        <span className={`fintrack-item-badge ${isActive ? 'badge-active' : ''}`}>
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                }
-
-                // 2. Interlinked Main Module with Sub-modules (Curriculum & Academics)
-                if (item.isCollapsible) {
-                  const isOpen = openModuleId === item.id;
-                  const isParentActive = isCurriculumActive;
-
-                  return (
-                    <div key={item.id} className={`fintrack-module-group ${isParentActive ? 'parent-active' : ''}`}>
-                      <button
-                        type="button"
-                        className={`fintrack-module-trigger ${isOpen ? 'open' : ''} ${isParentActive ? 'active-parent' : ''}`}
-                        onClick={() => {
-                          if (!isPinned) {
-                            setIsPinned(true);
-                            setOpenModuleId(item.id);
-                          } else {
-                            toggleAccordion(item.id);
-                          }
-                        }}
-                        title={item.label}
-                      >
-                        <div className="module-trigger-left">
-                          <ItemIcon size={18} className="nav-icon" />
-                          {isPinned && <span className="nav-label">{item.label}</span>}
-                        </div>
-                        {isPinned && (
-                          <div className="module-trigger-right">
-                            {isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                    // 1. Standalone Menu Items
+                    if (item.isStandalone) {
+                      const isActive = activePage === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className={`fintrack-nav-item ${isActive ? 'active' : ''}`}
+                          onClick={() => handleItemClick(item.id)}
+                          title={item.label}
+                        >
+                          <div className="fintrack-nav-item-left">
+                            <span className="nav-icon-wrap">
+                              <ItemIcon size={17} className="nav-icon" />
+                            </span>
+                            {isPinned && <span className="nav-label">{item.label}</span>}
                           </div>
-                        )}
-                      </button>
+                          {isPinned && item.badge && (
+                            <span className={`fintrack-item-badge ${isActive ? 'badge-active' : ''}`}>
+                              {item.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    }
 
-                      {/* Collapsible Sub-modules List */}
-                      {isPinned && isOpen && (
-                        <div className="fintrack-submodules-list animate-slide-down">
-                          {item.submodules.map((sub) => {
-                            const SubIcon = sub.icon;
-                            const isSubActive = activePage === sub.id || (activePage === 'courses' && sub.id === 'subjects');
+                    // 2. Interlinked Main Module with Sub-modules (Curriculum & Academics)
+                    if (item.isCollapsible) {
+                      const isOpen = openModuleId === item.id;
+                      const isParentActive = isCurriculumActive;
 
-                            return (
-                              <button
-                                key={sub.id}
-                                type="button"
-                                className={`fintrack-submodule-btn ${isSubActive ? 'active' : ''}`}
-                                onClick={() => handleItemClick(sub.id)}
-                                title={sub.desc}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <SubIcon size={15} />
-                                  <span>{sub.label}</span>
-                                </div>
-                                {sub.badge && (
-                                  <span className="submodule-pill-badge">{sub.badge}</span>
-                                )}
-                              </button>
-                            );
-                          })}
+                      return (
+                        <div key={item.id} className={`fintrack-module-group ${isParentActive ? 'parent-active' : ''}`}>
+                          <button
+                            type="button"
+                            className={`fintrack-module-trigger ${isOpen ? 'open' : ''} ${isParentActive ? 'active-parent' : ''}`}
+                            onClick={() => {
+                              if (!isPinned) {
+                                setIsPinned(true);
+                                setOpenModuleId(item.id);
+                              } else {
+                                toggleAccordion(item.id);
+                              }
+                            }}
+                            title={item.label}
+                          >
+                            <div className="module-trigger-left">
+                              <span className="nav-icon-wrap">
+                                <ItemIcon size={17} className="nav-icon" />
+                              </span>
+                              {isPinned && <span className="nav-label">{item.label}</span>}
+                            </div>
+                            {isPinned && (
+                              <div className="module-trigger-right">
+                                {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                              </div>
+                            )}
+                          </button>
+
+                          {/* Collapsible Sub-modules List */}
+                          {isPinned && isOpen && (
+                            <div className="fintrack-submodules-list animate-slide-down">
+                              {item.submodules.map((sub) => {
+                                const SubIcon = sub.icon;
+                                const isSubActive = activePage === sub.id || (activePage === 'courses' && sub.id === 'subjects');
+
+                                return (
+                                  <button
+                                    key={sub.id}
+                                    type="button"
+                                    className={`fintrack-submodule-btn ${isSubActive ? 'active' : ''}`}
+                                    onClick={() => handleItemClick(sub.id)}
+                                    title={sub.desc}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <SubIcon size={14} />
+                                      <span>{sub.label}</span>
+                                    </div>
+                                    {sub.badge && (
+                                      <span className="submodule-pill-badge">{sub.badge}</span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                }
+                      );
+                    }
 
-                return null;
-              })}
+                    return null;
+                  })}
+                </div>
+              ))}
             </nav>
           </div>
         </aside>
 
         {/* Main Workspace Stage */}
         <div className="fintrack-main-stage">
-          {/* Top Header Bar (FinTrack Greeting + Actions) */}
+          {/* Top Header Bar (Modern SaaS Command Header) */}
           <header className="fintrack-top-header">
             <div className="header-greeting-block">
               <div className="flex items-center gap-3">
@@ -349,19 +373,61 @@ export default function AdminLayout({
                 >
                   <Menu size={18} />
                 </button>
-                <div>
+                <div className="header-title-box">
+                  <div className="header-breadcrumb-trail">
+                    <span className="trail-root">SkillStack</span>
+                    <span className="trail-sep">/</span>
+                    <span className="trail-section">{isCurriculumActive ? 'Curriculum' : 'Admin'}</span>
+                    <span className="trail-sep">/</span>
+                    <span className="trail-current">
+                      {activePage === 'dashboard' ? 'Dashboard Overview' :
+                       activePage === 'subjects' || activePage === 'courses' ? 'Master Courses' :
+                       activePage === 'syllabus' ? 'Syllabus & Modules' :
+                       activePage === 'topics' ? 'Topics & Study Notes' :
+                       activePage === 'problems' ? 'Practice Labs & Code' :
+                       activePage === 'quiz_bank' ? 'Question Bank (MCQs)' :
+                       activePage === 'certificates' ? 'Student Enrolls & Certificates' :
+                       activePage === 'batches' ? 'Batches & Rosters' :
+                       activePage === 'submissions' ? 'Code Submissions' :
+                       activePage === 'doubts' ? 'Student Doubts (1-on-1)' :
+                       activePage === 'users' ? 'User Directory' :
+                       activePage === 'quiz_analytics' ? 'Quiz Analytics' :
+                       activePage === 'reports' ? 'Performance Reports' :
+                       activePage}
+                    </span>
+                  </div>
                   <h1 className="fintrack-header-title">
-                    Good morning, {user?.first_name || user?.username || 'Super Admin'}! 👋
+                    {activePage === 'dashboard' ? `Welcome back, ${user?.first_name || user?.username || 'Admin'}!` :
+                     activePage === 'subjects' || activePage === 'courses' ? 'Master Courses Catalog' :
+                     activePage === 'syllabus' ? 'Syllabus & Chapter Modules' :
+                     activePage === 'topics' ? 'Lecture Topics & Study Notes' :
+                     activePage === 'problems' ? 'Practice Labs & Workbench Challenges' :
+                     activePage === 'quiz_bank' ? 'Multiple Choice Question Bank' :
+                     activePage === 'certificates' ? 'Student Enrollments & Certificates' :
+                     activePage === 'batches' ? 'Student Batches & Class Rosters' :
+                     activePage === 'submissions' ? 'Practical Lab Code Submissions' :
+                     activePage === 'doubts' ? 'Student 1-on-1 Doubts Resolution' :
+                     activePage === 'users' ? 'User Accounts & Access Directory' :
+                     activePage === 'quiz_analytics' ? 'Quiz Assessment Analytics' :
+                     activePage === 'reports' ? 'Academic Performance Reports' :
+                     'Management Console'}
                   </h1>
-                  <p className="fintrack-header-subtitle">
-                    Here's what's happening with your academy and learning modules today.
-                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Right Header Widgets: Notifications, User Profile, SignOut */}
+            {/* Right Header Widgets: System Status, Notifications, User Profile, SignOut */}
             <div className="header-actions-block">
+              {/* Backend Live Indicator */}
+              <div
+                className={`backend-status-pill ${backendOnline ? 'online' : backendOnline === false ? 'offline' : 'checking'}`}
+                title={backendOnline ? "Live Backend Connected" : "Connecting to Backend API..."}
+              >
+                <span className="status-dot" />
+                <span className="status-text hide-mobile">
+                  {backendOnline ? 'API Connected' : backendOnline === false ? 'API Offline' : 'Connecting...'}
+                </span>
+              </div>
 
               {/* Notification Circular Button */}
               <button
@@ -398,34 +464,6 @@ export default function AdminLayout({
             </div>
           </header>
 
-          {/* Sub-module Quick Tabs Ribbon (Only shown when inside Curriculum) */}
-          {isCurriculumActive && curriculumModule && (
-            <div className="fintrack-curriculum-ribbon animate-fade-in">
-              <div className="ribbon-label-part">
-                <BookOpen size={16} className="text-purple-600" />
-                <span className="font-bold text-gray-800 text-sm">Curriculum &amp; Academics:</span>
-              </div>
-              <div className="ribbon-tabs-part">
-                {curriculumModule.submodules.map((sub) => {
-                  const SubIcon = sub.icon;
-                  const isCurrent = activePage === sub.id || (activePage === 'courses' && sub.id === 'subjects');
-
-                  return (
-                    <button
-                      key={sub.id}
-                      type="button"
-                      className={`ribbon-tab-pill ${isCurrent ? 'active' : ''}`}
-                      onClick={() => onNavigate(sub.id)}
-                    >
-                      <SubIcon size={14} />
-                      <span>{sub.label}</span>
-                      {sub.badge && <span className="tab-mini-badge">{sub.badge}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* Main Stage Workspace Content */}
           <main className="fintrack-content-viewport">
