@@ -210,39 +210,71 @@
 .fintrack-nav-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
-/* Standalone Nav Item (Directly outside) */
+/* Nav Group Sections */
+.nav-group-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.nav-group-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94A3B8;
+  padding: 10px 12px 5px 12px;
+  user-select: none;
+}
+
+.nav-group-divider {
+  height: 1px;
+  background: #E2E8F0;
+  margin: 8px 10px;
+  opacity: 0.8;
+}
+
+/* Standalone Nav Item */
 .fintrack-nav-item {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
   color: #475569;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: left;
 }
 
 .fintrack-nav-item-left {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   min-width: 0;
   flex: 1;
 }
 
-.fintrack-nav-item .nav-icon {
+.nav-icon-wrap {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F1F5F9;
   color: #64748B;
+  transition: all 0.18s ease;
   flex-shrink: 0;
-  transition: color 0.15s ease;
 }
 
 .fintrack-nav-item .nav-label {
@@ -253,30 +285,33 @@
 }
 
 .fintrack-nav-item:hover {
-  background: #F1F5F9;
+  background: #F8FAFC;
   color: #0F172A;
+  transform: translateX(2px);
 }
 
-.fintrack-nav-item:hover .nav-icon {
-  color: #334155;
-}
-
-/* Active Standalone Item (Clean SaaS Slate-Indigo Accent) */
-.fintrack-nav-item.active {
+.fintrack-nav-item:hover .nav-icon-wrap {
   background: #EEF2FF;
-  color: #4338CA;
-  font-weight: 600;
-  border-color: #E0E7FF;
-  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.05);
-}
-
-.fintrack-nav-item.active .nav-icon {
   color: #4F46E5;
 }
 
-.fintrack-item-badge {
-  font-size: 0.68rem;
+/* Active Standalone Item (Vibrant Royal Indigo Gradient with Soft Glow) */
+.fintrack-nav-item.active {
+  background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+  color: #FFFFFF !important;
   font-weight: 600;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.28);
+}
+
+.fintrack-nav-item.active .nav-icon-wrap {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+}
+
+.fintrack-item-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
   padding: 2px 7px;
   border-radius: 6px;
   background: #F1F5F9;
@@ -284,21 +319,21 @@
   flex-shrink: 0;
 }
 
-.fintrack-item-badge.badge-active {
-  background: #E0E7FF;
-  color: #4338CA;
+.fintrack-nav-item.active .fintrack-item-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
 }
 
-/* Collapsible Module Group (Curriculum & Academics) */
+/* Collapsible Module Group (Curriculum & Tracks) */
 .fintrack-module-group {
-  margin: 3px 0;
-  border-radius: 10px;
+  margin: 2px 0;
+  border-radius: 12px;
   background: transparent;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .fintrack-module-group.parent-active {
-  background: #F8FAFC;
+  background: #FAFAFE;
 }
 
 .fintrack-module-trigger {
@@ -306,29 +341,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
   color: #475569;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
 }
 
 .module-trigger-left {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   min-width: 0;
   flex: 1;
-}
-
-.module-trigger-left .nav-icon {
-  color: #64748B;
-  flex-shrink: 0;
-  transition: color 0.15s ease;
 }
 
 .module-trigger-left .nav-label {
@@ -339,12 +368,14 @@
 }
 
 .fintrack-module-trigger:hover {
-  background: #F1F5F9;
+  background: #F8FAFC;
   color: #0F172A;
+  transform: translateX(2px);
 }
 
-.fintrack-module-trigger:hover .nav-icon {
-  color: #334155;
+.fintrack-module-trigger:hover .nav-icon-wrap {
+  background: #EEF2FF;
+  color: #4F46E5;
 }
 
 .fintrack-module-trigger.open {
@@ -358,8 +389,9 @@
   border-color: #E0E7FF;
 }
 
-.fintrack-module-trigger.active-parent .nav-icon {
-  color: #4F46E5;
+.fintrack-module-trigger.active-parent .nav-icon-wrap {
+  background: #4F46E5;
+  color: #FFFFFF;
 }
 
 .module-trigger-right {
@@ -369,26 +401,28 @@
   flex-shrink: 0;
 }
 
-/* Submodules Tree inside Accordion */
+/* Submodules Container inside Accordion */
 .fintrack-submodules-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin: 3px 0 6px 14px;
-  padding-left: 12px;
-  border-left: 2px solid #E2E8F0;
+  gap: 3px;
+  margin: 4px 4px 6px 4px;
+  padding: 6px;
+  background: #F8FAFC;
+  border-radius: 10px;
+  border: 1px solid #EEF2F6;
 }
 
 .fintrack-submodule-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: none;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid transparent;
   background: transparent;
   color: #64748B;
-  font-size: 0.81rem;
+  font-size: 0.80rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -396,38 +430,57 @@
 }
 
 .fintrack-submodule-btn:hover {
-  background: #F1F5F9;
+  background: #EDF2F7;
   color: #0F172A;
 }
 
 .fintrack-submodule-btn.active {
-  background: #EEF2FF;
+  background: #FFFFFF;
   color: #4338CA;
-  font-weight: 600;
+  font-weight: 700;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .submodule-pill-badge {
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: 0.62rem;
+  font-weight: 700;
   padding: 1px 6px;
   border-radius: 5px;
   background: #E2E8F0;
   color: #475569;
 }
 
+.fintrack-submodule-btn.active .submodule-pill-badge {
+  background: #EEF2FF;
+  color: #4F46E5;
+}
+
 /* Collapsed Sidebar Clean Icon Rail */
 .fintrack-sidebar.collapsed .fintrack-sidebar-header,
 .fintrack-sidebar.collapsed-logo-only .fintrack-sidebar-header {
-  padding: 18px 8px;
+  padding: 16px 8px;
   justify-content: center;
 }
 
 .fintrack-sidebar.collapsed .fintrack-nav-body,
 .fintrack-sidebar.collapsed-logo-only .fintrack-nav-body {
-  padding: 14px 6px;
+  padding: 12px 6px;
 }
 
 .fintrack-sidebar.collapsed .fintrack-nav-item,
+.fintrack-sidebar.collapsed-logo-only .fintrack-nav-item,
+.fintrack-sidebar.collapsed .fintrack-module-trigger,
+.fintrack-sidebar.collapsed-logo-only .fintrack-module-trigger {
+  padding: 8px 0;
+  justify-content: center;
+  width: 100%;
+}
+
+.fintrack-sidebar.collapsed .nav-icon-wrap {
+  width: 34px;
+  height: 34px;
+}
 .fintrack-sidebar.collapsed-logo-only .fintrack-nav-item,
 .fintrack-sidebar.collapsed .fintrack-module-trigger,
 .fintrack-sidebar.collapsed-logo-only .fintrack-module-trigger {
@@ -535,39 +588,79 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 16px 20px 24px 20px;
+  padding: 14px 22px 24px 22px;
   height: 100vh;
   overflow-y: auto;
 }
 
-/* Top Header Bar */
+/* Top Header Bar (Modern SaaS Command Header) */
 .fintrack-top-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 18px;
   gap: 16px;
+  background: #FFFFFF;
+  padding: 12px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--ft-border);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.header-greeting-block {
+  display: flex;
+  align-items: center;
+}
+
+.header-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header-breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94A3B8;
+  letter-spacing: 0.01em;
+}
+
+.trail-root {
+  color: #64748B;
+}
+
+.trail-sep {
+  color: #CBD5E1;
+  font-size: 0.70rem;
+}
+
+.trail-section {
+  color: #6366F1;
+  font-weight: 700;
+}
+
+.trail-current {
+  color: #0F172A;
+  font-weight: 700;
 }
 
 .fintrack-header-title {
-  font-size: 1.55rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0F172A;
-  letter-spacing: -0.03em;
-  margin: 0 0 4px 0;
-}
-
-.fintrack-header-subtitle {
-  font-size: 0.86rem;
-  color: var(--ft-text-muted);
+  letter-spacing: -0.02em;
   margin: 0;
+  line-height: 1.25;
 }
 
 .fintrack-menu-toggle-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: #FFFFFF;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #F8FAFC;
   border: 1px solid var(--ft-border);
   color: #475569;
   display: flex;
@@ -580,7 +673,7 @@
 }
 
 .fintrack-menu-toggle-btn:hover {
-  background: #F1F5F9;
+  background: #EEF2FF;
   color: var(--ft-primary);
   border-color: rgba(91, 88, 235, 0.3);
   transform: translateY(-1px);
@@ -590,41 +683,59 @@
 .header-actions-block {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-/* Search Pill */
-.fintrack-search-pill {
-  display: flex;
+/* Backend Live Status Pill */
+.backend-status-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: #FFFFFF;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  border: 1px solid var(--ft-border);
-  box-shadow: var(--ft-shadow-sm);
-  width: 200px;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  user-select: none;
 }
 
-.fintrack-search-input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 0.84rem;
-  color: var(--ft-text-main);
-  width: 100%;
+.backend-status-pill.online {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #065F46;
 }
 
-.fintrack-search-input::placeholder {
-  color: #94A3B8;
+.backend-status-pill.offline {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #991B1B;
+}
+
+.backend-status-pill.checking {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+  color: #92400E;
+}
+
+.backend-status-pill .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.backend-status-pill.online .status-dot {
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }
 
 /* Circular Notification Button */
 .fintrack-icon-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #FFFFFF;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #F8FAFC;
   border: 1px solid var(--ft-border);
   display: flex;
   align-items: center;
@@ -637,41 +748,41 @@
 }
 
 .fintrack-icon-btn:hover {
-  background: #F1F5F9;
+  background: #EEF2FF;
   color: var(--ft-primary);
   transform: translateY(-1px);
 }
 
 .notification-red-dot {
   position: absolute;
-  top: 9px;
-  right: 10px;
-  width: 8px;
-  height: 8px;
+  top: 7px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #EF4444;
-  border: 2px solid #FFFFFF;
+  border: 1.5px solid #FFFFFF;
 }
 
 /* User Profile Pill */
 .fintrack-user-pill {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #FFFFFF;
-  padding: 4px 12px 4px 5px;
+  gap: 8px;
+  background: #F8FAFC;
+  padding: 3px 10px 3px 4px;
   border-radius: 9999px;
   border: 1px solid var(--ft-border);
   box-shadow: var(--ft-shadow-sm);
 }
 
 .fintrack-user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #A855F7 0%, #6366F1 100%);
+  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
   color: #FFFFFF;
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -685,15 +796,15 @@
 }
 
 .fintrack-user-info .user-name {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: #0F172A;
   line-height: 1.2;
 }
 
 .fintrack-user-info .user-role {
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.62rem;
+  font-weight: 700;
   color: #6366F1;
   text-transform: uppercase;
 }
@@ -703,20 +814,21 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 12px;
-  background: #FEE2E2;
-  border: 1px solid #FECACA;
-  color: #DC2626;
-  font-size: 0.82rem;
-  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+  color: #E11D48;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .fintrack-logout-btn:hover {
-  background: #FCA5A5;
-  color: #991B1B;
+  background: #FFE4E6;
+  color: #BE123C;
+  border-color: #FDA4AF;
 }
 
 /* 4. Curriculum Sub-modules Ribbon (Quick horizontal switcher) */
@@ -826,6 +938,16 @@
 
   .hide-mobile {
     display: none !important;
+  }
+
+  .fintrack-top-header {
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+  }
+
+  .fintrack-header-title {
+    font-size: 0.98rem;
   }
 
   .fintrack-search-pill {
