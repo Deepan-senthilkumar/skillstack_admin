@@ -52,24 +52,24 @@
   --font-mono: 'IBM Plex Mono', SFMono-Regular, Consolas, monospace;
   --font-head: 'Sora', 'IBM Plex Sans', sans-serif;
 
-  /* ── FinTrack Warm Clean Palette ─────────────────────────────── */
+  /* ── Modern Executive Slate & Indigo Palette ─────────────────── */
   /* Backgrounds */
-  --bg-base:              #F5F3EF;
+  --bg-base:              #F8FAFC;
   --bg-surface:           #FFFFFF;
   --bg-surface-elevated:  #FFFFFF;
-  --bg-surface-2:         #EFECE6;
+  --bg-surface-2:         #F1F5F9;
 
   /* Text */
-  --text-primary:         #1E293B;
-  --text-secondary:       #64748B;
+  --text-primary:         #0F172A;
+  --text-secondary:       #475569;
   --text-tertiary:        #94A3B8;
 
-  /* FinTrack Purple Brand */
-  --blue-primary:         #5B58EB;
+  /* Primary Brand */
+  --blue-primary:         #4F46E5;
   --blue-vibrant:         #6366F1;
   --blue-soft:            #EEF2FF;
-  --blue:                 #5B58EB;
-  --accent:               #5B58EB;
+  --blue:                 #4F46E5;
+  --accent:               #4F46E5;
   --blue-border:          #E0E7FF;
 
   /* Accent Colors */
@@ -78,14 +78,14 @@
   --emerald:              #10B981;
 
   /* Borders */
-  --border-subtle:        #EAE7E1;
-  --border-medium:        #DDD8CE;
-  --border-strong:        #C7C0B2;
+  --border-subtle:        #E2E8F0;
+  --border-medium:        #CBD5E1;
+  --border-strong:        #94A3B8;
 
-  /* Shadows (Soft Tactile 3D) */
-  --shadow-sm:            0 2px 4px rgba(0, 0, 0, 0.02);
-  --shadow-card:          0 10px 30px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-  --shadow-glass:         0 16px 40px rgba(0, 0, 0, 0.06);
+  /* Shadows (Modern SaaS elevation) */
+  --shadow-sm:            0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-card:          0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-glass:         0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
