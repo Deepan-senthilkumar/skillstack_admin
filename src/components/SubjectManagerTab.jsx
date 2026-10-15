@@ -50,6 +50,21 @@ export default function SubjectManagerTab({ user, onNavigate }) {
     loadSubjects();
   }, []);
 
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (viewMode === 'detail' && viewingSubject) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Curriculum',
+          breadcrumb: `Courses / ${viewingSubject.name}`,
+          title: viewingSubject.name
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+  }, [viewMode, viewingSubject]);
+
   const loadSubjects = async () => {
     setLoading(true);
     try {
@@ -390,6 +405,111 @@ export default function SubjectManagerTab({ user, onNavigate }) {
       );
     }
 
+  // ----------------------------------------------------
+  // DEDICATED MASTER COURSE DETAIL VIEW PAGE
+  // ----------------------------------------------------
+  if (viewMode === 'detail' && viewingSubject) {
+    return (
+      <div className="tab-pane-container animate-fade-in">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                setViewMode('list');
+                setViewingSubject(null);
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Courses Catalog
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              Duration: <strong style={{ color: '#1E293B' }}>{viewingSubject.duration}</strong> • Level: <span className="badge-pill info" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '4px' }}>{viewingSubject.level || 'Beginner'}</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                const s = viewingSubject;
+                setViewMode('list');
+                setViewingSubject(null);
+                handleOpenEdit(s);
+              }}
+            >
+              <Edit2 size={14} /> Edit Subject
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => onNavigate && onNavigate('syllabus')}
+            >
+              <Layers size={14} /> Open Course Syllabus
+            </button>
+          </div>
+        </div>
+
+        {/* Detailed Full-Page Cards */}
+        <div className="dashboard-section-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span className="text-xs text-muted block">Course Slug</span>
+              <strong className="font-mono text-sm text-slate-800 mt-1 block">{viewingSubject.slug}</strong>
+            </div>
+            <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span className="text-xs text-muted block">Schedule Type</span>
+              <strong className="text-sm text-slate-800 mt-1 block">{viewingSubject.schedule_type || 'Flexible'}</strong>
+            </div>
+            <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span className="text-xs text-muted block">Curriculum Modules</span>
+              <strong className="text-sm text-purple-700 mt-1 block">
+                {viewingSubject.modules?.length || 0} Chapters ({viewingSubject.topic_count || (viewingSubject.modules?.reduce((acc, m) => acc + (m.topics?.length || 0), 0)) || 0} Topics)
+              </strong>
+            </div>
+            <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span className="text-xs text-muted block">Course Status</span>
+              <span className={`badge-pill mt-1 ${viewingSubject.is_active !== false ? 'success' : 'danger'}`}>
+                {viewingSubject.is_active !== false ? 'Active & Published' : 'Draft / Inactive'}
+              </span>
+            </div>
+          </div>
+
+          {viewingSubject.description && (
+            <div style={{ background: '#FFFFFF', padding: '18px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', fontWeight: 700, color: '#0F172A' }}>
+                Course Curriculum Overview & Syllabus Blueprint
+              </h4>
+              <p style={{ margin: 0, fontSize: '0.88rem', color: '#475569', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+                {viewingSubject.description}
+              </p>
+            </div>
+          )}
+
+          {viewingSubject.modules && viewingSubject.modules.length > 0 && (
+            <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', fontWeight: 700, color: '#0F172A' }}>
+                Course Chapters Hierarchy ({viewingSubject.modules.length})
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {viewingSubject.modules.map((m, idx) => (
+                  <div key={m.id || idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="badge-pill secondary text-xs font-bold font-mono">Ch #{m.order || idx + 1}</span>
+                      <strong style={{ fontSize: '0.86rem', color: '#1E293B' }}>{m.name}</strong>
+                    </div>
+                    <span className="badge-pill purple text-xs font-semibold">{m.topics?.length || 0} Lessons</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="tab-pane-container">
       {/* Header */}
@@ -482,7 +602,7 @@ export default function SubjectManagerTab({ user, onNavigate }) {
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>
                       <div className="flex items-center gap-1.5">
-                        <button className="icon-btn view" onClick={() => setViewingSubject(sub)} title="View Subject Details">
+                        <button className="icon-btn view" onClick={() => { setViewingSubject(sub); setViewMode('detail'); }} title="View Subject Details">
                           <Eye size={14} />
                         </button>
                         <button className="icon-btn edit" onClick={() => handleOpenEdit(sub)} title="Edit Subject">
@@ -511,84 +631,6 @@ export default function SubjectManagerTab({ user, onNavigate }) {
           </div>
         )}
       </div>
-
-      {/* View Subject Modal */}
-      {viewingSubject && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', zIndex: 9999, padding: '20px'
-        }}>
-          <div style={{
-            background: '#ffffff', borderRadius: '16px', maxWidth: '520px', width: '100%',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)', overflow: 'hidden'
-          }}>
-            <div style={{
-              padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex',
-              alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={18} color="#0284C7" />
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
-                  Subject Details: {viewingSubject.name}
-                </h3>
-              </div>
-              <button
-                onClick={() => setViewingSubject(null)}
-                className="icon-btn"
-                style={{ width: '28px', height: '28px', borderRadius: '6px' }}
-              >
-                <X size={14} />
-              </button>
-            </div>
-            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div>
-                <span className="text-xs text-muted" style={{ display: 'block' }}>Subject Name</span>
-                <strong style={{ fontSize: '1rem', color: '#1e293b' }}>{viewingSubject.name}</strong>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <span className="text-xs text-muted" style={{ display: 'block' }}>Slug</span>
-                  <span className="font-mono text-xs text-slate-700">{viewingSubject.slug}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-muted" style={{ display: 'block' }}>Level</span>
-                  <span className="badge-pill info">{viewingSubject.level || 'Beginner'}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-muted" style={{ display: 'block' }}>Duration</span>
-                  <span className="text-sm font-semibold text-slate-700">{viewingSubject.duration}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-muted" style={{ display: 'block' }}>Schedule</span>
-                  <span className="text-xs text-slate-600">{viewingSubject.schedule_type}</span>
-                </div>
-              </div>
-              {viewingSubject.description && (
-                <div>
-                  <span className="text-xs text-muted" style={{ display: 'block' }}>Description</span>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#475569', lineHeight: 1.5 }}>
-                    {viewingSubject.description}
-                  </p>
-                </div>
-              )}
-            </div>
-            <div style={{
-              padding: '12px 20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0',
-              display: 'flex', justifyContent: 'flex-end', gap: '8px'
-            }}>
-              <button className="btn-secondary" onClick={() => setViewingSubject(null)}>Close</button>
-              <button className="btn-primary" onClick={() => {
-                const sub = viewingSubject;
-                setViewingSubject(null);
-                handleOpenEdit(sub);
-              }}>
-                <Edit2 size={14} /> Edit Subject
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

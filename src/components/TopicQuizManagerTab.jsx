@@ -49,6 +49,21 @@ export default function TopicQuizManagerTab({ user, onNavigate, defaultTopicId =
     loadAllData();
   }, []);
 
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (viewMode === 'detail' && viewingQuestion) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Curriculum',
+          breadcrumb: `MCQ Bank / #${viewingQuestion.id}`,
+          title: viewingQuestion.question_text?.substring(0, 50) + '...'
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+  }, [viewMode, viewingQuestion]);
+
   const loadAllData = async () => {
     setLoading(true);
     try {
@@ -301,6 +316,129 @@ export default function TopicQuizManagerTab({ user, onNavigate, defaultTopicId =
   const currentTopicQuestionsCount = selectedTopicId !== 'ALL'
     ? questions.filter(q => String(q.topic) === String(selectedTopicId) || String(topics.find(t => t.id === q.topic)?.id) === String(selectedTopicId)).length
     : null;
+
+  // ----------------------------------------------------
+  // DEDICATED MCQ QUESTION DETAIL VIEW PAGE
+  // ----------------------------------------------------
+  if (viewMode === 'detail' && viewingQuestion) {
+    const qTopObj = topics.find(t => t.id === viewingQuestion.topic || t.id === viewingQuestion.topic?.id);
+    const qSubObj = subjects.find(s => s.id === (qTopObj?.subject || viewingQuestion.subject));
+
+    return (
+      <div className="tab-pane-container animate-fade-in">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                setViewMode('list');
+                setViewingQuestion(null);
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Question Bank
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              Course: <strong style={{ color: '#1E293B' }}>{qSubObj?.name || 'Subject'}</strong> • Topic: <strong style={{ color: '#1E293B' }}>{qTopObj?.title || viewingQuestion.topic_title || 'Topic'}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                const q = viewingQuestion;
+                setViewMode('form');
+                setViewingQuestion(null);
+                handleOpenEdit(q);
+              }}
+            >
+              <Edit2 size={14} /> Edit Question
+            </button>
+          </div>
+        </div>
+
+        {/* Detailed Full-Page Cards */}
+        <div className="dashboard-section-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+            <span className="badge-pill secondary text-xs font-mono font-bold" style={{ display: 'inline-block', marginBottom: '10px' }}>
+              Question #{viewingQuestion.id} &bull; Order Sequence: #{viewingQuestion.order || 1}
+            </span>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.5 }}>
+              {viewingQuestion.question_text}
+            </h3>
+
+            {/* 4 Choices */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {[
+                { key: 'A', text: viewingQuestion.option_a },
+                { key: 'B', text: viewingQuestion.option_b },
+                { key: 'C', text: viewingQuestion.option_c },
+                { key: 'D', text: viewingQuestion.option_d },
+              ].map(({ key, text }) => {
+                const isCorrect = viewingQuestion.correct_option === key;
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px 16px',
+                      borderRadius: '10px',
+                      background: isCorrect ? '#ECFDF5' : '#F8FAFC',
+                      border: `1.5px solid ${isCorrect ? '#10B981' : '#E2E8F0'}`,
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <span style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      background: isCorrect ? '#10B981' : '#E2E8F0',
+                      color: isCorrect ? '#FFFFFF' : '#475569',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '12px'
+                    }}>
+                      {key}
+                    </span>
+                    <span style={{
+                      flex: 1,
+                      fontSize: '13.5px',
+                      fontWeight: isCorrect ? 700 : 500,
+                      color: isCorrect ? '#065F46' : '#1E293B'
+                    }}>
+                      {text}
+                    </span>
+                    {isCorrect && (
+                      <span className="badge-pill success text-xs font-bold flex items-center gap-1">
+                        <CheckCircle2 size={13} /> Correct Answer Key
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {viewingQuestion.explanation && (
+            <div style={{ background: '#FAF5FF', padding: '18px', borderRadius: '12px', border: '1px solid #E9D5FF' }}>
+              <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6B21A8', display: 'block', marginBottom: '6px' }}>
+                💡 Student Explanation & Answer Rationale:
+              </strong>
+              <p style={{ margin: 0, fontSize: '13.5px', color: '#581C87', lineHeight: 1.6 }}>
+                {viewingQuestion.explanation}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page-container">
@@ -602,7 +740,10 @@ export default function TopicQuizManagerTab({ user, onNavigate, defaultTopicId =
                         <td style={{ textAlign: 'right' }}>
                           <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => setViewingQuestion(q)}
+                              onClick={() => {
+                                setViewingQuestion(q);
+                                setViewMode('detail');
+                              }}
                               className="icon-btn view"
                               title="View Question Details"
                             >
@@ -921,138 +1062,6 @@ export default function TopicQuizManagerTab({ user, onNavigate, defaultTopicId =
                 {bulkImporting ? <RefreshCw size={14} className="animate-spin" /> : <Upload size={14} />}
                 <span>Import Questions</span>
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* View Question Details Modal */}
-      {viewingQuestion && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(6px)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            maxWidth: '560px',
-            width: '100%',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '20px',
-            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
-            overflow: 'hidden',
-            border: '1.5px solid #E2E8F0'
-          }}>
-            <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid #E2E8F0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#F8FAFC'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={16} color="#7C3AED" />
-                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Quiz Question Details</span>
-              </div>
-              <button
-                onClick={() => setViewingQuestion(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div style={{ padding: '24px' }}>
-              <div style={{ marginBottom: '16px' }}>
-                <span style={{
-                  display: 'inline-block',
-                  marginBottom: '8px',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  padding: '2px 8px',
-                  borderRadius: '10px',
-                  background: '#F1F5F9',
-                  color: '#475569'
-                }}>
-                  Target Question
-                </span>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', lineHeight: 1.5 }}>
-                  {viewingQuestion.question_text}
-                </h3>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '18px' }}>
-                {[
-                  { key: 'A', text: viewingQuestion.option_a },
-                  { key: 'B', text: viewingQuestion.option_b },
-                  { key: 'C', text: viewingQuestion.option_c },
-                  { key: 'D', text: viewingQuestion.option_d },
-                ].map(({ key, text }) => {
-                  const isCorrect = viewingQuestion.correct_option === key;
-                  return (
-                    <div
-                      key={key}
-                      style={{
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        border: isCorrect ? '2px solid #10B981' : '1px solid #E2E8F0',
-                        background: isCorrect ? '#ECFDF5' : '#F8FAFC',
-                        color: isCorrect ? '#065F46' : '#1E293B',
-                        fontSize: '13px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <strong style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '50%',
-                          background: isCorrect ? '#10B981' : '#E2E8F0',
-                          color: isCorrect ? '#FFFFFF' : '#64748B',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '11px'
-                        }}>
-                          {key}
-                        </strong>
-                        <span>{text}</span>
-                      </div>
-                      {isCorrect && (
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#D1FAE5', padding: '2px 8px', borderRadius: '12px' }}>
-                          CORRECT ANSWER
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {viewingQuestion.explanation && (
-                <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '12px 14px', borderRadius: '10px', fontSize: '12.5px', color: '#1E40AF', marginBottom: '18px' }}>
-                  <strong style={{ display: 'block', marginBottom: '3px' }}>💡 Instructor Explanation:</strong>
-                  {viewingQuestion.explanation}
-                </div>
-              )}
-
-              <div style={{ textAlign: 'right' }}>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setViewingQuestion(null)}
-                  style={{ padding: '8px 20px', borderRadius: '10px' }}
-                >
-                  Close Preview
-                </button>
-              </div>
             </div>
           </div>
         </div>

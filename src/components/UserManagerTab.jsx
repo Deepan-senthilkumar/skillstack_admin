@@ -56,7 +56,25 @@ export default function UserManagerTab({ user }) {
     }
   };
 
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'form'
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'form' | 'detail'
+
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (viewMode === 'detail' && viewingUser) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Students & Operations',
+          breadcrumb: `User Directory / @${viewingUser.username}`,
+          title: viewingUser.display_name || viewingUser.first_name || viewingUser.username
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+    return () => {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    };
+  }, [viewMode, viewingUser]);
 
   const handleOpenCreate = (initialRole = 'STUDENT') => {
     if (isDemoUser(user)) {
@@ -198,6 +216,145 @@ export default function UserManagerTab({ user }) {
     const matchesRole = roleFilter === 'ALL' || u.role === roleFilter;
     return matchesSearch && matchesRole;
   });
+
+  // DEDICATED IN-PAGE USER PROFILE DETAIL VIEW
+  if (viewMode === 'detail' && viewingUser) {
+    return (
+      <div className="tab-pane-container animate-fade-in">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                setViewMode('list');
+                setViewingUser(null);
+              }}
+            >
+              <ArrowLeft size={16} /> Back to User Directory
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              User ID: #{viewingUser.id} • Role: <strong style={{ color: '#1E293B' }}>{viewingUser.role}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                const u = viewingUser;
+                setViewMode('form');
+                setViewingUser(null);
+                handleOpenEdit(u);
+              }}
+            >
+              <Edit2 size={14} /> Edit User
+            </button>
+          </div>
+        </div>
+
+        <div className="dashboard-section-card mb-4">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', padding: '10px 0' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              backgroundColor: viewingUser.role === 'ADMIN' ? '#7C3AED' : viewingUser.role === 'STAFF' ? '#2563EB' : '#10B981',
+              color: '#FFFFFF',
+              fontSize: '24px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.1)'
+            }}>
+              {(viewingUser.first_name || viewingUser.username || 'U')[0].toUpperCase()}
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  {viewingUser.display_name || viewingUser.first_name}
+                </h2>
+                <span className={`badge-pill ${
+                  viewingUser.role === 'ADMIN' ? 'purple' : viewingUser.role === 'STAFF' ? 'info' : 'success'
+                }`}>
+                  {viewingUser.role === 'ADMIN' ? 'Admin / Owner' : viewingUser.role === 'STAFF' ? 'Staff Trainer' : 'Student / Learner'}
+                </span>
+                <span className={`badge-pill ${viewingUser.is_active ? 'success' : 'secondary'}`}>
+                  {viewingUser.is_active ? 'Active Account' : 'Deactivated'}
+                </span>
+              </div>
+              <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>
+                @{viewingUser.username} {viewingUser.date_joined ? `• Registered on ${new Date(viewingUser.date_joined).toLocaleDateString()}` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+          <div className="dashboard-section-card">
+            <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#1E293B', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Mail size={16} color="#4F46E5" /> Contact Information
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+              <div>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Email Address</span>
+                <strong style={{ color: '#0F172A' }}>{viewingUser.email || '—'}</strong>
+              </div>
+              <div>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Mobile Number</span>
+                <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{viewingUser.mobile_number || '—'}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="dashboard-section-card">
+            <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#1E293B', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Shield size={16} color="#7C3AED" /> Security & Batches
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+              <div>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Associated Batches</span>
+                <div style={{ marginTop: '4px' }}>
+                  {viewingUser.role === 'STAFF' && viewingUser.assigned_batches_list?.length > 0 ? (
+                    viewingUser.assigned_batches_list.map(b => (
+                      <span key={b.id} className="badge-pill trainer-pill mr-1 mb-1 inline-block">
+                        {b.name}
+                      </span>
+                    ))
+                  ) : viewingUser.role === 'STUDENT' && viewingUser.enrolled_batches_list?.length > 0 ? (
+                    viewingUser.enrolled_batches_list.map(b => (
+                      <span key={b.id} className="badge-pill course-pill mr-1 mb-1 inline-block">
+                        {b.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-muted italic">No batch assignments</span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Terminal PIN</span>
+                <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{viewingUser.pin_code || '1234'}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {viewingUser.bio && (
+          <div className="dashboard-section-card">
+            <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#1E293B', marginBottom: '10px' }}>
+              Trainer Notes & Profile Bio
+            </h4>
+            <div style={{ background: '#F8FAFC', padding: '14px 16px', borderRadius: '10px', fontSize: '13px', color: '#334155', lineHeight: 1.6, border: '1px solid #E2E8F0' }}>
+              {viewingUser.bio}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // DEDICATED IN-PAGE USER CREATION / EDIT VIEW
   if (viewMode === 'form') {
@@ -598,7 +755,7 @@ export default function UserManagerTab({ user }) {
                     </td>
                     <td>
                       <div className="flex items-center gap-1.5">
-                        <button className="icon-btn view" onClick={() => setViewingUser(u)} title="View user details">
+                        <button className="icon-btn view" onClick={() => { setViewingUser(u); setViewMode('detail'); }} title="View user details">
                           <Eye size={14} />
                         </button>
                         <button className="icon-btn edit" onClick={() => handleOpenEdit(u)} title="Edit user">
@@ -616,127 +773,6 @@ export default function UserManagerTab({ user }) {
           </div>
         )}
       </div>
-
-      {/* View User Details Modal */}
-      {viewingUser && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(6px)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            maxWidth: '520px',
-            width: '100%',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '20px',
-            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
-            overflow: 'hidden',
-            border: '1.5px solid #E2E8F0'
-          }}>
-            <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid #E2E8F0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#F8FAFC'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={16} color="#7C3AED" />
-                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>User Account Profile</span>
-              </div>
-              <button
-                onClick={() => setViewingUser(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
-                <div style={{
-                  width: '54px',
-                  height: '54px',
-                  borderRadius: '50%',
-                  backgroundColor: viewingUser.role === 'ADMIN' ? '#7C3AED' : viewingUser.role === 'STAFF' ? '#2563EB' : '#10B981',
-                  color: '#FFFFFF',
-                  fontSize: '20px',
-                  fontWeight: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {(viewingUser.first_name || viewingUser.username || 'U')[0].toUpperCase()}
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                    {viewingUser.display_name || viewingUser.first_name}
-                  </h3>
-                  <div style={{ fontSize: '12px', color: '#64748B' }}>@{viewingUser.username}</div>
-                  <span style={{
-                    display: 'inline-block',
-                    marginTop: '4px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '10px',
-                    background: viewingUser.role === 'ADMIN' ? '#F3E8FF' : viewingUser.role === 'STAFF' ? '#DBEAFE' : '#DCFCE7',
-                    color: viewingUser.role === 'ADMIN' ? '#6B21A8' : viewingUser.role === 'STAFF' ? '#1E40AF' : '#166534'
-                  }}>
-                    {viewingUser.role === 'ADMIN' ? 'Admin / Owner' : viewingUser.role === 'STAFF' ? 'Staff Trainer' : 'Student / Learner'}
-                  </span>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12.5px', marginBottom: '16px' }}>
-                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
-                  <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Email Address</span>
-                  <strong style={{ color: '#0F172A' }}>{viewingUser.email || '—'}</strong>
-                </div>
-                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
-                  <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Mobile Number</span>
-                  <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{viewingUser.mobile_number || '—'}</strong>
-                </div>
-                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
-                  <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Account Status</span>
-                  <strong style={{ color: viewingUser.is_active ? '#059669' : '#DC2626' }}>
-                    {viewingUser.is_active ? 'Active' : 'Deactivated'}
-                  </strong>
-                </div>
-                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
-                  <span style={{ color: '#64748B', display: 'block', fontSize: '11px', fontWeight: 600 }}>Joined Date</span>
-                  <strong style={{ color: '#0F172A' }}>{viewingUser.date_joined ? new Date(viewingUser.date_joined).toLocaleDateString() : 'Active'}</strong>
-                </div>
-              </div>
-
-              {viewingUser.bio && (
-                <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', fontSize: '12px', color: '#475569', marginBottom: '16px' }}>
-                  <strong style={{ display: 'block', color: '#0F172A', marginBottom: '2px' }}>Bio / Notes:</strong>
-                  {viewingUser.bio}
-                </div>
-              )}
-
-              <div style={{ textAlign: 'right' }}>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setViewingUser(null)}
-                  style={{ padding: '8px 20px', borderRadius: '10px' }}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

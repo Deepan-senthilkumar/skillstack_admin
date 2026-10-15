@@ -35,6 +35,21 @@ export default function TopicManagerTab({ user, onNavigate, defaultTopicId = nul
   const [pageSize, setPageSize] = useState(10);
   const [viewingTopic, setViewingTopic] = useState(null);
 
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (viewMode === 'detail' && viewingTopic) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Curriculum',
+          breadcrumb: `Topics / ${viewingTopic.topic_id || viewingTopic.title}`,
+          title: viewingTopic.title
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+  }, [viewMode, viewingTopic]);
+
   const [editingTopic, setEditingTopic] = useState(null);
   const [formData, setFormData] = useState({
     subject: '',
@@ -1503,6 +1518,105 @@ export default function TopicManagerTab({ user, onNavigate, defaultTopicId = nul
   }
 
   // ----------------------------------------------------
+  // DEDICATED TOPIC & STUDY NOTES DETAIL VIEW PAGE
+  // ----------------------------------------------------
+  if (viewMode === 'detail' && viewingTopic) {
+    const parentSub = subjects.find(s => String(s.id) === String(viewingTopic.subject));
+    const parentMod = modules.find(m => String(m.id) === String(viewingTopic.module));
+
+    return (
+      <div className="tab-pane-container animate-fade-in">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                setViewMode('list');
+                setViewingTopic(null);
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Topics Catalog
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              ID: <span className="font-mono" style={{ color: '#7C3AED', fontWeight: 700 }}>{viewingTopic.topic_id || 'TOPIC'}</span> • Course: <strong style={{ color: '#1E293B' }}>{parentSub?.name || 'Subject'}</strong> • Unit: <strong>{parentMod?.name || 'Chapter'}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                const t = viewingTopic;
+                setViewMode('list');
+                setViewingTopic(null);
+                handleOpenEdit(t);
+              }}
+            >
+              <Edit2 size={14} /> Edit Topic
+            </button>
+            {onNavigate && (
+              <>
+                <button
+                  type="button"
+                  className="btn-outline-sm"
+                  style={{ background: '#F0FDF4', borderColor: '#BBF7D0', color: '#166534', fontWeight: 600 }}
+                  onClick={() => onNavigate('problems', { topicId: viewingTopic.id, subjectId: viewingTopic.subject })}
+                >
+                  <Code2 size={14} /> Practice Labs
+                </button>
+                <button
+                  type="button"
+                  className="btn-outline-sm"
+                  style={{ background: '#FAF5FF', borderColor: '#E9D5FF', color: '#6B21A8', fontWeight: 600 }}
+                  onClick={() => onNavigate('quiz_bank', { topicId: viewingTopic.id })}
+                >
+                  <HelpCircle size={14} /> MCQs
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Detailed Full-Page Reading Workbench */}
+        <div className="dashboard-section-card" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '14px' }}>
+            <span style={{
+              fontSize: '11px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              padding: '3px 10px',
+              borderRadius: '12px',
+              background: '#FDF4FF',
+              color: '#701A75',
+              border: '1px solid #F5D0FE',
+              display: 'inline-block',
+              marginBottom: '8px'
+            }}>
+              {viewingTopic.topic_id || 'TOPIC'}
+            </span>
+            <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>
+              {viewingTopic.title}
+            </h2>
+          </div>
+
+          {/* Notes content rendered */}
+          <div style={{ fontSize: '14px', color: '#1E293B', lineHeight: 1.75 }}>
+            {viewingTopic.notes_content ? (
+              <RichContentRenderer content={viewingTopic.notes_content} />
+            ) : (
+              <p style={{ color: '#94A3B8', fontStyle: 'italic', padding: '20px', background: '#F8FAFC', borderRadius: '10px' }}>
+                No theory notes configured for this topic yet. Click "Edit Topic" to write lesson materials.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ----------------------------------------------------
   // MAIN TOPICS TABLE VIEW
   // ----------------------------------------------------
   return (
@@ -1722,7 +1836,7 @@ export default function TopicManagerTab({ user, onNavigate, defaultTopicId = nul
                         <div className="flex items-center gap-1.5">
                           <button
                             className="icon-btn view"
-                            onClick={() => setViewingTopic(t)}
+                            onClick={() => { setViewingTopic(t); setViewMode('detail'); }}
                             title="View Topic Notes"
                           >
                             <Eye size={14} />
@@ -1762,96 +1876,6 @@ export default function TopicManagerTab({ user, onNavigate, defaultTopicId = nul
           </div>
         )}
       </div>
-
-      {/* View Topic Notes Modal */}
-      {viewingTopic && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(6px)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            maxWidth: '780px',
-            width: '100%',
-            maxHeight: '90vh',
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '20px',
-            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
-            overflow: 'hidden',
-            border: '1.5px solid #E2E8F0'
-          }}>
-            <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid #E2E8F0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#F8FAFC'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={16} color="#7C3AED" />
-                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Topic Notes & Study Material Preview</span>
-              </div>
-              <button
-                onClick={() => setViewingTopic(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-              <div style={{ marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  padding: '2px 8px',
-                  borderRadius: '10px',
-                  background: '#FDF4FF',
-                  color: '#701A75',
-                  border: '1px solid #F5D0FE',
-                  display: 'inline-block',
-                  marginBottom: '6px'
-                }}>
-                  {viewingTopic.topic_id || 'TOPIC'}
-                </span>
-                <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                  {viewingTopic.title}
-                </h2>
-              </div>
-
-              {/* Notes content rendered */}
-              <div style={{ fontSize: '13.5px', color: '#1E293B', lineHeight: 1.7 }}>
-                {viewingTopic.notes_content ? (
-                  <RichContentRenderer content={viewingTopic.notes_content} />
-                ) : (
-                  <p style={{ color: '#94A3B8', fontStyle: 'italic' }}>No notes content configured for this topic yet.</p>
-                )}
-              </div>
-            </div>
-
-            <div style={{ padding: '14px 20px', borderTop: '1px solid #E2E8F0', textAlign: 'right', background: '#F8FAFC' }}>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setViewingTopic(null)}
-                style={{ padding: '8px 20px', borderRadius: '10px' }}
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

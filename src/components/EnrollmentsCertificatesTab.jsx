@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Award, BookOpen, Users, CheckCircle2, Clock, Trash2, Edit3,
   Search, Filter, Plus, Eye, RefreshCw, AlertTriangle, ShieldCheck,
-  X, Check, ExternalLink, GraduationCap, FileText, Ban
+  X, Check, ExternalLink, GraduationCap, FileText, Ban, ArrowLeft
 } from 'lucide-react';
 import { api, isDemoUser, notifyDemoRestriction } from '../api';
 
@@ -14,13 +14,39 @@ export default function EnrollmentsCertificatesTab({ user }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  // Modals
+  // Modals & dedicated views
   const [previewCert, setPreviewCert] = useState(null);
   const [editingCert, setEditingCert] = useState(null);
   const [manualCertModal, setManualCertModal] = useState(false);
   const [studyLogModal, setStudyLogModal] = useState(null);
   const [studentProgressList, setStudentProgressList] = useState([]);
   const [loadingStudyLog, setLoadingStudyLog] = useState(false);
+
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (previewCert) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Students & Operations',
+          breadcrumb: `Certificates / #${previewCert.certificate_id}`,
+          title: `Certificate: ${previewCert.student_name}`
+        }
+      }));
+    } else if (studyLogModal) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Students & Operations',
+          breadcrumb: `Student Enrollments / Learning Log`,
+          title: `${studyLogModal.student_name || studyLogModal.student_username}'s Learning Log`
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+    return () => {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    };
+  }, [previewCert, studyLogModal]);
   const [manualForm, setManualForm] = useState({
     student_id: '',
     subject_id: '',
@@ -247,6 +273,328 @@ export default function EnrollmentsCertificatesTab({ user }) {
   const activeCount = enrollments.filter(e => e.status === 'ACTIVE').length;
   const completedCount = enrollments.filter(e => e.status === 'COMPLETED').length;
   const totalCerts = certificates.length;
+
+  // ----------------------------------------------------
+  // DEDICATED INBUILT STUDENT LEARNING LOG VIEW
+  // ----------------------------------------------------
+  if (studyLogModal) {
+    return (
+      <div className="tab-pane-container animate-fade-in" style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => setStudyLogModal(null)}
+            >
+              <ArrowLeft size={16} /> Back to Enrollments
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              Course Track: <strong style={{ color: '#1E293B' }}>{studyLogModal.subject_name}</strong> • Batch: <span style={{ color: '#475569' }}>{studyLogModal.batch_name || 'Standard'}</span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleOpenStudyLog(studyLogModal)}
+            className="btn-outline-sm"
+          >
+            <RefreshCw size={14} className={loadingStudyLog ? 'animate-spin' : ''} />
+            <span>Refresh Log</span>
+          </button>
+        </div>
+
+        {/* Student Overview Header Card */}
+        <div className="card mb-4" style={{ padding: '20px 24px', borderRadius: '16px', border: '1px solid #E2E8F0', background: '#FFFFFF' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '50%',
+                background: '#EEF2FF',
+                color: '#4338CA',
+                fontSize: '20px',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {(studyLogModal.student_name || studyLogModal.student_username || 'S')[0].toUpperCase()}
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
+                    {studyLogModal.student_name || studyLogModal.student_username}'s Learning Log
+                  </h3>
+                  <span style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    background: '#EEF2FF',
+                    color: '#4338CA'
+                  }}>
+                    @{studyLogModal.student_username}
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>
+                  Enrolled Course: <strong>{studyLogModal.subject_name}</strong> • Status: <strong style={{ color: studyLogModal.status === 'COMPLETED' ? '#059669' : '#2563EB' }}>{studyLogModal.status}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+              <div style={{ textAlign: 'center' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Progress</span>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#4338CA', marginTop: '2px' }}>
+                  {Math.round(studyLogModal.progress_percentage || 0)}%
+                </div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Topics Mastered</span>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                  {studentProgressList.filter(p => p.is_completed).length} / {studentProgressList.length}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Topics Table List */}
+        <div className="card" style={{ padding: '20px 24px', borderRadius: '16px', border: '1px solid #E2E8F0', background: '#FFFFFF' }}>
+          <h4 style={{ margin: '0 0 16px 0', fontSize: '0.95rem', fontWeight: 700, color: '#0F172A' }}>
+            Individual Study & Assessment Records ({studentProgressList.length})
+          </h4>
+
+          {loadingStudyLog ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
+              <RefreshCw size={24} className="animate-spin text-primary" style={{ margin: '0 auto 10px' }} />
+              <div>Loading student topic logs...</div>
+            </div>
+          ) : studentProgressList.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94A3B8' }}>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📖</div>
+              <div style={{ fontWeight: 700, color: '#475569' }}>No separate topic logs recorded yet</div>
+              <p style={{ fontSize: '0.8rem', maxWidth: '420px', margin: '6px auto 0' }}>
+                As this student logs into the learning portal, studies topics, and answers chapter MCQs, their activity history and scores will be logged here.
+              </p>
+            </div>
+          ) : (
+            <div style={{ border: '1px solid #E2E8F0', borderRadius: '10px', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textAlign: 'left', color: '#475569' }}>
+                    <th style={{ padding: '12px 16px' }}>Topic & Module</th>
+                    <th style={{ padding: '12px 16px' }}>Status</th>
+                    <th style={{ padding: '12px 16px' }}>MCQ Performance</th>
+                    <th style={{ padding: '12px 16px' }}>Last Updated</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {studentProgressList.map((prog) => (
+                    <tr key={prog.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ fontWeight: 700, color: '#0F172A' }}>{prog.topic_title}</div>
+                        {prog.module_name && (
+                          <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{prog.module_name}</div>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {prog.is_completed ? (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 9px',
+                            borderRadius: '6px',
+                            background: '#ECFDF5',
+                            color: '#059669',
+                            fontWeight: 700,
+                            fontSize: '0.78rem'
+                          }}>
+                            <CheckCircle2 size={13} /> Mastered
+                          </span>
+                        ) : (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 9px',
+                            borderRadius: '6px',
+                            background: '#FFFBEB',
+                            color: '#D97706',
+                            fontWeight: 700,
+                            fontSize: '0.78rem'
+                          }}>
+                            <Clock size={13} /> Reading / In Progress
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {prog.attempts_count > 0 ? (
+                          <div>
+                            <strong style={{ color: prog.last_passed ? '#059669' : '#DC2626' }}>
+                              {prog.last_score} / {prog.last_total} ({prog.last_percentage}%)
+                            </strong>
+                            <span style={{ fontSize: '0.72rem', color: '#94A3B8', marginLeft: '6px' }}>
+                              ({prog.attempts_count} {prog.attempts_count === 1 ? 'attempt' : 'attempts'})
+                            </span>
+                          </div>
+                        ) : (
+                          <span style={{ color: '#94A3B8' }}>Study Notes Reading</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#64748B', fontSize: '0.8rem' }}>
+                        {prog.completed_at ? new Date(prog.completed_at).toLocaleDateString() : (prog.updated_at ? new Date(prog.updated_at).toLocaleDateString() : 'N/A')}
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                        {prog.is_in_cooldown ? (
+                          <button
+                            onClick={() => handleClearCooldown(prog.topic)}
+                            style={{
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              background: '#FEE2E2',
+                              border: '1px solid #FECACA',
+                              color: '#DC2626',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title="Clear student re-attempt cooldown"
+                          >
+                            Clear Cooldown ({Math.round((prog.cooldown_seconds_remaining || 0) / 60)}m)
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', color: '#10B981', fontWeight: 600 }}>Active</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ----------------------------------------------------
+  // DEDICATED INBUILT CERTIFICATE PREVIEW VIEW
+  // ----------------------------------------------------
+  if (previewCert) {
+    return (
+      <div className="tab-pane-container animate-fade-in" style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => setPreviewCert(null)}
+            >
+              <ArrowLeft size={16} /> Back to Certificates
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              Credential ID: <strong style={{ color: '#1E293B' }}>{previewCert.certificate_id}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                const c = previewCert;
+                setPreviewCert(null);
+                setEditingCert({ ...c });
+              }}
+            >
+              <Edit3 size={14} /> Edit Certificate
+            </button>
+          </div>
+        </div>
+
+        <div style={{
+          background: '#FFFFFF',
+          borderRadius: '24px',
+          maxWidth: '860px',
+          margin: '0 auto',
+          padding: '44px',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
+          border: '6px double #7C3AED'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 16px',
+              borderRadius: '999px',
+              background: 'rgba(124, 58, 237, 0.08)',
+              color: '#7C3AED',
+              fontSize: '12.5px',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              marginBottom: '16px'
+            }}>
+              SKILLSTACK ACADEMY OF ENGINEERING
+            </div>
+
+            <h2 style={{ fontSize: '32px', fontWeight: 900, color: '#1F081C', margin: 0, fontFamily: 'serif' }}>
+              Certificate of Academic Mastery
+            </h2>
+            <p style={{ fontSize: '14px', color: '#64748B', marginTop: '8px' }}>
+              This is to certify that
+            </p>
+
+            <h3 style={{
+              fontSize: '36px',
+              fontWeight: 900,
+              color: '#7C3AED',
+              margin: '16px 0',
+              borderBottom: '2px solid #FDC029',
+              display: 'inline-block',
+              paddingBottom: '6px'
+            }}>
+              {previewCert.student_name}
+            </h3>
+
+            <p style={{ fontSize: '15px', color: '#334155', maxWidth: '640px', margin: '0 auto 20px', lineHeight: 1.6 }}>
+              has successfully completed all modules, sequential topic gates, theoretical MCQs, and automated compiler laboratories for
+            </p>
+
+            <h4 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 24px' }}>
+              {previewCert.course_name}
+            </h4>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              borderTop: '1px solid #E2E8F0',
+              paddingTop: '24px',
+              marginTop: '32px',
+              fontSize: '13px',
+              color: '#64748B'
+            }}>
+              <div style={{ textAlign: 'left' }}>
+                <div>Credential ID: <strong style={{ color: '#0F172A' }}>{previewCert.certificate_id}</strong></div>
+                <div>Issued Date: <strong style={{ color: '#0F172A' }}>{new Date(previewCert.issued_at).toLocaleDateString()}</strong></div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: 800, color: '#7C3AED' }}>Academic Board &bull; SkillStack</div>
+                <div>Status: <span style={{ color: previewCert.is_revoked ? '#DC2626' : '#16A34A', fontWeight: 700 }}>
+                  {previewCert.is_revoked ? 'Revoked' : 'Verified Official'}
+                </span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="tab-pane-container" style={{ padding: '24px' }}>
@@ -874,403 +1222,6 @@ export default function EnrollmentsCertificatesTab({ user }) {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          MODAL 3: PREVIEW CERTIFICATE MODAL
-          ========================================================================= */}
-      {previewCert && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10000,
-          padding: '20px',
-          overflowY: 'auto'
-        }}>
-          <div style={{
-            background: '#FFFFFF',
-            borderRadius: '24px',
-            maxWidth: '820px',
-            width: '100%',
-            padding: '36px',
-            position: 'relative',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
-            border: '6px double #7C3AED'
-          }}>
-            <button
-              onClick={() => setPreviewCert(null)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: '#F1F5F9',
-                border: 'none',
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: '#64748B'
-              }}
-            >
-              <X size={16} />
-            </button>
-
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '4px 14px',
-                borderRadius: '999px',
-                background: 'rgba(124, 58, 237, 0.08)',
-                color: '#7C3AED',
-                fontSize: '12px',
-                fontWeight: 800,
-                letterSpacing: '0.08em',
-                marginBottom: '12px'
-              }}>
-                SKILLSTACK ACADEMY OF ENGINEERING
-              </div>
-
-              <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#1F081C', margin: 0, fontFamily: 'serif' }}>
-                Certificate of Academic Mastery
-              </h2>
-              <p style={{ fontSize: '13px', color: '#64748B', marginTop: '6px' }}>
-                This is to certify that
-              </p>
-
-              <h3 style={{
-                fontSize: '32px',
-                fontWeight: 900,
-                color: '#7C3AED',
-                margin: '12px 0',
-                borderBottom: '2px solid #FDC029',
-                display: 'inline-block',
-                paddingBottom: '4px'
-              }}>
-                {previewCert.student_name}
-              </h3>
-
-              <p style={{ fontSize: '14px', color: '#334155', maxWidth: '600px', margin: '0 auto 16px', lineHeight: 1.6 }}>
-                has successfully completed all modules, sequential topic gates, theoretical MCQs, and automated compiler laboratories for
-              </p>
-
-              <h4 style={{ fontSize: '22px', fontWeight: 800, color: '#0F172A', margin: '0 0 20px' }}>
-                {previewCert.course_name}
-              </h4>
-
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                borderTop: '1px solid #E2E8F0',
-                paddingTop: '20px',
-                marginTop: '24px',
-                fontSize: '12px',
-                color: '#64748B'
-              }}>
-                <div>
-                  <div>Credential ID: <strong>{previewCert.certificate_id}</strong></div>
-                  <div>Issued Date: <strong>{new Date(previewCert.issued_at).toLocaleDateString()}</strong></div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 800, color: '#7C3AED' }}>Academic Board &bull; SkillStack</div>
-                  <div>Status: <span style={{ color: previewCert.is_revoked ? '#DC2626' : '#16A34A', fontWeight: 700 }}>
-                    {previewCert.is_revoked ? 'Revoked' : 'Verified Official'}
-                  </span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* =========================================================================
-          STUDENT SEPARATE STUDY LOG & TOPIC PROGRESS MODAL
-          ========================================================================= */}
-      {studyLogModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 10000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            background: '#FFFFFF',
-            borderRadius: '16px',
-            maxWidth: '820px',
-            width: '100%',
-            maxHeight: '88vh',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.22)',
-            border: '1px solid #E2E8F0',
-            overflow: 'hidden'
-          }}>
-            {/* Modal Header */}
-            <div style={{
-              padding: '20px 24px',
-              borderBottom: '1px solid #E2E8F0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#F8FAFC'
-            }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
-                    {studyLogModal.student_name || studyLogModal.student_username}'s Learning Log
-                  </h3>
-                  <span style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '6px',
-                    background: '#EEF2FF',
-                    color: '#4338CA'
-                  }}>
-                    @{studyLogModal.student_username}
-                  </span>
-                </div>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748B' }}>
-                  Course Track: <strong style={{ color: '#1E293B' }}>{studyLogModal.subject_name}</strong> • Batch: <span style={{ color: '#475569' }}>{studyLogModal.batch_name || 'Standard'}</span>
-                </p>
-              </div>
-
-              <button
-                onClick={() => setStudyLogModal(null)}
-                style={{
-                  background: '#F1F5F9',
-                  border: 'none',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#64748B'
-                }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Quick Metrics Bar */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '12px',
-              padding: '16px 24px',
-              borderBottom: '1px solid #F1F5F9',
-              background: '#FFFFFF'
-            }}>
-              <div style={{ padding: '10px 14px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #F1F5F9' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Curriculum Progress</span>
-                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#4338CA', marginTop: '2px' }}>
-                  {Math.round(studyLogModal.progress_percentage || 0)}%
-                </div>
-              </div>
-
-              <div style={{ padding: '10px 14px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #F1F5F9' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Topics Recorded</span>
-                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
-                  {studentProgressList.filter(p => p.is_completed).length} <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#64748B' }}>Mastered</span>
-                </div>
-              </div>
-
-              <div style={{ padding: '10px 14px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #F1F5F9' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Enrollment Status</span>
-                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: studyLogModal.status === 'COMPLETED' ? '#059669' : '#2563EB', marginTop: '2px' }}>
-                  {studyLogModal.status}
-                </div>
-              </div>
-            </div>
-
-            {/* Topics Table List */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#0F172A' }}>
-                  Individual Study & Assessment Records ({studentProgressList.length})
-                </h4>
-                <button
-                  type="button"
-                  onClick={() => handleOpenStudyLog(studyLogModal)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    border: '1px solid #E2E8F0',
-                    background: '#FFFFFF',
-                    fontSize: '0.74rem',
-                    color: '#475569',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <RefreshCw size={12} className={loadingStudyLog ? 'animate-spin' : ''} />
-                  <span>Refresh</span>
-                </button>
-              </div>
-
-              {loadingStudyLog ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                  <RefreshCw size={24} className="animate-spin text-primary" style={{ margin: '0 auto 10px' }} />
-                  <div>Loading student topic logs...</div>
-                </div>
-              ) : studentProgressList.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94A3B8' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📖</div>
-                  <div style={{ fontWeight: 700, color: '#475569' }}>No separate topic logs recorded yet</div>
-                  <p style={{ fontSize: '0.8rem', maxWidth: '420px', margin: '6px auto 0' }}>
-                    As this student logs into the learning portal, studies topics, and answers chapter MCQs, their activity history and scores will be logged here.
-                  </p>
-                </div>
-              ) : (
-                <div style={{ border: '1px solid #E2E8F0', borderRadius: '10px', overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                    <thead>
-                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textAlign: 'left', color: '#475569' }}>
-                        <th style={{ padding: '10px 14px' }}>Topic & Module</th>
-                        <th style={{ padding: '10px 14px' }}>Status</th>
-                        <th style={{ padding: '10px 14px' }}>MCQ Performance</th>
-                        <th style={{ padding: '10px 14px' }}>Last Updated</th>
-                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {studentProgressList.map((prog) => (
-                        <tr key={prog.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                          <td style={{ padding: '10px 14px' }}>
-                            <div style={{ fontWeight: 700, color: '#0F172A' }}>{prog.topic_title}</div>
-                            {prog.module_name && (
-                              <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{prog.module_name}</div>
-                            )}
-                          </td>
-                          <td style={{ padding: '10px 14px' }}>
-                            {prog.is_completed ? (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '2px 8px',
-                                borderRadius: '6px',
-                                background: '#ECFDF5',
-                                color: '#059669',
-                                fontWeight: 700,
-                                fontSize: '0.74rem'
-                              }}>
-                                <CheckCircle2 size={12} /> Mastered
-                              </span>
-                            ) : (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '2px 8px',
-                                borderRadius: '6px',
-                                background: '#FFFBEB',
-                                color: '#D97706',
-                                fontWeight: 700,
-                                fontSize: '0.74rem'
-                              }}>
-                                <Clock size={12} /> Reading / In Progress
-                              </span>
-                            )}
-                          </td>
-                          <td style={{ padding: '10px 14px' }}>
-                            {prog.attempts_count > 0 ? (
-                              <div>
-                                <strong style={{ color: prog.last_passed ? '#059669' : '#DC2626' }}>
-                                  {prog.last_score} / {prog.last_total} ({prog.last_percentage}%)
-                                </strong>
-                                <span style={{ fontSize: '0.7rem', color: '#94A3B8', marginLeft: '6px' }}>
-                                  ({prog.attempts_count} {prog.attempts_count === 1 ? 'attempt' : 'attempts'})
-                                </span>
-                              </div>
-                            ) : (
-                              <span style={{ color: '#94A3B8' }}>Study Notes Reading</span>
-                            )}
-                          </td>
-                          <td style={{ padding: '10px 14px', color: '#64748B', fontSize: '0.75rem' }}>
-                            {prog.completed_at ? new Date(prog.completed_at).toLocaleDateString() : (prog.updated_at ? new Date(prog.updated_at).toLocaleDateString() : 'N/A')}
-                          </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                            {prog.is_in_cooldown ? (
-                              <button
-                                onClick={() => handleClearCooldown(prog.topic)}
-                                style={{
-                                  padding: '3px 8px',
-                                  borderRadius: '5px',
-                                  background: '#FEE2E2',
-                                  border: '1px solid #FECACA',
-                                  color: '#DC2626',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer'
-                                }}
-                                title="Clear student re-attempt cooldown"
-                              >
-                                Clear Cooldown ({Math.round((prog.cooldown_seconds_remaining || 0) / 60)}m)
-                              </button>
-                            ) : (
-                              <span style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: 600 }}>Active</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div style={{
-              padding: '14px 24px',
-              borderTop: '1px solid #E2E8F0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#F8FAFC'
-            }}>
-              <span style={{ fontSize: '0.78rem', color: '#64748B' }}>
-                Separate student progress synced with curriculum syllabus
-              </span>
-              <button
-                type="button"
-                onClick={() => setStudyLogModal(null)}
-                style={{
-                  padding: '7px 18px',
-                  borderRadius: '8px',
-                  border: '1px solid #CBD5E1',
-                  background: '#FFFFFF',
-                  color: '#334155',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}

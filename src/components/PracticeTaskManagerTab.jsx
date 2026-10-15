@@ -53,6 +53,21 @@ export default function PracticeTaskManagerTab({ user, onNavigate, defaultSubjec
     loadAllData();
   }, []);
 
+  // Sync active detail view with top fixed command bar
+  useEffect(() => {
+    if (viewMode === 'detail' && viewingProblem) {
+      window.dispatchEvent(new CustomEvent('admin:set-header', {
+        detail: {
+          section: 'Curriculum',
+          breadcrumb: `Practice Labs / ${viewingProblem.title}`,
+          title: viewingProblem.title
+        }
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('admin:set-header', { detail: null }));
+    }
+  }, [viewMode, viewingProblem]);
+
   const loadAllData = async () => {
     setLoading(true);
     try {
@@ -868,6 +883,134 @@ export default function PracticeTaskManagerTab({ user, onNavigate, defaultSubjec
     );
   }
 
+  // ----------------------------------------------------
+  // DEDICATED PRACTICE LAB DETAIL VIEW PAGE
+  // ----------------------------------------------------
+  if (viewMode === 'detail' && viewingProblem) {
+    const parentTopic = topics.find(t => String(t.id) === String(typeof viewingProblem.topic === 'object' ? viewingProblem.topic?.id : viewingProblem.topic));
+    const parentSub = subjects.find(s => String(s.id) === String(typeof viewingProblem.subject === 'object' ? viewingProblem.subject?.id : viewingProblem.subject));
+
+    return (
+      <div className="tab-pane-container animate-fade-in">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                setViewMode('list');
+                setViewingProblem(null);
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Practice Tasks
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+              Course: <strong style={{ color: '#1E293B' }}>{parentSub?.name || 'Subject'}</strong> • Topic: <strong style={{ color: '#1E293B' }}>{parentTopic?.title || 'Topic'}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-outline-sm"
+              onClick={() => {
+                const prob = viewingProblem;
+                setViewMode('list');
+                setViewingProblem(null);
+                handleOpenEdit(prob);
+              }}
+            >
+              <Edit2 size={14} /> Edit Lab Challenge
+            </button>
+          </div>
+        </div>
+
+        {/* Detailed Full-Page Cards */}
+        <div className="dashboard-section-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+            <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span className="text-xs text-muted block">Programming Language</span>
+              <strong className="text-sm text-purple-700 mt-1 block uppercase">{viewingProblem.language || 'Python'}</strong>
+            </div>
+            <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span className="text-xs text-muted block">Awarded Points</span>
+              <strong className="text-sm text-emerald-700 mt-1 block">{viewingProblem.points || 10} Points</strong>
+            </div>
+            <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span className="text-xs text-muted block">Access Status</span>
+              <span className={`badge-pill mt-1 ${viewingProblem.is_unlocked !== false ? 'success' : 'secondary'}`}>
+                {viewingProblem.is_unlocked !== false ? 'Unlocked & Active' : 'Locked'}
+              </span>
+            </div>
+            <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span className="text-xs text-muted block">Lab Sequence</span>
+              <strong className="text-sm text-slate-800 mt-1 block">Order #{viewingProblem.order || 1}</strong>
+            </div>
+          </div>
+
+          <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '1.05rem', fontWeight: 800, color: '#0F172A' }}>
+              {viewingProblem.title}
+            </h3>
+            <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', display: 'block', marginBottom: '8px' }}>
+              Problem Description & Instructions:
+            </strong>
+            <div style={{ fontSize: '13.5px', color: '#1E293B', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+              {viewingProblem.description}
+            </div>
+          </div>
+
+          {viewingProblem.starter_code && (
+            <div>
+              <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', display: 'block', marginBottom: '6px' }}>
+                Starter Code Template:
+              </strong>
+              <div className="code-viewer-box">
+                <pre><code>{viewingProblem.starter_code}</code></pre>
+              </div>
+            </div>
+          )}
+
+          {viewingProblem.expected_output && (
+            <div>
+              <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', display: 'block', marginBottom: '6px' }}>
+                🎯 Target Expected Output:
+              </strong>
+              <pre style={{
+                background: '#0F172A',
+                color: '#34D399',
+                fontFamily: 'monospace',
+                fontSize: '13px',
+                padding: '14px 18px',
+                borderRadius: '12px',
+                margin: 0,
+                whiteSpace: 'pre-wrap'
+              }}>
+                {viewingProblem.expected_output}
+              </pre>
+            </div>
+          )}
+
+          {viewingProblem.test_criteria && viewingProblem.test_criteria.length > 0 && (
+            <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+              <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', display: 'block', marginBottom: '10px' }}>
+                Automated Test Assertions ({viewingProblem.test_criteria.length}):
+              </strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {viewingProblem.test_criteria.map((tc, idx) => (
+                  <div key={idx} style={{ padding: '10px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '12px' }}>
+                    <span style={{ fontWeight: 700, color: '#0F172A' }}>Test Case #{idx + 1}: </span>
+                    <span style={{ color: '#475569' }}>Input: <code>{tc.input || 'None'}</code> &bull; Expected: <code>{tc.expected_output || tc.output || 'Match'}</code></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="tab-pane-container">
       {/* Header */}
@@ -1116,7 +1259,7 @@ export default function PracticeTaskManagerTab({ user, onNavigate, defaultSubjec
                       </td>
                       <td>
                         <div className="flex items-center gap-1.5">
-                          <button className="icon-btn view" onClick={() => setViewingProblem(prob)} title="View Task Details">
+                          <button className="icon-btn view" onClick={() => { setViewingProblem(prob); setViewMode('detail'); }} title="View Task Details">
                             <Eye size={14} />
                           </button>
                           <button className="icon-btn edit" onClick={() => handleOpenEdit(prob)} title="Edit Task">
@@ -1147,151 +1290,6 @@ export default function PracticeTaskManagerTab({ user, onNavigate, defaultSubjec
           </div>
         )}
       </div>
-
-      {/* View Practice Task Details Modal */}
-      {viewingProblem && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(6px)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            maxWidth: '650px',
-            width: '100%',
-            maxHeight: '90vh',
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '20px',
-            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
-            overflow: 'hidden',
-            border: '1.5px solid #E2E8F0'
-          }}>
-            <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid #E2E8F0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#F8FAFC'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={16} color="#7C3AED" />
-                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Practice Task Details</span>
-              </div>
-              <button
-                onClick={() => setViewingProblem(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  padding: '3px 8px',
-                  borderRadius: '10px',
-                  background: '#F3E8FF',
-                  color: '#6B21A8'
-                }}>
-                  {viewingProblem.language ? viewingProblem.language.toUpperCase() : 'PYTHON'}
-                </span>
-                <span style={{ fontSize: '11px', color: '#64748B' }}>&bull;</span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669', background: '#DCFCE7', padding: '2px 8px', borderRadius: '10px' }}>
-                  {viewingProblem.points || 10} Points
-                </span>
-              </div>
-
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
-                {viewingProblem.title}
-              </h2>
-
-              <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '12px', marginBottom: '16px', border: '1px solid #E2E8F0' }}>
-                <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#475569', display: 'block', marginBottom: '6px' }}>
-                  Problem Description & Instructions:
-                </strong>
-                <div style={{ fontSize: '13px', color: '#1E293B', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                  {viewingProblem.description}
-                </div>
-              </div>
-
-              {viewingProblem.expected_output && (
-                <div style={{ marginBottom: '16px' }}>
-                  <strong style={{ fontSize: '11.5px', textTransform: 'uppercase', color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    🎯 Target Expected Output:
-                  </strong>
-                  <pre style={{
-                    background: '#0F172A',
-                    color: '#34D399',
-                    fontFamily: 'monospace',
-                    fontSize: '12px',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    margin: 0,
-                    whiteSpace: 'pre-wrap'
-                  }}>
-                    {viewingProblem.expected_output}
-                  </pre>
-                </div>
-              )}
-
-              {/* Test cases list if available */}
-              {viewingProblem.test_criteria && viewingProblem.test_criteria.length > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <strong style={{ fontSize: '11.5px', textTransform: 'uppercase', color: '#475569', display: 'block', marginBottom: '6px' }}>
-                    Automated Test Cases ({viewingProblem.test_criteria.length}):
-                  </strong>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {viewingProblem.test_criteria.map((tc, idx) => (
-                      <div key={idx} style={{
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        background: tc.is_hidden ? '#FFFBEB' : '#F8FAFC',
-                        border: `1px solid ${tc.is_hidden ? '#FDE68A' : '#E2E8F0'}`,
-                        fontSize: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 700, color: '#0F172A' }}>#{idx + 1} {tc.name}</span>
-                          <span style={{ fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '8px', background: tc.is_hidden ? '#FEF3C7' : '#E0E7FF', color: tc.is_hidden ? '#92400E' : '#3730A3' }}>
-                            {tc.is_hidden ? '🔒 Hidden Case' : 'Visible Sample'}
-                          </span>
-                        </div>
-                        <code style={{ fontSize: '11px', color: '#475569' }}>
-                          Expect: {tc.expected_output}
-                        </code>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div style={{ padding: '14px 20px', borderTop: '1px solid #E2E8F0', textAlign: 'right', background: '#F8FAFC' }}>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setViewingProblem(null)}
-                style={{ padding: '8px 20px', borderRadius: '10px' }}
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
