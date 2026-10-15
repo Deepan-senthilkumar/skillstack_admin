@@ -4,7 +4,7 @@ import {
   Code2, BarChart3, BookOpen, Users, LogOut,
   Menu, X, Sparkles, ExternalLink, FileText, HelpCircle, Award, AlertTriangle,
   MessageSquare, ChevronDown, ChevronRight, TrendingUp, CheckCircle2,
-  Bell, Search, ChevronLeft
+  Bell
 } from 'lucide-react';
 
 // Navigation structure matching user's requirements:
@@ -195,31 +195,45 @@ export default function AdminLayout({
           {/* Top Brand Logo Section */}
           <div className="fintrack-sidebar-header">
             <div
-              className="fintrack-logo-box"
+              className="fintrack-brand-btn"
               onClick={() => setIsPinned(prev => !prev)}
               title={!isPinned ? "Click to lock sidebar open, or hover to preview" : "Click to collapse to Logo only"}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
             >
-              <div className="fintrack-logo-badge">
-                <Shield size={20} className="text-white" />
-              </div>
+              <img
+                src="/skillstack.png"
+                alt="SkillStack Logo"
+                className="fintrack-brand-logo-img"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  minWidth: '38px',
+                  borderRadius: '10px',
+                  objectFit: 'contain',
+                  boxShadow: '0 2px 8px rgba(91, 88, 235, 0.25)',
+                  background: '#FFFFFF'
+                }}
+              />
               {isExpanded && (
-                <div className="fintrack-logo-texts animate-fade-in">
-                  <span className="fintrack-brand-name">SkillStack</span>
-                  <span className="fintrack-brand-tag">TUTOR PRO</span>
+                <div className="fintrack-brand-text animate-fade-in" style={{ marginLeft: '10px' }}>
+                  <div className="brand-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>SkillStack</span>
+                    <span className="fintrack-pro-pill" style={{
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '2px 7px',
+                      background: 'rgba(91, 88, 235, 0.12)',
+                      color: 'var(--ft-primary)',
+                      borderRadius: '6px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}>
+                      TUTOR PRO
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
-
-            {isExpanded && (
-              <button
-                type="button"
-                className="fintrack-pin-toggle-btn"
-                onClick={() => setIsPinned(prev => !prev)}
-                title={isPinned ? "Collapse to Logo only" : "Pin sidebar"}
-              >
-                <ChevronLeft size={16} />
-              </button>
-            )}
           </div>
 
           {/* Collapsed Hint: When menu is closed, show only Logo as requested */}
@@ -314,15 +328,6 @@ export default function AdminLayout({
                   return null;
                 })}
               </nav>
-
-              {/* Bottom 3D Promotion Card in Sidebar (FinTrack Style) */}
-              <div className="fintrack-sidebar-promo-card">
-                <div className="promo-badge-icon">
-                  <Sparkles size={16} className="text-white" />
-                </div>
-                <div className="promo-title">SkillStack Tutor Pro</div>
-                <p className="promo-sub">Automated compiler evaluation &amp; cohort tracker live</p>
-              </div>
             </div>
           )}
         </aside>
@@ -335,15 +340,14 @@ export default function AdminLayout({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className="fintrack-mobile-toggle md:hidden"
-                  onClick={() => setMobileMenuOpen(prev => !prev)}
-                >
-                  <Menu size={20} />
-                </button>
-                <button
-                  type="button"
-                  className="fintrack-desktop-toggle hidden md:flex"
-                  onClick={() => setIsPinned(prev => !prev)}
+                  className="fintrack-menu-toggle-btn"
+                  onClick={() => {
+                    if (window.innerWidth < 768) {
+                      setMobileMenuOpen(prev => !prev);
+                    } else {
+                      setIsPinned(prev => !prev);
+                    }
+                  }}
                   title={isPinned ? "Collapse sidebar" : "Expand sidebar"}
                 >
                   <Menu size={18} />
@@ -359,20 +363,8 @@ export default function AdminLayout({
               </div>
             </div>
 
-            {/* Right Header Widgets: Search, Notifications, User Profile */}
+            {/* Right Header Widgets: Notifications, User Profile, SignOut */}
             <div className="header-actions-block">
-              {/* Search Pill */}
-              <div className="fintrack-search-pill">
-                <Search size={15} className="text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="fintrack-search-input"
-                  readOnly
-                  onClick={() => onNavigate('subjects')}
-                  style={{ cursor: 'pointer' }}
-                />
-              </div>
 
               {/* Notification Circular Button */}
               <button
